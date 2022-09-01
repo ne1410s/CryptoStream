@@ -1,0 +1,52 @@
+name: test
+on:
+  pull_request:
+    paths:
+    - source/**
+  workflow_call:
+jobs:
+  run_tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./source
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x
+    - name: Restore tools
+      run: dotnet tool restore
+    - name: Build for release
+      run: dotnet build -c Release
+    - name: Get test project dll
+      run: |
+        shopt -s extglob globstar
+        echo "TEST_PROJECT_DLL=$(ls ./**/bin/Release/**/*.+(Test*(s)|UnitTest*(s)).dll | head -n1)" >> $GITHUB_ENV
+    - name: Generate raw coverage data
+      id: gen_coverage
+      run: dotnet coverlet ${{ env.TEST_PROJECT_DLL }} -t dotnet -a "test ${{ env.TEST_PROJECT_DLL }} -c Release --no-build" --threshold 100 -f cobertura -o TestResults/coverage
+    - name: Process coverage report
+      if: success() || steps.gen_coverage.outcome == 'failure'
+      run: |
+        dotnet reportgenerator -targetdir:'${{ github.workspace }}/drop/reports' -reports:**/coverage.cobertura.xml -reporttypes:"htmlsummary"
+        rm -f ${{ github.workspace }}/drop/reports/summary.htm
+        mv ${{ github.workspace }}/drop/reports/summary.html ${{ github.workspace }}/drop/reports/coverage-report.html
+    - name: Generate raw mutation data
+      id: gen_mutation
+      if: success() || steps.gen_coverage.outcome == 'failure'
+      run: dotnet stryker
+    - name: Process mutation report
+      if: success() || steps.gen_coverage.outcome == 'failure' || steps.gen_mutation.outcome == 'failure'
+      run: |
+        strykerFile=$(find ./StrykerOutput -name mutation-report.html)
+        cp $strykerFile ${{ github.workspace }}/drop/reports
+    - name: Drop artifact - reports
+      if: success() || steps.gen_coverage.outcome == 'failure' || steps.gen_mutation.outcome == 'failure'
+      uses: actions/upload-artifact@v3
+      with:
+        name: reports
+        path: ${{ github.workspace }}/drop/reports
+    - name: Fail build warnings
+      run: dotnet build -c Release --no-incremental /warnaserror
+

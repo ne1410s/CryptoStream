@@ -1,0 +1,42 @@
+name: release
+on:
+  push:
+    tags:
+    - v[0-9]+.[0-9]+.[0-9]+*
+jobs:
+  call_test:
+    uses: ./.github/workflows/test.yml
+  release:
+    needs: call_test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        ref: main
+    - uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x
+    - name: Publish NuGet package
+      run: |
+        cd ./source
+        vversion=${{ github.ref_name }}
+        dotnet pack -c Release -o ${{ runner.temp }}/nu -p:Version=${vversion:1}
+        dotnet nuget add source --username ne1410s --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/ne1410s/index.json"
+        dotnet nuget push ${{ runner.temp }}/nu/*.nupkg -s github
+    - name: Increment patch (if stable release)
+      run: |
+        if [[ ${{ github.ref_name }} =~ ^v([0-9]+\.[0-9]+\.)([0-9]+)$ ]]
+        then
+          echo "${{ github.ref_name }} is a stable release version. Incrementing patch."
+          vnext="${BASH_REMATCH[1]}$((${BASH_REMATCH[2]} + 1))"
+          shopt -s extglob
+          for file in "./source/**/!(*.Test*(s)|*.UnitTest*(s)).csproj"; do
+            sed "s#<VersionPrefix>[^<]*</VersionPrefix>#<VersionPrefix>$vnext</VersionPrefix>#" $file -i
+          done
+          git config --global user.email "octocat@github.com"
+          git config --global user.name "ci-bot"
+          git commit -am "Published ${BASH_REMATCH[0]}: Increment patch [skip ci]."
+          git push
+        else
+          echo "Skipping patch increment. ${{ github.ref_name }} is not a stable release version."
+        fi
