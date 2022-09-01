@@ -3,15 +3,15 @@
   <PropertyGroup>
     <Authors>Paul Jones</Authors>
     <Company>ne1410s</Company>
-    <Description>DESCRIPTION HERE</Description>
-    <PackageTags>PACKAGE_TAGS_HERE</PackageTags>
+    <Description>A library designed to simplify common cryptographic processes</Description>
+    <PackageTags>cryptography hash codec gcm cbc</PackageTags>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <IncludeSymbols>True</IncludeSymbols>
     <Nullable>enable</Nullable>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <PackageProjectUrl>https://github.com/ne1410s/DemoLibrary</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/ne1410s/Crypto</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <RepositoryUrl>https://github.com/ne1410s/DemoLibrary</RepositoryUrl>
+    <RepositoryUrl>https://github.com/ne1410s/Crypto</RepositoryUrl>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <TargetFramework>netstandard2.1</TargetFramework>
     <Title>$(AssemblyName)</Title>
@@ -30,6 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="jose-jwt" Version="4.0.1" />
     <PackageReference Include="Roslynator.Analyzers" Version="4.1.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
