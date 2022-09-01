@@ -44,44 +44,53 @@ namespace Crypto.Codec
         public static string AsString(this byte[] input, ByteCodec codec) =>
             codec.ToStringFunc()(input);
 
-        private static Encoding ToCodec(this CharCodec mode) => mode switch
+        private static Encoding ToCodec(this CharCodec mode)
         {
-            CharCodec.Ascii => Encoding.ASCII,
-            CharCodec.Unicode => Encoding.Unicode,
-            CharCodec.Utf8 => Encoding.UTF8,
-            _ => throw new NotSupportedException($"{mode} unsupported"),
-        };
-
-        private static Func<string, byte[]> ToBytesFunc(this ByteCodec mode) => mode switch
-        {
-            ByteCodec.Base64 => str => Convert.FromBase64String(str),
-            ByteCodec.Hex => str =>
+            switch (mode)
             {
-                var bytes = new byte[str.Length / 2];
-                for (var i = 0; i < bytes.Length; i++)
-                {
-                    bytes[i] = Convert.ToByte(str.Substring(i * 2, 2), 16);
-                }
+                case CharCodec.Ascii: return Encoding.ASCII;
+                case CharCodec.Unicode: return Encoding.Unicode;
+                case CharCodec.Utf8: return Encoding.UTF8;
+                default: throw new NotSupportedException($"{mode} unsupported");
+            }
+        }
 
-                return bytes;
-            },
-            _ => throw new NotSupportedException($"{mode} -> bytes unsupported"),
-        };
-
-        private static Func<byte[], string> ToStringFunc(this ByteCodec mode) => mode switch
+        private static Func<string, byte[]> ToBytesFunc(this ByteCodec mode)
         {
-            ByteCodec.Base64 => bytes => Convert.ToBase64String(bytes),
-            ByteCodec.Hex => bytes =>
+            switch (mode)
             {
-                var sb = new StringBuilder();
-                foreach (var b in bytes)
+                case ByteCodec.Base64: return str => Convert.FromBase64String(str);
+                case ByteCodec.Hex: return str =>
                 {
-                    sb.Append(b.ToString("x2"));
-                }
+                    var bytes = new byte[str.Length / 2];
+                    for (var i = 0; i < bytes.Length; i++)
+                    {
+                        bytes[i] = Convert.ToByte(str.Substring(i * 2, 2), 16);
+                    }
 
-                return sb.ToString();
-            },
-            _ => throw new NotSupportedException($"{mode} -> string unsupported"),
-        };
+                    return bytes;
+                };
+                default: throw new NotSupportedException($"{mode} -> bytes unsupported");
+            }
+        }
+
+        private static Func<byte[], string> ToStringFunc(this ByteCodec mode)
+        {
+            switch (mode)
+            {
+                case ByteCodec.Base64: return bytes => Convert.ToBase64String(bytes);
+                case ByteCodec.Hex: return bytes =>
+                {
+                    var sb = new StringBuilder();
+                    foreach (var b in bytes)
+                    {
+                        sb.Append(b.ToString("x2"));
+                    }
+
+                    return sb.ToString();
+                };
+                default: throw new NotSupportedException($"{mode} -> string unsupported");
+            }
+        }
     }
 }

@@ -31,7 +31,7 @@ namespace Crypto
             Stream target,
             byte[] key,
             int bufferLength = 32768,
-            Stream? mac = null)
+            Stream mac = null)
         {
             var counter = new byte[12];
             var srcBuffer = new byte[bufferLength];
@@ -84,7 +84,7 @@ namespace Crypto
             this Stream source,
             byte[] key,
             int bufferLength = 32768,
-            Stream? mac = null)
+            Stream mac = null)
         {
             return source.Encrypt(source, key, bufferLength, mac);
         }
@@ -100,7 +100,7 @@ namespace Crypto
             this FileInfo fi,
             byte[] key,
             int bufferLength = 32768,
-            Stream? mac = null)
+            Stream mac = null)
         {
             string saltHex;
             using (var source = fi.Open(FileMode.Open))
@@ -133,7 +133,7 @@ namespace Crypto
             byte[] key,
             Stream target,
             int bufferLength = 32768,
-            Stream? mac = null)
+            Stream mac = null)
         {
             var macBuffer = GenerateMacBuffer();
             var srcBuffer = new byte[bufferLength];
@@ -173,7 +173,7 @@ namespace Crypto
         /// <param name="fileName">The file name.</param>
         /// <returns>A salt.</returns>
         public static byte[] GenerateSalt(this string fileName)
-            => fileName[..64].AsBytes(ByteCodec.Hex);
+            => fileName.Substring(0, 64).AsBytes(ByteCodec.Hex);
 
         /// <summary>
         /// Generates a pepper from a stream.

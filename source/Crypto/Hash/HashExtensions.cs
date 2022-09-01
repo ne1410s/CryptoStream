@@ -47,8 +47,10 @@ namespace Crypto.Hash
         /// <returns>A byte array.</returns>
         public static byte[] Hash(this FileInfo fi, HashAlgo algo)
         {
-            using var stream = File.Open(fi.FullName, FileMode.Open, FileAccess.Read);
-            return stream.Hash(algo);
+            using (var stream = File.Open(fi.FullName, FileMode.Open, FileAccess.Read))
+            {
+                return stream.Hash(algo);
+            }
         }
 
         /// <summary>
@@ -66,8 +68,10 @@ namespace Crypto.Hash
             int reads = 20,
             int chunkSize = 4096)
         {
-            using var str = fi.OpenRead();
-            return str.LightHash(algo, reads, chunkSize);
+            using (var str = fi.OpenRead())
+            {
+                return str.LightHash(algo, reads, chunkSize);
+            }
         }
 
         /// <summary>
@@ -113,14 +117,17 @@ namespace Crypto.Hash
             return hasher.Hash;
         }
 
-        private static HashAlgorithm ToAlgorithm(this HashAlgo algo) => algo switch
+        private static HashAlgorithm ToAlgorithm(this HashAlgo algo)
         {
-            HashAlgo.Md5 => MD5.Create(),
-            HashAlgo.Sha1 => SHA1.Create(),
-            HashAlgo.Sha256 => SHA256.Create(),
-            HashAlgo.Sha384 => SHA384.Create(),
-            HashAlgo.Sha512 => SHA512.Create(),
-            _ => throw new NotSupportedException($"{algo} unsupported"),
-        };
+            switch(algo)
+            {
+                case HashAlgo.Md5: return MD5.Create();
+                case HashAlgo.Sha1: return SHA1.Create();
+                case HashAlgo.Sha256: return SHA256.Create();
+                case HashAlgo.Sha384: return SHA384.Create();
+                case HashAlgo.Sha512: return SHA512.Create();
+                default: throw new NotSupportedException($"{algo} unsupported");
+            }
+        }
     }
 }
