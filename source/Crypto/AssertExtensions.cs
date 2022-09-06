@@ -7,7 +7,7 @@ namespace Crypto
     /// <summary>
     /// Extensions relating to assertions.
     /// </summary>
-    internal static class AssertExtensions
+    public static class AssertExtensions
     {
         /// <summary>
         /// Asserts that a stream can be appropriately read.
@@ -32,7 +32,7 @@ namespace Crypto
         /// <exception cref="ArgumentException">Stream not writeable.</exception>
         public static void AssertWriteable(this Stream stream)
         {
-            if (stream?.CanWrite != true || !stream.CanSeek || stream.Length != 0)
+            if (stream?.CanWrite != true || (!stream.CanSeek && stream.Length != 0))
             {
                 throw new ArgumentException("Stream not writeable");
             }

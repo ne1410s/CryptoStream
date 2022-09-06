@@ -52,15 +52,21 @@ namespace Crypto.Streams
         public override int Read(byte[] buffer, int offset, int count)
             => inner.Read(buffer, offset, count);
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Not supported.
+        /// </summary>
         public override void Flush()
             => throw new NotSupportedException("This stream is read-only.");
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Not supported.
+        /// </summary>
         public override void SetLength(long value)
             => throw new NotSupportedException("This stream is read-only.");
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Not supported.
+        /// </summary>
         public override void Write(byte[] buffer, int offset, int count)
             => throw new NotSupportedException("This stream is read-only.");
 

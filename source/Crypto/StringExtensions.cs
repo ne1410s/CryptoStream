@@ -23,7 +23,7 @@ namespace Crypto
 
             foreach (var hexHash in hexHashes)
             {
-                seed = $"{hexHash}{seed}"
+                seed = (hexHash + seed)
                     .AsBytes(CharCodec.Utf8)
                     .Hash(HashAlgo.Sha1)
                     .AsString(ByteCodec.Base64);

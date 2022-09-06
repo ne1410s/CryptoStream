@@ -9,12 +9,16 @@ public class ByteExtensionsTests
     [InlineData(-1)]
     public void CounterIncrement_SmallNumbers(int initial)
     {
+        // Arrange
         var counter = BitConverter.GetBytes(initial);
-        ByteExtensions.Increment(ref counter);
         var expected = initial + 1;
-        var actual = BitConverter.ToInt32(counter);
 
-        Assert.Equal(expected, actual);
+        // Act
+        ByteExtensions.Increment(ref counter);
+
+        // Assert
+        var actual = BitConverter.ToInt32(counter);
+        actual.Should().Be(expected);
     }
 
     [Theory]
@@ -24,12 +28,16 @@ public class ByteExtensionsTests
     [InlineData(0, 0, true)]
     public void CounterIncrement_Resize(int initialSize, byte fill, bool expectResize)
     {
+        // Arrange
         var expectedFinalSize = expectResize ? initialSize + 1 : initialSize;
         var counter = new byte[initialSize];
         Array.Fill(counter, fill);
+
+        // Act
         ByteExtensions.Increment(ref counter);
 
-        Assert.Equal(expectedFinalSize, counter.Length);
+        // Assert
+        counter.Length.Should().Be(expectedFinalSize);
     }
 
     [Theory]
@@ -40,17 +48,21 @@ public class ByteExtensionsTests
     [InlineData(9623, false, false)]
     public void CounterIncrement_Endianness(int initialSize, bool bigEndian, bool expectAppend)
     {
+        // Arrange
         var counter = new byte[initialSize];
         Array.Fill(counter, byte.MaxValue);
+
+        // Act
         ByteExtensions.Increment(ref counter, bigEndian);
+
+        // Assert
         var expectZeroAt = expectAppend ? counter.Length - 1 : 0;
         var expectOneAt = expectAppend ? 0 : counter.Length - 1;
-
         if (initialSize != 0)
         {
-            Assert.Equal(0, counter[expectZeroAt]);
+            counter[expectZeroAt].Should().Be(0);
         }
 
-        Assert.Equal(1, counter[expectOneAt]);
+        counter[expectOneAt].Should().Be(1);
     }
 }
