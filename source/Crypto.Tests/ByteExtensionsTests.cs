@@ -1,5 +1,8 @@
 namespace Crypto.Tests;
 
+/// <summary>
+/// Tests for the <see cref="ByteExtensions"/> class.
+/// </summary>
 public class ByteExtensionsTests
 {
     [Theory]
@@ -64,5 +67,17 @@ public class ByteExtensionsTests
         }
 
         counter[expectOneAt].Should().Be(1);
+    }
+
+    [Theory]
+    [InlineData(500, true, new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 244 })]
+    [InlineData(500, false, new byte[] { 244, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })]
+    public void Pad12_Endianness(long number, bool bigEndian, byte[] expected)
+    {
+        // Arrange & Act
+        var result = number.Pad12(bigEndian);
+
+        // Assert
+        result.Should().BeEquivalentTo(expected);
     }
 }

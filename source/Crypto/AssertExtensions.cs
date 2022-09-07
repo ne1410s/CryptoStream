@@ -32,7 +32,7 @@ namespace Crypto
         /// <exception cref="ArgumentException">Stream not writeable.</exception>
         public static void AssertWriteable(this Stream stream)
         {
-            if (stream?.CanWrite != true || (!stream.CanSeek && stream.Length != 0))
+            if (stream?.CanWrite != true || (!stream.CanSeek && stream.Position != 0))
             {
                 throw new ArgumentException("Stream not writeable");
             }

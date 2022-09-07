@@ -49,13 +49,24 @@ namespace Crypto
         /// Gets a 64-bit integer expressed as a padded array of twelve bytes.
         /// </summary>
         /// <param name="number">The 64-bit integer.</param>
+        /// 
+        /// <param name="bigEndian">A value here forces big or little endianness
+        /// accordingly - else that of the cpu architecture is used.</param>
+        /// <remarks>Big endian means the most significant bit is first, little
+        /// endian it is last. e.g. 16|8|4|2|1 is big endian.</remarks>
         /// <returns>A twelve-bytes array.</returns>
-        public static byte[] Pad12(this long number)
+        public static byte[] Pad12(this long number, bool? bigEndian = null)
         {
+            bigEndian = bigEndian ?? !BitConverter.IsLittleEndian;
             var eightBytes = BitConverter.GetBytes(number);
-            return BitConverter.IsLittleEndian
-                ? eightBytes.Concat(FourZeroes).ToArray()
-                : FourZeroes.Concat(eightBytes).ToArray();
+            if (bigEndian == BitConverter.IsLittleEndian)
+            {
+                eightBytes = eightBytes.Reverse().ToArray();
+            }
+
+            return bigEndian.Value
+                ? FourZeroes.Concat(eightBytes).ToArray()
+                : eightBytes.Concat(FourZeroes).ToArray();
         }
     }
 }

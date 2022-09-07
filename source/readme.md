@@ -5,7 +5,7 @@
 dotnet tool restore
 
 # Run unit tests and show coverage report
-dotnet build -c Release -o bin; dotnet coverlet bin/Crypto.Tests.dll -t dotnet -a "test bin/Crypto.Tests.dll -c Release --no-build" --threshold 100 -f cobertura -o TestResults/coverage; dotnet reportgenerator -targetdir:coveragereport -reports:**/coverage.cobertura.xml -reporttypes:"html"; start coveragereport/index.html;
+gci **/TestResults/ | ri -r; dotnet build -c Release -o bin; dotnet coverlet bin/Crypto.Tests.dll -t dotnet -a "test bin/Crypto.Tests.dll -c Release --no-build" --threshold 100 -f cobertura -o TestResults/coverage; dotnet reportgenerator -targetdir:coveragereport -reports:**/coverage.cobertura.xml -reporttypes:"html"; start coveragereport/index.html;
 
 # Run mutation tests and show report
 if (Test-Path StrykerOutput) { rm -r StrykerOutput }; dotnet stryker -o
