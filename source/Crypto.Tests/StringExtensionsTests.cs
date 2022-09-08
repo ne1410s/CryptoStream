@@ -1,22 +1,9 @@
-﻿namespace Crypto.Tests;
+﻿using Crypto.Codec;
+
+namespace Crypto.Tests;
 
 public class StringExtensionsTests
 {
-    [Fact]
-    public void DeriveKey_WithParams_ReturnsExpected()
-    {
-        // Arrange
-        const string seed = "1234";
-        var sources = new byte[][] { new byte[] { 1 } };
-        var expected = new byte[] { 51, 30, 208, 201, 95, 194, 53, 180, 106, 245, 100, 182, 196, 217, 173, 198, 0, 57, 239, 34 };
-
-        // Act
-        var result = seed.DeriveKey(sources);
-
-        // Assert
-        result.Should().BeEquivalentTo(expected);
-    }
-
     [Fact]
     public void DeriveKey_VaryingSourceOrder_SameResult()
     {
@@ -28,12 +15,12 @@ public class StringExtensionsTests
             new byte[] { 2 },
             new byte[] { 3 },
         };
-        
+
         // Act
-        var result1 = seed.DeriveKey(sources);
-        var result2 = seed.DeriveKey(sources.Reverse().ToArray());
+        var result1 = seed.DeriveKey(sources).AsString(ByteCodec.Hex);
+        var result2 = seed.DeriveKey(sources.Reverse().ToArray()).AsString(ByteCodec.Hex);
 
         // Assert
-        result1.Should().BeEquivalentTo(result2);
+        result1.Should().Be(result2).And.Be("67e85f44ef4c87d071e9c5f5b71f6bc1e963b233");
     }
 }

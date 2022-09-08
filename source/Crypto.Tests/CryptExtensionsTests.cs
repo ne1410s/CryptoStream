@@ -2,6 +2,9 @@
 
 namespace Crypto.Tests;
 
+/// <summary>
+/// Tests for the <see cref="CryptExtensions"/> class.
+/// </summary>
 public class CryptExtensionsTests
 {
     internal static readonly byte[] TestKey = new byte[] { 3, 44, 201, 0, 6 };
@@ -137,26 +140,21 @@ public class CryptExtensionsTests
         File.Delete(macFile);
     }
 
-    ////[Fact]
-    ////public void EncryptMany()
-    ////{
-    ////    var di = new DirectoryInfo(@"C:\temp\vid-test\sec\many");
-    ////    var files = di.GetFiles("*", SearchOption.AllDirectories);
-    ////    for (var i = 0; i < files.Length; i++)
-    ////    {
-    ////        files[i].Encrypt(TestKey);
-    ////    }
-    ////}
+    [Fact]
+    public void Decrypt_ToOversizedStream_ShrinkWrapped()
+    {
+        // Arrange
+        var fi = new FileInfo(nameof(Decrypt_ToOversizedStream_ShrinkWrapped));
+        File.WriteAllText(fi.FullName, "hi");
+        var originalFileLength = fi.Length;
+        fi.Encrypt(TestKey);
+        using var target = new MemoryStream();
+        target.SetLength(fi.Length + 10);
 
-    ////[Fact]
-    ////public void DecryptMany()
-    ////{
-    ////    var di = new DirectoryInfo(@"C:\temp\vid-test\sec\many");
-    ////    var files = di.GetFiles("*", SearchOption.AllDirectories);
-    ////    var fs = File.OpenWrite(@"c:\temp\123.mp4");
-    ////    for (var i = 0; i < files.Length; i++)
-    ////    {
-    ////        files[i].Decrypt(TestKey, fs);
-    ////    }
-    ////}
+        // Act
+        fi.Decrypt(TestKey, target);
+
+        // Assert
+        target.Length.Should().Be(originalFileLength);
+    }
 }

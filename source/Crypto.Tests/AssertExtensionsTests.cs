@@ -1,5 +1,5 @@
 ﻿using System.Security.Cryptography;
-using System.Text.Json.Serialization;
+using Crypto.Tests.TestHelpers;
 
 namespace Crypto.Tests;
 
@@ -149,6 +149,19 @@ public class AssertExtensionsTests
     }
 
     [Fact]
+    public void AssertWriteable_CannotSeekButAtStart_DoesNotThrow()
+    {
+        // Arrange
+        using var mock = new UnseekableStream(20);
+
+        // Act
+        var act = () => mock.AssertWriteable();
+
+        // Assert
+        act.Should().NotThrow();
+    }
+
+    [Fact]
     public void AssertReusable_CannotReuseTransform_ThrowsException()
     {
         // Arrange
@@ -188,22 +201,5 @@ public class AssertExtensionsTests
 
         // Assert
         act.Should().NotThrow();
-    }
-
-    private class UnreusableHash : HMACMD5
-    {
-        public override bool CanReuseTransform => false;
-    }
-
-    private class UnseekableStream : MemoryStream
-    {
-        public UnseekableStream(int length = 0)
-            : base(Enumerable.Range(0, length).Select(_ => (byte)1).ToArray())
-        { }
-
-        public override bool CanSeek => false;
-
-        public override long Seek(long offset, SeekOrigin loc)
-            => throw new NotSupportedException();
     }
 }

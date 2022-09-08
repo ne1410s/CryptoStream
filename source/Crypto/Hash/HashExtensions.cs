@@ -92,7 +92,6 @@ namespace Crypto.Hash
             int chunkSize = 4096)
         {
             HashAlgorithm hasher = algo.ToAlgorithm();
-            hasher.AssertReusable();
             stream.AssertReadable(true);
 
             var seedBytes = $"{stream.Length}".AsBytes(CharCodec.Utf8);
@@ -106,7 +105,7 @@ namespace Crypto.Hash
             stream.Seek(0, SeekOrigin.Begin);
 
             int lastRead;
-            while ((lastRead = stream.Read(chunk, 0, chunkSize)) > 0)
+            while ((lastRead = stream.Read(chunk, 0, chunkSize)) != 0)
             {
                 hasher.TransformBlock(chunk, 0, lastRead, dump, 0);
                 stream.Seek(skipSize, SeekOrigin.Current);

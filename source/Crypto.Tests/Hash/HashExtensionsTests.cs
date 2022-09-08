@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Crypto.Codec;
+﻿using Crypto.Codec;
 using Crypto.Hash;
+using Crypto.Tests.TestHelpers;
 
 namespace Crypto.Tests.Hash;
 
+/// <summary>
+/// Tests for the <see cref="HashExtensions"/> class.
+/// </summary>
 public class HashExtensionsTests
 {
     [Theory]
@@ -46,7 +45,7 @@ public class HashExtensionsTests
     public void Hash_BadAlgo_ThrowsException()
     {
         // Arrange
-        var algo = (HashAlgo)999;
+        const HashAlgo algo = (HashAlgo)999;
 
         // Act
         var act = () => new byte[] { 1 }.Hash(algo);
@@ -54,6 +53,35 @@ public class HashExtensionsTests
         // Assert
         act.Should().Throw<NotSupportedException>()
             .WithMessage("*unsupported*");
+    }
+
+    [Fact]
+    public void Hash_UnreadableStream_ThrowsException()
+    {
+        // Arrange
+        var stream = new UnreadableStream();
+
+        // Act
+        var act = () => stream.Hash(HashAlgo.Md5);
+
+        // Assert
+        act.Should().Throw<ArgumentException>()
+            .WithMessage("Stream not readable");
+    }
+
+    [Fact]
+    public void Hash_File_ReturnsExpected()
+    {
+        // Arrange
+        const string fileName = nameof(Hash_File_ReturnsExpected);
+        File.WriteAllText(fileName, "hello world");
+
+        // Act
+        var result = new FileInfo(fileName).Hash(HashAlgo.Md5).AsString(ByteCodec.Hex);
+        File.Delete(fileName);
+
+        // Assert
+        result.Should().Be("5eb63bbbe01eeed093cb22bb8f5acdc3");
     }
 
     [Fact]
@@ -68,5 +96,63 @@ public class HashExtensionsTests
 
         // Assert
         result.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(4)]
+    public void LightHash_FromStreamVariousPositions_ReturnsSame(int position)
+    {
+        // Arrange
+        var stream = new MemoryStream(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 });
+        stream.Seek(position, SeekOrigin.Begin);
+
+        // Act
+        var result = stream.LightHash(HashAlgo.Sha1).AsString(ByteCodec.Base64);
+
+        // Assert
+        result.Should().Be("IKSTAuZ5pROok6Vh0EZCYi4aFOs=");
+    }
+
+    [Fact]
+    public void LightHash_ValidInput_SetsPositionToStart()
+    {
+        // Arrange
+        var stream = new MemoryStream(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 });
+        stream.Seek(3, SeekOrigin.Begin);
+
+        // Act
+        stream.LightHash(HashAlgo.Sha1).AsString(ByteCodec.Base64);
+
+        // Assert
+        stream.Position.Should().Be(0);
+    }
+
+    [Fact]
+    public void LightHash_UnreadableStream_ThrowsException()
+    {
+        // Arrange
+        using var stream = new UnreadableStream();
+
+        // Act
+        var act = () => stream.LightHash(HashAlgo.Sha1);
+
+        // Assert
+        act.Should().Throw<ArgumentException>()
+            .WithMessage("Stream not readable");
+    }
+
+    [Fact]
+    public void LightHash_UnseekableStream_ThrowsException()
+    {
+        // Arrange
+        using var stream = new UnseekableStream(5);
+
+        // Act
+        var act = () => stream.LightHash(HashAlgo.Sha1);
+
+        // Assert
+        act.Should().Throw<ArgumentException>()
+            .WithMessage("Stream not readable");
     }
 }

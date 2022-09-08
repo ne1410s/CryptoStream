@@ -48,4 +48,18 @@ public class ReadFileStreamTests
         act.Should().ThrowExactly<NotSupportedException>()
             .WithMessage("This stream is read-only.");
     }
+
+    [Fact]
+    public void Dispose_ThenRead_ThrowsException()
+    {
+        // Arrange
+        var sut = new ReadFileStream(new MemoryStream(new byte[] { 1, 2, 3 }));
+
+        // Act
+        sut.Dispose();
+        var act = () => sut.Position = 1;
+
+        // Arrange
+        act.Should().Throw<ObjectDisposedException>();
+    }
 }
