@@ -40,7 +40,7 @@ namespace Crypto.Streams
         {
             var pepper = new AesGcmDecryptor().ReadPepper(stream);
             pepperLength = pepper.Length;
-            cryptoKey = new KeyDeriver().DeriveCryptoKey(userKey, salt, pepper);
+            cryptoKey = new DefaultKeyDeriver().DeriveCryptoKey(userKey, salt, pepper);
         }
 
         /// <inheritdoc/>

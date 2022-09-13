@@ -7,6 +7,17 @@ namespace Crypto.Transform
     /// <inheritdoc cref="IGcmDecryptor"/>
     public abstract class GcmDecryptorBase : IGcmDecryptor
     {
+        private readonly ICryptoKeyDeriver keyDeriver;
+
+        /// <summary>
+        /// Initialises a new instance of <see cref="GcmDecryptorBase"/>.
+        /// </summary>
+        /// <param name="keyDeriver">The key deriver.</param>
+        protected GcmDecryptorBase(ICryptoKeyDeriver keyDeriver)
+        {
+            this.keyDeriver = keyDeriver;
+        }
+
         /// <summary>
         /// Gets the pepper length.
         /// </summary>
@@ -25,7 +36,6 @@ namespace Crypto.Transform
             Stream output,
             byte[] userKey,
             byte[] salt,
-            IKeyDeriver keyDeriver,
             int bufferLength = 32768,
             Stream mac = null)
         {

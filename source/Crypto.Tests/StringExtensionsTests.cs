@@ -42,11 +42,10 @@ public class StringExtensionsTests
     public void Encrypt_CustomProviders_ReturnsExpected()
     {
         // Arrange
-        var customDeriver = new TestKeyDeriver();
         var customCrypto = new TestCrypto();
 
         // Act
-        var cipher = "test".Encrypt("pass", out var salt, customCrypto, customDeriver);
+        var cipher = "test".Encrypt("pass", out var salt, customCrypto);
 
         // Assert
         cipher.Should().Be("AgQG");

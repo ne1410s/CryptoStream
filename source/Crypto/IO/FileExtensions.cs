@@ -2,7 +2,6 @@
 using System.IO;
 using Crypto.Encoding;
 using Crypto.Hashing;
-using Crypto.Keying;
 using Crypto.Transform;
 
 namespace Crypto.IO
@@ -58,7 +57,6 @@ namespace Crypto.IO
         /// <param name="target">The target stream.</param>
         /// <param name="userKey">The user key.</param>
         /// <param name="decryptor">The decryptor.</param>
-        /// <param name="keyDeriver">The key deriver.</param>
         /// <param name="bufferLength">The buffer length.</param>
         /// <param name="mac">The mac (optional).</param>
         public static void DecryptTo(
@@ -66,46 +64,41 @@ namespace Crypto.IO
             Stream target,
             byte[] userKey,
             IDecryptor decryptor = null,
-            IKeyDeriver keyDeriver = null,
             int bufferLength = 32768,
             Stream mac = null)
         {
             decryptor = decryptor ?? new AesGcmDecryptor();
-            keyDeriver = keyDeriver ?? new KeyDeriver();
             var salt = fi.ToSalt();
 
             using (var stream = fi.OpenRead())
             {
-                decryptor.Decrypt(stream, target, userKey, salt, keyDeriver, bufferLength, mac);
+                decryptor.Decrypt(stream, target, userKey, salt, bufferLength, mac);
             }
         }
 
         /// <summary>
-        /// Encrypts a file in it's current location. Caution: the bytes are
+        /// Encrypts a file in its current location. Caution: the bytes are
         /// progressively overwritten in a non-transactional and irrevocable way.
         /// </summary>
         /// <param name="fi">The file.</param>
         /// <param name="userKey">The user key.</param>
         /// <param name="encryptor">The encryptor.</param>
-        /// <param name="keyDeriver">The key deriver.</param>
         /// <param name="bufferLength">The buffer length.</param>
         /// <param name="mac">The mac.</param>
-        /// <returns></returns>
+        /// <returns>The salt hex.</returns>
         public static string EncryptInSitu(
             this FileInfo fi,
             byte[] userKey,
             IEncryptor encryptor = null,
-            IKeyDeriver keyDeriver = null,
             int bufferLength = 32768,
             Stream mac = null)
         {
             encryptor = encryptor ?? new AesGcmEncryptor();
-            keyDeriver = keyDeriver ?? new KeyDeriver();
 
             string saltHex;
             using (var stream = fi.Open(FileMode.Open))
             {
-                saltHex = encryptor.Encrypt(stream, stream, userKey, keyDeriver, bufferLength, mac)
+                saltHex = encryptor.Encrypt(stream, stream, userKey, bufferLength, mac)
                     .Decode(Codec.ByteHex);
             }
 

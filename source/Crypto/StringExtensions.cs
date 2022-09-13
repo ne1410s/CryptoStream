@@ -1,7 +1,6 @@
 ﻿using System.IO;
 using Crypto.Encoding;
 using Crypto.Hashing;
-using Crypto.Keying;
 using Crypto.Transform;
 
 namespace Crypto
@@ -27,7 +26,6 @@ namespace Crypto
         /// <param name="password">The password.</param>
         /// <param name="saltBase64">The salt as base 64.</param>
         /// <param name="encryptor">The encryptor.</param>
-        /// <param name="keyDeriver">The key deriver.</param>
         /// <param name="bufferLength">The buffer length.</param>
         /// <returns>The encrypted base 64.</returns>
         public static string Encrypt(
@@ -35,17 +33,15 @@ namespace Crypto
             string password,
             out string saltBase64,
             IEncryptor encryptor = null,
-            IKeyDeriver keyDeriver = null,
             int bufferLength = 32768)
         {
             encryptor = encryptor ?? new AesGcmEncryptor();
-            keyDeriver = keyDeriver ?? new KeyDeriver();
             var userKey = password.Encode(Codec.CharUtf8);
 
             using (var srcStream = new MemoryStream(str.Encode(Codec.CharUtf8)))
             using (var trgStream = new MemoryStream())
             {
-                saltBase64 = encryptor.Encrypt(srcStream, trgStream, userKey, keyDeriver, bufferLength).Decode(Codec.ByteBase64);
+                saltBase64 = encryptor.Encrypt(srcStream, trgStream, userKey, bufferLength).Decode(Codec.ByteBase64);
                 return trgStream.ToArray().Decode(Codec.ByteBase64);
             }
         }
@@ -57,7 +53,6 @@ namespace Crypto
         /// <param name="password">The password.</param>
         /// <param name="saltBase64">The salt base 64.</param>
         /// <param name="decryptor">The decryptor.</param>
-        /// <param name="keyDeriver">The key deriver.</param>
         /// <param name="bufferLength">The buffer length.</param>
         /// <returns>The decrypted string.</returns>
         public static string Decrypt(
@@ -65,18 +60,16 @@ namespace Crypto
             string password,
             string saltBase64,
             IDecryptor decryptor = null,
-            IKeyDeriver keyDeriver = null,
             int bufferLength = 32768)
         {
             decryptor = decryptor ?? new AesGcmDecryptor();
-            keyDeriver = keyDeriver ?? new KeyDeriver();
             var userKey = password.Encode(Codec.CharUtf8);
             var salt = saltBase64.Encode(Codec.ByteBase64);
 
             using (var srcStream = new MemoryStream(strBase64.Encode(Codec.ByteBase64)))
             using (var trgStream = new MemoryStream())
             {
-                decryptor.Decrypt(srcStream, trgStream, userKey, salt, keyDeriver, bufferLength);
+                decryptor.Decrypt(srcStream, trgStream, userKey, salt, bufferLength);
                 return trgStream.ToArray().Decode(Codec.CharUtf8);
             }
         }

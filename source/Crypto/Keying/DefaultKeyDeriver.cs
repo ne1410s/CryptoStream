@@ -5,7 +5,7 @@ using Crypto.Hashing;
 namespace Crypto.Keying
 {
     /// <inheritdoc cref="IKeyDeriver"/>
-    public class KeyDeriver : IKeyDeriver
+    public class DefaultKeyDeriver : IKeyDeriver, ICryptoKeyDeriver
     {
         /// <inheritdoc/>
         public byte[] DeriveCryptoKey(byte[] userKey, byte[] salt, byte[] pepper)

@@ -45,4 +45,10 @@
     <ProjectReference Include="..\Crypto\Crypto.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="TestFiles\pixel.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

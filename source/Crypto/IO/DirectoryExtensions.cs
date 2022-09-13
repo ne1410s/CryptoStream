@@ -2,7 +2,6 @@
 using System.Linq;
 using Crypto.Encoding;
 using Crypto.Hashing;
-using Crypto.Keying;
 using Crypto.Transform;
 
 namespace Crypto.IO
@@ -39,18 +38,16 @@ namespace Crypto.IO
         /// <param name="di">The directory.</param>
         /// <param name="userKey">The user key.</param>
         /// <param name="encryptor">The encryptor.</param>
-        /// <param name="keyDeriver">The key deriver.</param>
         /// <param name="bufferLength">The buffer length.</param>
         public static void EncryptAllInSitu(
             this DirectoryInfo di,
             byte[] userKey,
             IEncryptor encryptor = null,
-            IKeyDeriver keyDeriver = null,
             int bufferLength = 32768)
         {
             foreach (var fi in di.EnumerateFiles("*", SearchOption.AllDirectories))
             {
-                fi.EncryptInSitu(userKey, encryptor, keyDeriver, bufferLength);
+                fi.EncryptInSitu(userKey, encryptor, bufferLength);
             }
         }
     }

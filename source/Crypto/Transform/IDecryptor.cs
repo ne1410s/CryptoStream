@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using Crypto.Keying;
 
 namespace Crypto.Transform
 {
@@ -15,7 +14,6 @@ namespace Crypto.Transform
         /// <param name="output">The output stream.</param>
         /// <param name="userKey">The originally supplied key.</param>
         /// <param name="salt">The salt generated in encryption.</param>
-        /// <param name="keyDeriver">The key deriver.</param>
         /// <param name="bufferLength">The buffer length.</param>
         /// <param name="mac">The authentication stream, if capture is needed.</param>
         void Decrypt(
@@ -23,7 +21,6 @@ namespace Crypto.Transform
             Stream output,
             byte[] userKey,
             byte[] salt,
-            IKeyDeriver keyDeriver,
             int bufferLength = 32768,
             Stream mac = null);
     }

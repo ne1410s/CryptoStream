@@ -1,4 +1,5 @@
-﻿using Jose;
+﻿using Crypto.Keying;
+using Jose;
 
 namespace Crypto.Transform
 {
@@ -7,6 +8,14 @@ namespace Crypto.Transform
     /// </summary>
     public class AesGcmEncryptor : GcmEncryptorBase
     {
+        /// <summary>
+        /// Initialises a new instance of <see cref="AesGcmEncryptor"/>.
+        /// </summary>
+        /// <param name="keyDeriver"></param>
+        public AesGcmEncryptor(ICryptoKeyDeriver keyDeriver = null)
+            : base(keyDeriver ?? new DefaultKeyDeriver())
+        { }
+
         /// <inheritdoc/>
         public override GcmEncryptedBlock EncryptBlock(byte[] source, byte[] cryptoKey, byte[] counter)
         {

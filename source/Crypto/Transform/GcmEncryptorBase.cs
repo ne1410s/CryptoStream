@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Security.Cryptography;
-using Crypto.Encoding;
 using Crypto.Hashing;
 using Crypto.Keying;
 
@@ -10,6 +9,17 @@ namespace Crypto.Transform
     /// <inheritdoc cref="IGcmEncryptor"/>
     public abstract class GcmEncryptorBase : IGcmEncryptor
     {
+        private readonly ICryptoKeyDeriver keyDeriver;
+
+        /// <summary>
+        /// Initialises a new instance of <see cref="GcmEncryptorBase"/>.
+        /// </summary>
+        /// <param name="keyDeriver">The key deriver.</param>
+        protected GcmEncryptorBase(ICryptoKeyDeriver keyDeriver)
+        {
+            this.keyDeriver = keyDeriver;
+        }
+
         /// <summary>
         /// Gets the pepper length.
         /// </summary>
@@ -23,7 +33,6 @@ namespace Crypto.Transform
             Stream input,
             Stream output,
             byte[] userKey,
-            IKeyDeriver keyDeriver,
             int bufferLength = 32768,
             Stream mac = null)
         {
