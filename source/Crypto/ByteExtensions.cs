@@ -4,7 +4,7 @@ using System.Linq;
 namespace Crypto
 {
     /// <summary>
-    /// Cryptographic extensions relating to bytes.
+    /// Extensions for bytes and byte arrays.
     /// </summary>
     public static class ByteExtensions
     {
@@ -46,16 +46,15 @@ namespace Crypto
         }
 
         /// <summary>
-        /// Gets a 64-bit integer expressed as a padded array of twelve bytes.
+        /// Raises an 8 byte (64-bit) integer to a 12 byte (92-bit) byte array.
         /// </summary>
         /// <param name="number">The 64-bit integer.</param>
-        /// 
         /// <param name="bigEndian">A value here forces big or little endianness
         /// accordingly - else that of the cpu architecture is used.</param>
         /// <remarks>Big endian means the most significant bit is first, little
         /// endian it is last. e.g. 16|8|4|2|1 is big endian.</remarks>
         /// <returns>A twelve-bytes array.</returns>
-        public static byte[] Pad12(this long number, bool? bigEndian = null)
+        public static byte[] RaiseBits(this long number, bool? bigEndian = null)
         {
             bigEndian = bigEndian ?? !BitConverter.IsLittleEndian;
             var eightBytes = BitConverter.GetBytes(number);
@@ -68,5 +67,10 @@ namespace Crypto
                 ? FourZeroes.Concat(eightBytes).ToArray()
                 : eightBytes.Concat(FourZeroes).ToArray();
         }
+
+        /*
+            Hash()
+            Decode()
+        */
     }
 }

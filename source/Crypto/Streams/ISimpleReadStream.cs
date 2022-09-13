@@ -3,8 +3,7 @@
 namespace Crypto.Streams
 {
     /// <summary>
-    /// Defines the properties and methods necessary for implementing a
-    /// custom media input stream.
+    /// A simple read stream.
     /// </summary>
     public interface ISimpleReadStream : IDisposable
     {
@@ -39,10 +38,10 @@ namespace Crypto.Streams
         byte[] Read();
 
         /// <summary>
-        /// Seeks to the specified offset.
+        /// Seeks to the specified absolute position.
         /// </summary>
-        /// <param name="offset">The offset.</param>
+        /// <param name="position">The absolute position.</param>
         /// <returns>The new position after the seek has occurred.</returns>
-        long Seek(long offset);
+        long Seek(long position);
     }
 }

@@ -1,6 +1,8 @@
-﻿using System.Linq;
-using Crypto.Hash;
-using Crypto.Codec;
+﻿using System.IO;
+using Crypto.Encoding;
+using Crypto.Hashing;
+using Crypto.Keying;
+using Crypto.Transform;
 
 namespace Crypto
 {
@@ -10,28 +12,73 @@ namespace Crypto
     public static class StringExtensions
     {
         /// <summary>
-        /// Derives a key based on a seed and a sequence of byte array sources.
+        /// Creates a hash of the supplied string.
         /// </summary>
-        /// <param name="seed">A seed.</param>
-        /// <param name="sources">A sequence of byte arrays.</param>
-        /// <returns>The derived key.</returns>
-        public static byte[] DeriveKey(this string seed, params byte[][] sources)
+        /// <param name="str">The string to hash.</param>
+        /// <param name="mode">The hash mode.</param>
+        /// <returns>A hash.</returns>
+        public static byte[] Hash(this string str, HashType mode)
+            => str.Encode(Codec.CharUtf8).Hash(mode);
+
+        /// <summary>
+        /// Encrypts a string to base 64 text.
+        /// </summary>
+        /// <param name="str">The source string.</param>
+        /// <param name="password">The password.</param>
+        /// <param name="saltBase64">The salt as base 64.</param>
+        /// <param name="encryptor">The encryptor.</param>
+        /// <param name="keyDeriver">The key deriver.</param>
+        /// <param name="bufferLength">The buffer length.</param>
+        /// <returns>The encrypted base 64.</returns>
+        public static string Encrypt(
+            this string str,
+            string password,
+            out string saltBase64,
+            IEncryptor encryptor = null,
+            IKeyDeriver keyDeriver = null,
+            int bufferLength = 32768)
         {
-            var hexHashes = sources
-                .Select(k => k.AsString(ByteCodec.Hex))
-                .OrderBy(s => s);
+            encryptor = encryptor ?? new AesGcmEncryptor();
+            keyDeriver = keyDeriver ?? new KeyDeriver();
+            var userKey = password.Encode(Codec.CharUtf8);
 
-            foreach (var hexHash in hexHashes)
+            using (var srcStream = new MemoryStream(str.Encode(Codec.CharUtf8)))
+            using (var trgStream = new MemoryStream())
             {
-                seed = (hexHash + seed)
-                    .AsBytes(CharCodec.Utf8)
-                    .Hash(HashAlgo.Sha1)
-                    .AsString(ByteCodec.Base64);
+                saltBase64 = encryptor.Encrypt(srcStream, trgStream, userKey, keyDeriver, bufferLength).Decode(Codec.ByteBase64);
+                return trgStream.ToArray().Decode(Codec.ByteBase64);
             }
+        }
 
-            return seed
-                .AsBytes(CharCodec.Utf8)
-                .Hash(HashAlgo.Sha1);
+        /// <summary>
+        /// Decrypts a base 64 encrypted string.
+        /// </summary>
+        /// <param name="strBase64">The encrypted base 64 string.</param>
+        /// <param name="password">The password.</param>
+        /// <param name="saltBase64">The salt base 64.</param>
+        /// <param name="decryptor">The decryptor.</param>
+        /// <param name="keyDeriver">The key deriver.</param>
+        /// <param name="bufferLength">The buffer length.</param>
+        /// <returns>The decrypted string.</returns>
+        public static string Decrypt(
+            this string strBase64,
+            string password,
+            string saltBase64,
+            IDecryptor decryptor = null,
+            IKeyDeriver keyDeriver = null,
+            int bufferLength = 32768)
+        {
+            decryptor = decryptor ?? new AesGcmDecryptor();
+            keyDeriver = keyDeriver ?? new KeyDeriver();
+            var userKey = password.Encode(Codec.CharUtf8);
+            var salt = saltBase64.Encode(Codec.ByteBase64);
+
+            using (var srcStream = new MemoryStream(strBase64.Encode(Codec.ByteBase64)))
+            using (var trgStream = new MemoryStream())
+            {
+                decryptor.Decrypt(srcStream, trgStream, userKey, salt, keyDeriver, bufferLength);
+                return trgStream.ToArray().Decode(Codec.CharUtf8);
+            }
         }
     }
 }

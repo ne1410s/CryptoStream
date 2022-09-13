@@ -4,9 +4,9 @@ using System.IO;
 namespace Crypto.Streams
 {
     /// <summary>
-    /// A read-only file stream that is provided to assist with testing of derived streams.
+    /// A read stream to assist with testing / diagnosis of derived types.
     /// </summary>
-    public class ReadFileStream : Stream
+    public class ReadStream : Stream
     {
         /// <summary>
         /// The inner stream.
@@ -17,7 +17,7 @@ namespace Crypto.Streams
         /// Creates a new file read stream.
         /// </summary>
         /// <param name="fi">The source file.</param>
-        public ReadFileStream(FileInfo fi)
+        public ReadStream(FileInfo fi)
             : this(new FileStream(fi.FullName, FileMode.Open, FileAccess.Read))
         { }
 
@@ -25,7 +25,7 @@ namespace Crypto.Streams
         /// Creates a new file read stream.
         /// </summary>
         /// <param name="stream">The source stream.</param>
-        public ReadFileStream(Stream stream)
+        public ReadStream(Stream stream)
         {
             inner = stream;
         }

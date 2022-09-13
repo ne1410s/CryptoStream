@@ -8,65 +8,65 @@ namespace Crypto.Streams
     /// specified buffer length. Using this implementation directly is not generally recommended.
     /// It is provided to separate logical processing and to assist with testing of derived streams.
     /// </summary>
-    public class ChunkingFileStream : ReadFileStream, ISimpleReadStream
+    public class BlockReadStream : ReadStream, ISimpleReadStream
     {
         /// <summary>
         /// The source buffer.
         /// </summary>
-        protected readonly byte[] chunkBuffer;
+        protected readonly byte[] blockBuffer;
 
         /// <inheritdoc/>
         public string Uri { get; }
 
         /// <inheritdoc/>
-        public int BufferLength => chunkBuffer.Length;
+        public int BufferLength => blockBuffer.Length;
 
         /// <summary>
-        /// Creates a new chunking file read stream.
+        /// Creates a new file block read stream.
         /// </summary>
         /// <param name="fi">The source file.</param>
-        /// <param name="chunkSize">The chunk size.</param>
-        public ChunkingFileStream(FileInfo fi, int chunkSize = 32768)
-            : this(new FileStream(fi.FullName, FileMode.Open, FileAccess.Read), chunkSize)
+        /// <param name="bufferLength">The block buffer length.</param>
+        public BlockReadStream(FileInfo fi, int bufferLength = 32768)
+            : this(new FileStream(fi.FullName, FileMode.Open, FileAccess.Read), bufferLength)
         { }
 
         /// <summary>
-        /// Creates a new chunking file stream.
+        /// Creates a new file block stream.
         /// </summary>
         /// <param name="stream">The source stream.</param>
-        /// <param name="chunkSize">The chunk size.</param>
-        public ChunkingFileStream(Stream stream, int chunkSize = 32768)
+        /// <param name="bufferLength">The block buffer length.</param>
+        public BlockReadStream(Stream stream, int bufferLength = 32768)
             : base(stream)
         {
-            chunkBuffer = new byte[chunkSize];
+            blockBuffer = new byte[bufferLength];
             Uri = Guid.NewGuid().ToString();
         }
 
         /// <inheritdoc/>
         public override int Read(byte[] buffer, int offset, int count)
         {
-            var chunkSz = chunkBuffer.Length;
+            var bufLen = blockBuffer.Length;
             var receivedPoint = Position;
-            var startPoint = ChunkPosition(Position, chunkSz, out var initChunk, out var remainder);
+            var startPoint = BlockPosition(Position, bufLen, out var initBlock, out var remainder);
             if (remainder != 0)
             {
                 Seek(startPoint, SeekOrigin.Begin);
             }
 
-            var chunksToRead = Math.Ceiling((double)(remainder + count) / chunkSz);
+            var blocksToRead = Math.Ceiling((double)(remainder + count) / bufLen);
             var bytesWritten = 0;
 
             var iterPosition = receivedPoint;
-            for (var chunkNo = initChunk; chunkNo < (initChunk + chunksToRead); chunkNo++)
+            for (var blockNo = initBlock; blockNo < (initBlock + blocksToRead); blockNo++)
             {
-                var maxChunkRead = Math.Min(Length - iterPosition, chunkSz);
-                var iterRead = inner.Read(chunkBuffer, 0, (int)maxChunkRead);
+                var maxBlockRead = Math.Min(Length - iterPosition, bufLen);
+                var iterRead = inner.Read(blockBuffer, 0, (int)maxBlockRead);
                 if (iterRead == 0)
                 {
                     break;
                 }
 
-                var targetBuffer = MapChunk(chunkBuffer, chunkNo);
+                var targetBuffer = MapBlock(blockBuffer, blockNo);
 
                 for (var j = 0; j < iterRead
                     && offset + bytesWritten < buffer.Length
@@ -76,7 +76,7 @@ namespace Crypto.Streams
                     buffer[offset + bytesWritten++] = targetBuffer[remainder + j];
                 }
 
-                // Subsequent chunks are always remainder-zero
+                // Subsequent blocks are always remainder-zero
                 remainder = 0;
                 iterPosition = Position;
             }
@@ -89,30 +89,30 @@ namespace Crypto.Streams
         }
 
         /// <summary>
-        /// Gets the position of the first chunk that covers the base position.
+        /// Gets the position of the first block that covers the base position.
         /// </summary>
         /// <param name="basePosition">The queried base position.</param>
-        /// <param name="chunkSize">The chunk size.</param>
-        /// <param name="chunkNumber">The sequential chunk number.</param>
-        /// <param name="remainder">The number of skippable bytes in the chunk before the requested
+        /// <param name="bufferLength">The block buffer length.</param>
+        /// <param name="blockNo">The sequential block number.</param>
+        /// <param name="remainder">The number of skippable bytes in the block before the requested
         /// position is reached.</param>
-        /// <returns>The discrete chunk position.</returns>
-        protected static long ChunkPosition(
-            long basePosition, int chunkSize, out long chunkNumber, out int remainder)
+        /// <returns>The discrete block position.</returns>
+        protected static long BlockPosition(
+            long basePosition, int bufferLength, out long blockNo, out int remainder)
         {
-            chunkNumber = 1 + (long)Math.Floor((double)basePosition / chunkSize);
-            var chunkStart = chunkSize * (chunkNumber - 1);
-            remainder = (int)(basePosition - chunkStart);
-            return chunkStart;
+            blockNo = 1 + (long)Math.Floor((double)basePosition / bufferLength);
+            var blockStart = bufferLength * (blockNo - 1);
+            remainder = (int)(basePosition - blockStart);
+            return blockStart;
         }
 
         /// <summary>
-        /// Obtains a mapped chunk.
+        /// Obtains a mapped block.
         /// </summary>
         /// <param name="sourceBuffer">The source buffer.</param>
-        /// <param name="chunkNumber">The discrete chunk number.</param>
+        /// <param name="blockNo">The discrete block number.</param>
         /// <returns>Mapped bytes.</returns>
-        protected virtual byte[] MapChunk(byte[] sourceBuffer, long chunkNumber)
+        protected virtual byte[] MapBlock(byte[] sourceBuffer, long blockNo)
         {
             var retVal = new byte[sourceBuffer.Length];
             Array.Copy(sourceBuffer, retVal, sourceBuffer.Length);
