@@ -108,7 +108,11 @@ namespace Crypto.IO
 
             if (target != fi.FullName)
             {
-                File.Delete(target);
+                if (File.Exists(target))
+                {
+                    File.Delete(target);
+                }
+
                 fi.MoveTo(target);
             }
 
