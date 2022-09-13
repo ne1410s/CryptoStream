@@ -100,7 +100,7 @@ namespace Crypto.IO
             {
                 saltHex = encryptor.Encrypt(stream, stream, userKey, bufferLength, mac)
                     .Decode(Codec.ByteHex)
-                    .ToLowerCase();
+                    .ToLower();
             }
 
             var target = Path.Combine(fi.DirectoryName, saltHex + fi.Extension);
