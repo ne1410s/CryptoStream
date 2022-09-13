@@ -99,20 +99,14 @@ namespace Crypto.IO
             using (var stream = fi.Open(FileMode.Open))
             {
                 saltHex = encryptor.Encrypt(stream, stream, userKey, bufferLength, mac)
-                    .Decode(Codec.ByteHex);
+                    .Decode(Codec.ByteHex)
+                    .ToLowerCase();
             }
 
-            // NOT SURE ABOUT THIS STUFF IN LINUX??
-            var target = Path.Combine(fi.DirectoryName, saltHex + fi.Extension)
-               .ToLower(CultureInfo.InvariantCulture);
-
+            var target = Path.Combine(fi.DirectoryName, saltHex + fi.Extension);
             if (target != fi.FullName)
             {
-                if (File.Exists(target))
-                {
-                    File.Delete(target);
-                }
-
+                File.Delete(target);
                 fi.MoveTo(target);
             }
 
