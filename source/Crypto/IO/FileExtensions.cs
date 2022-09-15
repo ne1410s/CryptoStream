@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.IO;
+using System.Text.RegularExpressions;
 using Crypto.Encoding;
 using Crypto.Hashing;
 using Crypto.Transform;
@@ -11,13 +12,24 @@ namespace Crypto.IO
     /// </summary>
     public static class FileExtensions
     {
+        private static readonly Regex SaltRegex = new Regex(
+            @"^(?<hex>[a-f0-9]{64})(?<ext>\.[\w-]+){0,1}$",
+            RegexOptions.Compiled);
+
         /// <summary>
         /// Gets a salt.
         /// </summary>
         /// <param name="fi">The file info.</param>
         /// <returns>A salt.</returns>
         public static byte[] ToSalt(this FileInfo fi)
-            => fi.FullName.Substring(0, 64).Encode(Codec.ByteHex);
+        {
+            var match = SaltRegex.Match(fi.Name);
+            return match.Success
+                ? match.Groups["hex"].Value.Decode(Codec.ByteHex)
+                : throw new System.ArgumentException(
+                    $"Unable to obtain salt: '{fi.Name}'",
+                    "fileName");
+        }
 
         /// <summary>
         /// Gets a hash.
@@ -99,7 +111,7 @@ namespace Crypto.IO
             using (var stream = fi.Open(FileMode.Open))
             {
                 saltHex = encryptor.Encrypt(stream, stream, userKey, bufferLength, mac)
-                    .Decode(Codec.ByteHex);
+                    .Encode(Codec.ByteHex);
             }
 
             // NOT SURE ABOUT THIS STUFF IN LINUX??

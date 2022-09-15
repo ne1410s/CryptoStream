@@ -1,4 +1,6 @@
-﻿using Crypto.Tests.TestObjects;
+﻿using Crypto.Encoding;
+using Crypto.Hashing;
+using Crypto.Tests.TestObjects;
 
 namespace Crypto.Tests;
 
@@ -50,5 +52,18 @@ public class StringExtensionsTests
         // Assert
         cipher.Should().Be("AgQG");
         salt.Should().Be("AQID");
+    }
+
+    [Fact]
+    public void Hash_WithString_ReturnsExpected()
+    {
+        // Arrange
+        var str = "hi!";
+
+        // Act
+        var result = str.Hash(HashType.Md5).Encode(Codec.ByteBase64);
+
+        // Assert
+        result.Should().Be("r/lxYEdKBW6DjB9yGvAe3w==");
     }
 }

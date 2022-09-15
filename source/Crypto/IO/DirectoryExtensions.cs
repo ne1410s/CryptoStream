@@ -25,7 +25,7 @@ namespace Crypto.IO
             {
                 var item = fsi is FileInfo fi
                     ? fi.Hash(mode)
-                    : fsi.Name.Encode(Codec.CharUtf8).Hash(mode);
+                    : fsi.Name.Decode(Codec.CharUtf8).Hash(mode);
                 hash = hash.Concat(item).ToArray().Hash(mode);
             }
 

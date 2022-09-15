@@ -11,15 +11,15 @@ namespace Crypto.Encoding
         /// <summary>
         /// Transforms an array of bytes to text.
         /// </summary>
-        /// <param name="bytes">The encoded bytes.</param>
+        /// <param name="bytes">A byte array.</param>
         /// <param name="codec">The encoding type.</param>
-        /// <returns>Decoded text.</returns>
-        public static string Decode(this byte[] bytes, Codec codec)
+        /// <returns>The encoded text.</returns>
+        public static string Encode(this byte[] bytes, Codec codec)
         {
             switch (codec)
             {
                 case Codec.ByteBase64: return Convert.ToBase64String(bytes);
-                case Codec.ByteHex: return DecodeHex(bytes);
+                case Codec.ByteHex: return EncodeHex(bytes);
                 case Codec.CharAscii: return SysEncoding.ASCII.GetString(bytes);
                 case Codec.CharUnicode: return SysEncoding.Unicode.GetString(bytes);
                 case Codec.CharUtf8: return SysEncoding.UTF8.GetString(bytes);
@@ -32,13 +32,13 @@ namespace Crypto.Encoding
         /// </summary>
         /// <param name="text">The text.</param>
         /// <param name="codec">The encoding type.</param>
-        /// <returns>An encoded byte array.</returns>
-        public static byte[] Encode(this string text, Codec codec)
+        /// <returns>A byte array.</returns>
+        public static byte[] Decode(this string text, Codec codec)
         {
             switch (codec)
             {
                 case Codec.ByteBase64: return Convert.FromBase64String(text);
-                case Codec.ByteHex: return EncodeHex(text);
+                case Codec.ByteHex: return DecodeHex(text);
                 case Codec.CharAscii: return SysEncoding.ASCII.GetBytes(text);
                 case Codec.CharUnicode: return SysEncoding.Unicode.GetBytes(text);
                 case Codec.CharUtf8: return SysEncoding.UTF8.GetBytes(text);
@@ -46,7 +46,7 @@ namespace Crypto.Encoding
             }
         }
 
-        private static byte[] EncodeHex(string hex)
+        private static byte[] DecodeHex(string hex)
         {
             var bytes = new byte[hex.Length / 2];
             for (var i = 0; i < bytes.Length; i++)
@@ -57,7 +57,7 @@ namespace Crypto.Encoding
             return bytes;
         }
 
-        private static string DecodeHex(byte[] bytes)
+        private static string EncodeHex(byte[] bytes)
         {
             var sb = new System.Text.StringBuilder();
             foreach (var b in bytes)

@@ -17,7 +17,7 @@ namespace Crypto
         /// <param name="mode">The hash mode.</param>
         /// <returns>A hash.</returns>
         public static byte[] Hash(this string str, HashType mode)
-            => str.Encode(Codec.CharUtf8).Hash(mode);
+            => str.Decode(Codec.CharUtf8).Hash(mode);
 
         /// <summary>
         /// Encrypts a string to base 64 text.
@@ -36,13 +36,13 @@ namespace Crypto
             int bufferLength = 32768)
         {
             encryptor = encryptor ?? new AesGcmEncryptor();
-            var userKey = password.Encode(Codec.CharUtf8);
+            var userKey = password.Decode(Codec.CharUtf8);
 
-            using (var srcStream = new MemoryStream(str.Encode(Codec.CharUtf8)))
+            using (var srcStream = new MemoryStream(str.Decode(Codec.CharUtf8)))
             using (var trgStream = new MemoryStream())
             {
-                saltBase64 = encryptor.Encrypt(srcStream, trgStream, userKey, bufferLength).Decode(Codec.ByteBase64);
-                return trgStream.ToArray().Decode(Codec.ByteBase64);
+                saltBase64 = encryptor.Encrypt(srcStream, trgStream, userKey, bufferLength).Encode(Codec.ByteBase64);
+                return trgStream.ToArray().Encode(Codec.ByteBase64);
             }
         }
 
@@ -63,14 +63,14 @@ namespace Crypto
             int bufferLength = 32768)
         {
             decryptor = decryptor ?? new AesGcmDecryptor();
-            var userKey = password.Encode(Codec.CharUtf8);
-            var salt = saltBase64.Encode(Codec.ByteBase64);
+            var userKey = password.Decode(Codec.CharUtf8);
+            var salt = saltBase64.Decode(Codec.ByteBase64);
 
-            using (var srcStream = new MemoryStream(strBase64.Encode(Codec.ByteBase64)))
+            using (var srcStream = new MemoryStream(strBase64.Decode(Codec.ByteBase64)))
             using (var trgStream = new MemoryStream())
             {
                 decryptor.Decrypt(srcStream, trgStream, userKey, salt, bufferLength);
-                return trgStream.ToArray().Decode(Codec.CharUtf8);
+                return trgStream.ToArray().Encode(Codec.CharUtf8);
             }
         }
     }

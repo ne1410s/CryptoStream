@@ -17,19 +17,19 @@ namespace Crypto.Keying
         public byte[] DeriveKey(string seed, params byte[][] hashes)
         {
             var hexHashes = hashes
-                .Select(k => k.Decode(Codec.ByteHex))
+                .Select(k => k.Encode(Codec.ByteHex))
                 .OrderBy(s => s);
 
             foreach (var hexHash in hexHashes)
             {
                 seed = (hexHash + seed)
-                    .Encode(Codec.CharUtf8)
+                    .Decode(Codec.CharUtf8)
                     .Hash(HashType.Sha1)
-                    .Decode(Codec.ByteBase64);
+                    .Encode(Codec.ByteBase64);
             }
 
             return seed
-                .Encode(Codec.CharUtf8)
+                .Decode(Codec.CharUtf8)
                 .Hash(HashType.Sha1);
         }
     }
