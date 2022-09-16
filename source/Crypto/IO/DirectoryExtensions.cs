@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Crypto.Encoding;
 using Crypto.Hashing;
@@ -17,16 +18,35 @@ namespace Crypto.IO
         /// </summary>
         /// <param name="di">The directory.</param>
         /// <param name="mode">The hash mode.</param>
+        /// <param name="includes">Factors contributing to uniqueness.</param>
         /// <returns>The hash sum.</returns>
-        public static byte[] HashSum(this DirectoryInfo di, HashType mode)
+        public static byte[] HashSum(this DirectoryInfo di, HashType mode, HashSumIncludes includes = HashSumIncludes.FileContents)
         {
-            var hash = "".Hash(mode);
+            var hashSeed = includes.HasFlag(HashSumIncludes.DirectoryRootName) ? di.Name : "";
+            var hash = hashSeed.Hash(mode);
+
             foreach (var fsi in di.EnumerateFileSystemInfos("*", SearchOption.AllDirectories))
             {
-                var item = fsi is FileInfo fi
-                    ? fi.Hash(mode)
-                    : fsi.Name.Decode(Codec.CharUtf8).Hash(mode);
-                hash = hash.Concat(item).ToArray().Hash(mode);
+                var entryBytes = new List<byte>(hash);
+                if (fsi is FileInfo fi)
+                {
+                    if (includes.HasFlag(HashSumIncludes.FileContents))
+                    {
+                        entryBytes.AddRange(fi.Hash(mode));
+                    }
+
+                    if (includes.HasFlag(HashSumIncludes.FileTimestamp))
+                    {
+                        entryBytes.AddRange(fi.LastWriteTime.ToString().Hash(mode));
+                    }
+                }
+
+                if (includes.HasFlag(HashSumIncludes.DirectoryStructure))
+                {
+                    entryBytes.AddRange(fsi.Name.Hash(mode));
+                }
+
+                hash = entryBytes.ToArray().Hash(mode);
             }
 
             return hash;

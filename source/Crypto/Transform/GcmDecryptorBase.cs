@@ -45,6 +45,7 @@ namespace Crypto.Transform
             var cryptoKey = keyDeriver.DeriveCryptoKey(userKey, salt, pepper);
             var inputSize = input.Length - PepperLength;
             var totalBlocks = (long)Math.Ceiling(inputSize / (double)bufferLength);
+            mac?.Seek(0, SeekOrigin.Begin);
 
             output.SetLength(0);
             for (var b = 0; b < totalBlocks; b++)

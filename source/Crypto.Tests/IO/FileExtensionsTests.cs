@@ -44,6 +44,23 @@ public class FileExtensionsTests
     }
 
     [Fact]
+    public void DecryptTo_WithMac_ReturnsExpected()
+    {
+        // Arrange
+        var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
+        File.WriteAllText(fi.FullName, "hi");
+        using var macStream = new MemoryStream();
+        fi.EncryptInSitu(TestRefs.TestKey, mac: macStream);
+        var trgStream = new MemoryStream();
+
+        // Act
+        fi.DecryptTo(trgStream, TestRefs.TestKey, mac: macStream);
+
+        // Assert
+        trgStream.ToArray().Encode(Codec.CharUtf8).Should().Be("hi");
+    }
+
+    [Fact]
     public void EncryptInSitu_WithFile_UpdatesFileInfoReference()
     {
         // Arrange
