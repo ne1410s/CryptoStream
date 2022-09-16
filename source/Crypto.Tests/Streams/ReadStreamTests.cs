@@ -11,7 +11,8 @@ public class ReadStreamTests
     public void ReadStream_PropertyCheck_IsExpected()
     {
         // Arrange
-        var fi = new FileInfo(Path.Combine("TestFiles", "earth2.avi"));
+        var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
+        File.WriteAllText(fi.FullName, $"hi{Guid.NewGuid()}");
         using var sut = new ReadStream(fi);
         var buffer = new byte[32];
 
@@ -29,7 +30,8 @@ public class ReadStreamTests
     public void Flush_WhenCalled_ThrowsException()
     {
         // Arrange
-        var fi = new FileInfo(Path.Combine("TestFiles", "earth2.avi"));
+        var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
+        File.WriteAllText(fi.FullName, $"hi{Guid.NewGuid()}");
         using var sut = new ReadStream(fi);
 
         // Act
@@ -44,7 +46,8 @@ public class ReadStreamTests
     public void SetLength_WhenCalled_ThrowsException()
     {
         // Arrange
-        var fi = new FileInfo(Path.Combine("TestFiles", "earth2.avi"));
+        var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
+        File.WriteAllText(fi.FullName, $"hi{Guid.NewGuid()}");
         using var sut = new ReadStream(fi);
 
         // Act
@@ -59,7 +62,8 @@ public class ReadStreamTests
     public void Write_WhenCalled_ThrowsException()
     {
         // Arrange
-        var fi = new FileInfo(Path.Combine("TestFiles", "earth2.avi"));
+        var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
+        File.WriteAllText(fi.FullName, $"hi{Guid.NewGuid()}");
         using var sut = new ReadStream(fi);
         var buffer = new byte[] { 2 };
 
@@ -75,7 +79,8 @@ public class ReadStreamTests
     public void Dispose_WithStream_IsDisposed()
     {
         // Arrange
-        var fi = new FileInfo(Path.Combine("TestFiles", "earth2.avi"));
+        var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
+        File.WriteAllText(fi.FullName, $"hi{Guid.NewGuid()}");
         var sut = new ReadStream(fi);
 
         // Act

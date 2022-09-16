@@ -16,7 +16,7 @@ public class FileExtensionsTests
     {
         // Arrange
         var fi = new FileInfo(Path.Combine("TestFiles", $"{TestRefs.CryptoFileName}.{Guid.NewGuid()}"));
-        File.WriteAllText(fi.FullName, "hi");
+        File.WriteAllText(fi.FullName, $"hi{Guid.NewGuid()}");
         var mockDecryptor = new Mock<IDecryptor>();
         var trgStream = new MemoryStream();
 
@@ -32,7 +32,8 @@ public class FileExtensionsTests
     {
         // Arrange
         var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
-        File.WriteAllText(fi.FullName, "hi");
+        var content = $"hi{Guid.NewGuid()}";
+        File.WriteAllText(fi.FullName, content);
         fi.EncryptInSitu(TestRefs.TestKey);
         var trgStream = new MemoryStream();
 
@@ -40,7 +41,7 @@ public class FileExtensionsTests
         fi.DecryptTo(trgStream, TestRefs.TestKey);
 
         // Assert
-        trgStream.ToArray().Encode(Codec.CharUtf8).Should().Be("hi");
+        trgStream.ToArray().Encode(Codec.CharUtf8).Should().Be(content);
     }
 
     [Fact]
@@ -48,7 +49,8 @@ public class FileExtensionsTests
     {
         // Arrange
         var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
-        File.WriteAllText(fi.FullName, "hi");
+        var content = $"hi{Guid.NewGuid()}";
+        File.WriteAllText(fi.FullName, content);
         using var macStream = new MemoryStream();
         fi.EncryptInSitu(TestRefs.TestKey, mac: macStream);
         var trgStream = new MemoryStream();
@@ -57,7 +59,7 @@ public class FileExtensionsTests
         fi.DecryptTo(trgStream, TestRefs.TestKey, mac: macStream);
 
         // Assert
-        trgStream.ToArray().Encode(Codec.CharUtf8).Should().Be("hi");
+        trgStream.ToArray().Encode(Codec.CharUtf8).Should().Be(content);
     }
 
     [Fact]
@@ -65,7 +67,7 @@ public class FileExtensionsTests
     {
         // Arrange
         var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
-        File.WriteAllText(fi.FullName, "hi");
+        File.WriteAllText(fi.FullName, $"hi{Guid.NewGuid()}");
 
         // Act
         var salt = fi.EncryptInSitu(TestRefs.TestKey);
@@ -80,7 +82,7 @@ public class FileExtensionsTests
     {
         // Arrange
         var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
-        File.WriteAllText(fi.FullName, "hi");
+        File.WriteAllText(fi.FullName, $"hi{Guid.NewGuid()}");
         using var macStream = new MemoryStream();
 
         // Act
@@ -136,17 +138,13 @@ public class FileExtensionsTests
     {
         // Arrange
         var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
-        File.WriteAllText(fi.FullName, "hi");
+        File.WriteAllText(fi.FullName, $"hi{nameof(HashLite_WithFile_ReturnsExpected)}");
 
         // Act
-        var result = fi.Hash(HashType.Md5);
+        var result = fi.Hash(HashType.Md5).Encode(Codec.ByteHex);
 
         // Assert
-        result.Should().BeEquivalentTo(new byte[]
-        {
-            73, 246, 138, 92, 132, 147, 236, 44,
-            11, 244, 137, 130, 28, 33, 252, 59
-        });
+        result.Should().Be("72bb71f5d67dbdde008eb5331b3baec5");
     }
 
     [Fact]

@@ -1,6 +1,4 @@
-﻿using Crypto.Encoding;
-using Crypto.Hashing;
-using Crypto.IO;
+﻿using Crypto.IO;
 using Crypto.Streams;
 using Crypto.Tests.TestObjects;
 using Crypto.Transform;
@@ -16,7 +14,8 @@ public class CryptoBlockReadStreamTests
     public void Ctor_WithDecryptor_CallsReadPepper()
     {
         // Arrange
-        var fi = new FileInfo(Path.Combine("TestFiles", "pixel.png"));
+        var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
+        File.WriteAllText(fi.FullName, "hello here is a string");
         fi.EncryptInSitu(TestRefs.TestKey);
         var mockDecryptor = new Mock<IGcmDecryptor>();
 
@@ -28,29 +27,12 @@ public class CryptoBlockReadStreamTests
     }
 
     [Fact]
-    public void Read_BadOffset_ReturnsExpected()
-    {
-        // Arrange
-        const int bufferLength = 1024;
-        var fi = new FileInfo(Path.Combine("TestFiles", "earth.webm"));
-        fi.EncryptInSitu(TestRefs.TestKey, bufferLength: bufferLength);
-        var sut = new CryptoBlockReadStream(fi, TestRefs.TestKey, bufferLength);
-        sut.Seek(12);
-
-        // Act
-        var block = sut.Read();
-        var blockHashHex = block.Hash(HashType.Md5).Encode(Codec.ByteHex);
-
-        // Assert
-        blockHashHex.Should().Be("5c078aa8fb0d4ea759fa2f91e36e48ad");
-    }
-
-    [Fact]
     public void Read_SpanTwoBlocks_DecryptsTwoBlocks()
     {
         // Arrange
-        const int bufferLength = 1024;
-        var fi = new FileInfo(Path.Combine("TestFiles", "tennis.png"));
+        const int bufferLength = 16;
+        var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
+        File.WriteAllText(fi.FullName, "this is a sentence more than twelve bytes for sure!");
         fi.EncryptInSitu(TestRefs.TestKey, bufferLength: bufferLength);
         var salt = fi.ToSalt();
         var mockDecryptor = new Mock<IGcmDecryptor>();
@@ -59,7 +41,7 @@ public class CryptoBlockReadStreamTests
         sut.Seek(12);
 
         // Act
-        _ = sut.Read();
+        var block = sut.Read();
 
         // Assert
         mockDecryptor.Verify(
@@ -71,7 +53,8 @@ public class CryptoBlockReadStreamTests
     public void Props_WhenPopulated_ShouldBeExpected()
     {
         // Arrange
-        var fi = new FileInfo(Path.Combine("TestFiles", "earth.avi"));
+        var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
+        File.WriteAllText(fi.FullName, $"hi{Guid.NewGuid()}");
         fi.EncryptInSitu(TestRefs.TestKey);
         var salt = fi.ToSalt();
         using var stream = fi.OpenRead();

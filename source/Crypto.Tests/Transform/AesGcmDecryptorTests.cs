@@ -1,24 +1,27 @@
-﻿using Crypto.Encoding;
+﻿using Crypto.IO;
+using Crypto.Tests.TestObjects;
 using Crypto.Transform;
 
 namespace Crypto.Tests.Transform;
 
 /// <summary>
-/// Test for the <see cref="AesGcmEncryptor"/>.
+/// Tests for the <see cref="AesGcmDecryptor"/>.
 /// </summary>
-public class AesGcmEncryptorTests
+public class AesGcmDecryptorTests
 {
     [Fact]
-    public void GenerateSalt_WithStream_ReturnsExpected()
+    public void Decrypt_OversizedTarget_GetsResized()
     {
         // Arrange
-        var sut = new AesGcmEncryptor();
-        using var stream = new MemoryStream(new byte[] { 1, 2, 3 });
+        var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
+        File.WriteAllText(fi.FullName, "hi!!");
+        fi.EncryptInSitu(TestRefs.TestKey);
+        using var trgStream = new MemoryStream(Enumerable.Repeat((byte)1, 20).ToArray());
 
         // Act
-        var salt = sut.GenerateSalt(stream);
+        fi.DecryptTo(trgStream, TestRefs.TestKey);
 
         // Assert
-        salt.Encode(Codec.ByteHex).Should().Be("5890032c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81c6f2c0cb49");
+        trgStream.Length.Should().Be(4);
     }
 }

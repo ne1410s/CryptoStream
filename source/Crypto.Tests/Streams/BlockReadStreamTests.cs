@@ -14,7 +14,8 @@ public class BlockReadStreamTests
     {
         // Arrange
         const int bufferLength = 1024;
-        var fi = new FileInfo(Path.Combine("TestFiles", "earth2.webm"));
+        var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
+        File.WriteAllText(fi.FullName, "this is a string that is for sure more than twelve bytes!");
         var sut = new BlockReadStream(fi, bufferLength);
         sut.Position = 12;
 
@@ -23,17 +24,18 @@ public class BlockReadStreamTests
         var blockHashHex = block.Hash(HashType.Md5).Encode(Codec.ByteHex);
 
         // Assert
-        blockHashHex.Should().Be("5c078aa8fb0d4ea759fa2f91e36e48ad");
+        blockHashHex.Should().Be("d1d4dda61babeaa854aa2dacb236c32d");
     }
 
     [Fact]
     public void Read_OversizedBuffer_ResizesBuffer()
     {
         // Arrange
-        var fi = new FileInfo(Path.Combine("TestFiles", "earth2.webm"));
-        var bufferLength = fi.Length + 1024;
-        var sut = new BlockReadStream(fi, (int)bufferLength);
-        sut.Seek(fi.Length - 900);
+        var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
+        File.WriteAllText(fi.FullName, "this is a string that is of some size.");
+        var bufferLength = 1024;
+        var sut = new BlockReadStream(fi, bufferLength);
+        sut.Seek(fi.Length - 9);
 
         // Act
         var block = sut.Read();
@@ -47,7 +49,8 @@ public class BlockReadStreamTests
     public void Read_PerfectFitBuffer_NotResized()
     {
         // Arrange
-        var fi = new FileInfo(Path.Combine("TestFiles", "pixel2.png"));
+        var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
+        File.WriteAllText(fi.FullName, "hello here is a string");
         var bufferLength = fi.Length;
         var sut = new BlockReadStream(fi, (int)bufferLength);
         sut.Seek(12);
@@ -58,6 +61,6 @@ public class BlockReadStreamTests
 
         // Assert
         block.Length.Should().Be((int)fi.Length);
-        blockHashHex.Should().Be("dd80ef40157fdae800c723bcc9c244f1");
+        blockHashHex.Should().Be("0523074868bcd2e5e22883ba867ae902");
     }
 }
