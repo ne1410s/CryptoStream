@@ -28,7 +28,7 @@ public class BlockReadStreamTests
     }
 
     [Fact]
-    public void Read_NearEnd_ResizesBuffer()
+    public void Read_OversizedBuffer_ResizesBuffer()
     {
         // Arrange
         var fi = new FileInfo(Path.Combine("TestFiles", "earth2.webm"));
@@ -41,5 +41,24 @@ public class BlockReadStreamTests
 
         // Assert
         block.Length.Should().Be((int)fi.Length);
+    }
+
+
+    [Fact]
+    public void Read_PerfectFitBuffer_NotResized()
+    {
+        // Arrange
+        var fi = new FileInfo(Path.Combine("TestFiles", "pixel2.png"));
+        var bufferLength = fi.Length;
+        var sut = new BlockReadStream(fi, (int)bufferLength);
+        sut.Seek(12);
+
+        // Act
+        var block = sut.Read();
+        var blockHashHex = block.Hash(HashType.Md5).Encode(Codec.ByteHex);
+
+        // Assert
+        block.Length.Should().Be((int)fi.Length);
+        blockHashHex.Should().Be("dd80ef40157fdae800c723bcc9c244f1");
     }
 }

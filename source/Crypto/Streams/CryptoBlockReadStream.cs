@@ -2,7 +2,6 @@
 using Crypto.IO;
 using Crypto.Keying;
 using Crypto.Transform;
-using Jose;
 
 namespace Crypto.Streams
 {
@@ -13,6 +12,7 @@ namespace Crypto.Streams
     {
         private readonly int pepperLength;
         private readonly byte[] cryptoKey;
+        private readonly IGcmDecryptor decryptor;
 
         /// <summary>
         /// Creates a new cryptographic file read stream.
@@ -20,12 +20,14 @@ namespace Crypto.Streams
         /// <param name="fi">The source file.</param>
         /// <param name="key">The key.</param>
         /// <param name="bufferSize">The buffer size.</param>
-        public CryptoBlockReadStream(FileInfo fi, byte[] key, int bufferSize = 32768)
+        /// <param name="decryptor">Decryptor override (optional).</param>
+        public CryptoBlockReadStream(FileInfo fi, byte[] key, int bufferSize = 32768, IGcmDecryptor decryptor = null)
             : this(
                   new FileStream(fi.FullName, FileMode.Open, FileAccess.Read),
                   fi.ToSalt(),
                   key,
-                  bufferSize)
+                  bufferSize,
+                  decryptor)
         { }
 
         /// <summary>
@@ -35,10 +37,12 @@ namespace Crypto.Streams
         /// <param name="salt">The salt.</param>
         /// <param name="userKey">The key.</param>
         /// <param name="bufferSize">The buffer size.</param>
-        public CryptoBlockReadStream(Stream stream, byte[] salt, byte[] userKey, int bufferSize = 32768)
+        /// <param name="decryptor">Decryptor override (optional).</param>
+        public CryptoBlockReadStream(Stream stream, byte[] salt, byte[] userKey, int bufferSize = 32768, IGcmDecryptor decryptor = null)
             : base(stream, bufferSize)
         {
-            var pepper = new AesGcmDecryptor().ReadPepper(stream);
+            this.decryptor = decryptor ?? new AesGcmDecryptor();
+            var pepper = this.decryptor.ReadPepper(stream);
             pepperLength = pepper.Length;
             cryptoKey = new DefaultKeyDeriver().DeriveCryptoKey(userKey, salt, pepper);
         }
@@ -50,7 +54,8 @@ namespace Crypto.Streams
         protected override byte[] MapBlock(byte[] sourceBuffer, long chunkNumber)
         {
             var counter = chunkNumber.RaiseBits();
-            return AesGcm.Encrypt(cryptoKey, counter, new byte[0], sourceBuffer)[0];
+            var encryptedBlock = new GcmEncryptedBlock(sourceBuffer, new byte[0]);
+            return decryptor.DecryptBlock(encryptedBlock, cryptoKey, counter, false);
         }
     }
 }

@@ -70,4 +70,20 @@ public class ReadStreamTests
         act.Should().ThrowExactly<NotSupportedException>()
             .WithMessage("This stream is read-only.");
     }
+
+    [Fact]
+    public void Dispose_WithStream_IsDisposed()
+    {
+        // Arrange
+        var fi = new FileInfo(Path.Combine("TestFiles", "earth2.avi"));
+        var sut = new ReadStream(fi);
+
+        // Act
+        sut.Dispose();
+        var act = () => sut.Length;
+
+        // Assert
+        act.Should().ThrowExactly<ObjectDisposedException>()
+            .WithMessage("Cannot access a closed file.");
+    }
 }
