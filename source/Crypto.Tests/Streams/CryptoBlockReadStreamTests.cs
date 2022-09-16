@@ -52,8 +52,10 @@ public class CryptoBlockReadStreamTests
         const int bufferLength = 1024;
         var fi = new FileInfo(Path.Combine("TestFiles", "tennis.png"));
         fi.EncryptInSitu(TestRefs.TestKey, bufferLength: bufferLength);
+        var salt = fi.ToSalt();
         var mockDecryptor = new Mock<IGcmDecryptor>();
-        var sut = new CryptoBlockReadStream(fi, TestRefs.TestKey, bufferLength, mockDecryptor.Object);
+        using var stream = fi.OpenRead();
+        var sut = new CryptoBlockReadStream(stream, salt, TestRefs.TestKey, bufferLength, mockDecryptor.Object);
         sut.Seek(12);
 
         // Act
@@ -71,7 +73,9 @@ public class CryptoBlockReadStreamTests
         // Arrange
         var fi = new FileInfo(Path.Combine("TestFiles", "earth.avi"));
         fi.EncryptInSitu(TestRefs.TestKey);
-        var sut = new CryptoBlockReadStream(fi, TestRefs.TestKey);
+        var salt = fi.ToSalt();
+        using var stream = fi.OpenRead();
+        var sut = new CryptoBlockReadStream(stream, salt, TestRefs.TestKey);
 
         // Act
         var uri = sut.Uri;
