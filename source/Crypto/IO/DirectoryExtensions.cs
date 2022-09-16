@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using Crypto.Encoding;
 using Crypto.Hashing;
 using Crypto.Transform;
 
@@ -12,6 +10,8 @@ namespace Crypto.IO
     /// </summary>
     public static class DirectoryExtensions
     {
+        private const string Wildcard = "*";
+
         /// <summary>
         /// Signs a folder structure recursively. This process is not sensitive
         /// to changes in metadata.
@@ -25,7 +25,7 @@ namespace Crypto.IO
             var hashSeed = includes.HasFlag(HashSumIncludes.DirectoryRootName) ? di.Name : "";
             var hash = hashSeed.Hash(mode);
 
-            foreach (var fsi in di.EnumerateFileSystemInfos("*", SearchOption.AllDirectories))
+            foreach (var fsi in di.EnumerateFileSystemInfos(Wildcard, SearchOption.AllDirectories))
             {
                 var entryBytes = new List<byte>(hash);
                 if (fsi is FileInfo fi)
@@ -65,7 +65,7 @@ namespace Crypto.IO
             IEncryptor encryptor = null,
             int bufferLength = 32768)
         {
-            foreach (var fi in di.EnumerateFiles("*", SearchOption.AllDirectories))
+            foreach (var fi in di.EnumerateFiles(Wildcard, SearchOption.AllDirectories))
             {
                 fi.EncryptInSitu(userKey, encryptor, bufferLength);
             }

@@ -117,6 +117,7 @@ public class DirectoryExtensionsTests
     {
         // Arrange
         var di = new DirectoryInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}"));
+        const string expected = "W6p5HeRHCryGjNCIXxTD+7tEVH/EwU5NpI8q9oCkW74=";
         di.Create();
 
         // Act
@@ -126,7 +127,7 @@ public class DirectoryExtensionsTests
         var hashSum2Base64 = di.HashSum(HashType.Sha256).Encode(Codec.ByteBase64);
 
         // Assert
-        hashSum1Base64.Should().Be(hashSum2Base64);
+        hashSum1Base64.Should().Be(hashSum2Base64).And.Be(expected);
     }
 
     [Fact]
@@ -139,11 +140,12 @@ public class DirectoryExtensionsTests
         // Act
         File.WriteAllText(Path.Combine(di.FullName, "file.txt"), "hi!");
         var hashSum1Base64 = di.HashSum(HashType.Sha256, HashSumIncludes.FileTimestamp).Encode(Codec.ByteBase64);
+        Thread.Sleep(1100);
         File.WriteAllText(Path.Combine(di.FullName, "file.txt"), "hi!");
         var hashSum2Base64 = di.HashSum(HashType.Sha256, HashSumIncludes.FileTimestamp).Encode(Codec.ByteBase64);
 
         // Assert
-        hashSum1Base64.Should().Be(hashSum2Base64);
+        hashSum1Base64.Should().NotBe(hashSum2Base64);
     }
 
     [Fact]

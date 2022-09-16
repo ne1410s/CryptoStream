@@ -1,6 +1,5 @@
 ﻿using Crypto.Encoding;
 using Crypto.Hashing;
-using FluentAssertions.Equivalency;
 
 namespace Crypto.Tests.Hashing;
 
