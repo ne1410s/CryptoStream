@@ -45,6 +45,23 @@ public class FileExtensionsTests
     }
 
     [Fact]
+    public void DecryptTo_UndersizedBuffer_ReturnsExpected()
+    {
+        // Arrange
+        var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
+        var content = $"hi{Guid.NewGuid()}";
+        File.WriteAllText(fi.FullName, content);
+        fi.EncryptInSitu(TestRefs.TestKey, bufferLength: 12);
+        var trgStream = new MemoryStream();
+
+        // Act
+        fi.DecryptTo(trgStream, TestRefs.TestKey, bufferLength: 12);
+
+        // Assert
+        trgStream.ToArray().Encode(Codec.CharUtf8).Should().Be(content);
+    }
+
+    [Fact]
     public void DecryptTo_WithMac_ReturnsExpected()
     {
         // Arrange
@@ -60,6 +77,20 @@ public class FileExtensionsTests
 
         // Assert
         trgStream.ToArray().Encode(Codec.CharUtf8).Should().Be(content);
+    }
+
+    [Fact]
+    public void EncryptInSitu_WithSameContent_SaltIsDeterministic()
+    {
+        // Arrange
+        var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
+        File.WriteAllText(fi.FullName, $"hi{nameof(EncryptInSitu_WithSameContent_SaltIsDeterministic)}");
+
+        // Act
+        var salt = fi.EncryptInSitu(TestRefs.TestKey);
+
+        // Assert
+        salt.Should().Be("8062285b5b7c71eb689abea4c08889fc1ba18bb1726c75313c6966a7b968f21f");
     }
 
     [Fact]

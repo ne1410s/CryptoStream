@@ -73,7 +73,6 @@ namespace Crypto.Streams
         /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
-            base.Dispose(disposing);
             inner.Dispose();
         }
     }

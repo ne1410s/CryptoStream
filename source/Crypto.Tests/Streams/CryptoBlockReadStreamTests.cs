@@ -15,7 +15,7 @@ public class CryptoBlockReadStreamTests
     {
         // Arrange
         var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
-        File.WriteAllText(fi.FullName, "hello here is a string");
+        File.WriteAllText(fi.FullName, "hello here is another string");
         fi.EncryptInSitu(TestRefs.TestKey);
         var mockDecryptor = new Mock<IGcmDecryptor>();
 

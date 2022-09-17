@@ -106,7 +106,7 @@ namespace Crypto.IO
         {
             encryptor = encryptor ?? new AesGcmEncryptor();
 
-            var saltHex = "";
+            var saltHex = (string)null;
             using (var stream = fi.Open(FileMode.Open))
             {
                 saltHex = encryptor.Encrypt(stream, stream, userKey, bufferLength, mac)
