@@ -15,7 +15,7 @@ public class DirectoryExtensionsTests
     public void HashSum_NoContents_ReturnsExpected()
     {
         // Arrange
-        var di = new DirectoryInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}"));
+        var di = new DirectoryInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}"));
         di.Create();
 
         // Act
@@ -31,7 +31,7 @@ public class DirectoryExtensionsTests
     public void HashSum_FileContentsOnlyWithVaryingStructure_DoesNotAffectResult(string folderName)
     {
         // Arrange
-        var di = new DirectoryInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}"));
+        var di = new DirectoryInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}"));
         di.Create();
         di.CreateSubdirectory(folderName);
         const string expected = "Xfbg4nYTWdMKgnUFjimfzAOBU0VF9Vz0PkGYP11MlFY=";
@@ -47,8 +47,8 @@ public class DirectoryExtensionsTests
     public void HashSum_IncludeRootWithSameNames_SameResult()
     {
         // Arrange
-        var di1 = new DirectoryInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}", "dir"));
-        var di2 = new DirectoryInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}", "dir"));
+        var di1 = new DirectoryInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}", "dir"));
+        var di2 = new DirectoryInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}", "dir"));
         di1.Create();
         di2.Create();
 
@@ -64,8 +64,8 @@ public class DirectoryExtensionsTests
     public void HashSum_IncludeRootWithDifferentNames_DifferentResult()
     {
         // Arrange
-        var di1 = new DirectoryInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}", "d1"));
-        var di2 = new DirectoryInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}", "d2"));
+        var di1 = new DirectoryInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}", "d1"));
+        var di2 = new DirectoryInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}", "d2"));
         di1.Create();
         di2.Create();
 
@@ -83,7 +83,7 @@ public class DirectoryExtensionsTests
     public void HashSum_IncludeStrutureWithVaryingStructure_AffectsResult(string folderName, string expected)
     {
         // Arrange
-        var di = new DirectoryInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}"));
+        var di = new DirectoryInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}"));
         di.Create();
         di.CreateSubdirectory(folderName);
 
@@ -100,7 +100,7 @@ public class DirectoryExtensionsTests
     public void HashSum_ChangingContentsOfNestedFile_AffectsResult(string fileText, string expected)
     {
         // Arrange
-        var di = new DirectoryInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}"));
+        var di = new DirectoryInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}"));
         di.Create();
         di.CreateSubdirectory("mydir");
         File.WriteAllText(Path.Combine(di.FullName, "mydir", "file.txt"), fileText);
@@ -116,7 +116,7 @@ public class DirectoryExtensionsTests
     public void HashSum_ChangeFileTimestampButNotIncluded_SameResult()
     {
         // Arrange
-        var di = new DirectoryInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}"));
+        var di = new DirectoryInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}"));
         const string expected = "W6p5HeRHCryGjNCIXxTD+7tEVH/EwU5NpI8q9oCkW74=";
         di.Create();
 
@@ -134,7 +134,7 @@ public class DirectoryExtensionsTests
     public void HashSum_ChangeFileTimestampsIncluded_DifferentResult()
     {
         // Arrange
-        var di = new DirectoryInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}"));
+        var di = new DirectoryInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}"));
         di.Create();
 
         // Act
@@ -153,7 +153,7 @@ public class DirectoryExtensionsTests
     {
         // Arrange
         var mockEncryptor = new Mock<IEncryptor>();
-        var di = new DirectoryInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}"));
+        var di = new DirectoryInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}"));
         di.Create();
         File.WriteAllText(Path.Combine(di.FullName, "howdy.txt"), "howdy");
         di.CreateSubdirectory("mydir");

@@ -14,7 +14,7 @@ public class BlockReadStreamTests
     {
         // Arrange
         const int bufferLength = 1024;
-        var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
+        var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         File.WriteAllText(fi.FullName, "this is a string that is for sure more than twelve bytes!");
         var sut = new BlockReadStream(fi, bufferLength);
         sut.Seek(12);
@@ -32,7 +32,7 @@ public class BlockReadStreamTests
     {
         // Arrange
         const int bufferLength = 8;
-        var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
+        var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         File.WriteAllText(fi.FullName, "this is a string that is for sure more than twelve bytes!");
         var sut = new BlockReadStream(fi, bufferLength);
         sut.Seek(6);
@@ -48,7 +48,7 @@ public class BlockReadStreamTests
     public void Read_OversizedBuffer_ResizesBuffer()
     {
         // Arrange
-        var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
+        var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         File.WriteAllText(fi.FullName, "this is a string that is of some size.");
         const int bufferLength = 1024;
         var sut = new BlockReadStream(fi, bufferLength);
@@ -65,7 +65,7 @@ public class BlockReadStreamTests
     public void Read_PerfectFitBuffer_NotResized()
     {
         // Arrange
-        var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
+        var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         File.WriteAllText(fi.FullName, "hello here is a string");
         var bufferLength = fi.Length;
         var sut = new BlockReadStream(fi, (int)bufferLength);

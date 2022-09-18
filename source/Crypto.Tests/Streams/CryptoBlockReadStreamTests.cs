@@ -14,7 +14,7 @@ public class CryptoBlockReadStreamTests
     public void Ctor_WithDecryptor_CallsReadPepper()
     {
         // Arrange
-        var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
+        var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         File.WriteAllText(fi.FullName, "hello here is another string");
         fi.EncryptInSitu(TestRefs.TestKey);
         var mockDecryptor = new Mock<IGcmDecryptor>();
@@ -31,7 +31,7 @@ public class CryptoBlockReadStreamTests
     {
         // Arrange
         const int bufferLength = 16;
-        var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
+        var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         File.WriteAllText(fi.FullName, "this is a sentence more than twelve bytes for sure!");
         fi.EncryptInSitu(TestRefs.TestKey, bufferLength: bufferLength);
         var salt = fi.ToSalt();
@@ -53,7 +53,7 @@ public class CryptoBlockReadStreamTests
     public void Props_WhenPopulated_ShouldBeExpected()
     {
         // Arrange
-        var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
+        var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         File.WriteAllText(fi.FullName, $"hi{Guid.NewGuid()}");
         fi.EncryptInSitu(TestRefs.TestKey);
         var salt = fi.ToSalt();

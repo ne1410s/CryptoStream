@@ -15,7 +15,7 @@ public class FileExtensionsTests
     public void DecryptTo_WithDecryptor_CallsDecrypt()
     {
         // Arrange
-        var fi = new FileInfo(Path.Combine("TestFiles", $"{TestRefs.CryptoFileName}.{Guid.NewGuid()}"));
+        var fi = new FileInfo(Path.Combine("TestObjects", $"{TestRefs.CryptoFileName}.{Guid.NewGuid()}"));
         File.WriteAllText(fi.FullName, $"hi{Guid.NewGuid()}");
         var mockDecryptor = new Mock<IDecryptor>();
         var trgStream = new MemoryStream();
@@ -31,7 +31,7 @@ public class FileExtensionsTests
     public void DecryptTo_DefaultDecryptor_ReturnsExpected()
     {
         // Arrange
-        var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
+        var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         var content = $"hi{Guid.NewGuid()}";
         File.WriteAllText(fi.FullName, content);
         fi.EncryptInSitu(TestRefs.TestKey);
@@ -48,7 +48,7 @@ public class FileExtensionsTests
     public void DecryptTo_UndersizedBuffer_ReturnsExpected()
     {
         // Arrange
-        var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
+        var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         var content = $"hi{Guid.NewGuid()}";
         File.WriteAllText(fi.FullName, content);
         fi.EncryptInSitu(TestRefs.TestKey, bufferLength: 12);
@@ -65,7 +65,7 @@ public class FileExtensionsTests
     public void DecryptTo_WithMac_ReturnsExpected()
     {
         // Arrange
-        var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
+        var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         var content = $"hi{Guid.NewGuid()}";
         File.WriteAllText(fi.FullName, content);
         using var macStream = new MemoryStream();
@@ -83,7 +83,7 @@ public class FileExtensionsTests
     public void EncryptInSitu_WithSameContent_SaltIsDeterministic()
     {
         // Arrange
-        var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
+        var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         File.WriteAllText(fi.FullName, $"hi{nameof(EncryptInSitu_WithSameContent_SaltIsDeterministic)}");
 
         // Act
@@ -97,7 +97,7 @@ public class FileExtensionsTests
     public void EncryptInSitu_WithFile_UpdatesFileInfoReference()
     {
         // Arrange
-        var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
+        var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         File.WriteAllText(fi.FullName, $"hi{Guid.NewGuid()}");
 
         // Act
@@ -112,7 +112,7 @@ public class FileExtensionsTests
     public void EncryptInSitu_WithMac_PopulatesMacStream()
     {
         // Arrange
-        var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
+        var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         File.WriteAllText(fi.FullName, $"hi{Guid.NewGuid()}");
         using var macStream = new MemoryStream();
 
@@ -168,7 +168,7 @@ public class FileExtensionsTests
     public void Hash_WithFile_ReturnsExpected()
     {
         // Arrange
-        var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
+        var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         File.WriteAllText(fi.FullName, $"hi{nameof(HashLite_WithFile_ReturnsExpected)}");
 
         // Act
@@ -182,7 +182,7 @@ public class FileExtensionsTests
     public void HashLite_WithFile_ReturnsExpected()
     {
         // Arrange
-        var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
+        var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         File.WriteAllText(fi.FullName, "hello this is a slightly larger file.");
 
         // Act

@@ -13,7 +13,7 @@ public class AesGcmDecryptorTests
     public void Decrypt_OversizedTarget_GetsResized()
     {
         // Arrange
-        var fi = new FileInfo(Path.Combine("TestFiles", $"{Guid.NewGuid()}.txt"));
+        var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         File.WriteAllText(fi.FullName, "hi!!");
         fi.EncryptInSitu(TestRefs.TestKey);
         using var trgStream = new MemoryStream(Enumerable.Repeat((byte)1, 20).ToArray());
