@@ -101,4 +101,36 @@ public class BlockReadStreamTests
             m => m.Resize(ref It.Ref<byte[]>.IsAny, It.IsAny<int>()),
             Times.Never);
     }
+
+    [Fact]
+    public void Read_BytesWrittenEqualsCount_TerminatesLoop()
+    {
+        // Arrange
+        var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
+        File.WriteAllText(fi.FullName, "hello here is a string");
+        var sut = new BlockReadStream(fi);
+        var buffer = new byte[fi.Length];
+
+        // Act
+        var read = sut.Read(buffer, 0, buffer.Length - 1);
+
+        // Assert
+        read.Should().Be(buffer.Length - 1);
+    }
+
+    [Fact]
+    public void Read_BytesWrittenPlusOffsetEqualsLength_TerminatesLoop()
+    {
+        // Arrange
+        var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
+        File.WriteAllText(fi.FullName, "hello here is a string");
+        var sut = new BlockReadStream(fi);
+        var buffer = new byte[fi.Length];
+
+        // Act
+        var read = sut.Read(buffer, 20, buffer.Length - 1);
+
+        // Assert
+        read.Should().Be(2);
+    }
 }

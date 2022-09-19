@@ -62,7 +62,6 @@ namespace Crypto.Streams
 
             var blocksToRead = Math.Ceiling((double)(remainder + count) / bufLen);
             var bytesWritten = 0;
-
             var iterPosition = receivedPoint;
 
             foreach (var blockNo in Enumerable.Range((int)initBlock, (int)(initBlock + blocksToRead - 1)))
