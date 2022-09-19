@@ -1,6 +1,7 @@
 ﻿using Crypto.Encoding;
 using Crypto.Hashing;
 using Crypto.Streams;
+using Crypto.Utils;
 
 namespace Crypto.Tests.Streams;
 
@@ -45,6 +46,26 @@ public class BlockReadStreamTests
     }
 
     [Fact]
+    public void Read_OversizedBuffer_CallsResize()
+    {
+        // Arrange
+        var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
+        File.WriteAllText(fi.FullName, "this is a string that is of some size.");
+        const int bufferLength = 1024;
+        var mockResizer = new Mock<IArrayResizer>();
+        var sut = new BlockReadStream(fi, bufferLength, mockResizer.Object);
+        sut.Seek(fi.Length - 9);
+
+        // Act
+        var block = sut.Read();
+
+        // Assert
+        mockResizer.Verify(
+            m => m.Resize(ref It.Ref<byte[]>.IsAny, 38),
+            Times.Once);
+    }
+
+    [Fact]
     public void Read_OversizedBuffer_ResizesBuffer()
     {
         // Arrange
@@ -68,15 +89,16 @@ public class BlockReadStreamTests
         var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         File.WriteAllText(fi.FullName, "hello here is a string");
         var bufferLength = fi.Length;
-        var sut = new BlockReadStream(fi, (int)bufferLength);
+        var mockResizer = new Mock<IArrayResizer>();
+        var sut = new BlockReadStream(fi, (int)bufferLength, mockResizer.Object);
         sut.Seek(12);
 
         // Act
-        var block = sut.Read();
-        var blockHashHex = block.Hash(HashType.Md5).Encode(Codec.ByteHex);
+        _ = sut.Read();
 
         // Assert
-        block.Length.Should().Be((int)fi.Length);
-        blockHashHex.Should().Be("0523074868bcd2e5e22883ba867ae902");
+        mockResizer.Verify(
+            m => m.Resize(ref It.Ref<byte[]>.IsAny, It.IsAny<int>()),
+            Times.Never);
     }
 }

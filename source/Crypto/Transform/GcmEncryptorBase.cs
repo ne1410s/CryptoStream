@@ -3,6 +3,7 @@ using System.IO;
 using System.Security.Cryptography;
 using Crypto.Hashing;
 using Crypto.Keying;
+using Crypto.Utils;
 
 namespace Crypto.Transform
 {
@@ -10,14 +11,19 @@ namespace Crypto.Transform
     public abstract class GcmEncryptorBase : IGcmEncryptor
     {
         private readonly ICryptoKeyDeriver keyDeriver;
+        private readonly IArrayResizer resizer;
 
         /// <summary>
         /// Initialises a new instance of <see cref="GcmEncryptorBase"/>.
         /// </summary>
         /// <param name="keyDeriver">The key deriver.</param>
-        protected GcmEncryptorBase(ICryptoKeyDeriver keyDeriver)
+        /// <param name="resizer">An array resizer.</param>
+        protected GcmEncryptorBase(
+            ICryptoKeyDeriver keyDeriver,
+            IArrayResizer resizer)
         {
             this.keyDeriver = keyDeriver;
+            this.resizer = resizer;
         }
 
         /// <summary>
@@ -46,10 +52,9 @@ namespace Crypto.Transform
             while ((readSize = input.Read(srcBuffer, 0, srcBuffer.Length)) != 0)
             {
                 ByteExtensions.Increment(ref counter);
-                var lastRead = readSize < bufferLength;
-                if (lastRead)
+                if (readSize < srcBuffer.Length)
                 {
-                    Array.Resize(ref srcBuffer, readSize);
+                    resizer.Resize(ref srcBuffer, readSize);
                 }
 
                 var result = EncryptBlock(srcBuffer, cryptoKey, counter);

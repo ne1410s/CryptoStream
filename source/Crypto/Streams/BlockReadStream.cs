@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
+using Crypto.Utils;
 
 namespace Crypto.Streams
 {
@@ -10,6 +12,8 @@ namespace Crypto.Streams
     /// </summary>
     public class BlockReadStream : ReadStream, ISimpleReadStream
     {
+        private readonly IArrayResizer arrayResizer;
+
         /// <summary>
         /// The source buffer.
         /// </summary>
@@ -26,8 +30,9 @@ namespace Crypto.Streams
         /// </summary>
         /// <param name="fi">The source file.</param>
         /// <param name="bufferLength">The block buffer length.</param>
-        public BlockReadStream(FileInfo fi, int bufferLength = 32768)
-            : this(new FileStream(fi.FullName, FileMode.Open, FileAccess.Read), bufferLength)
+        /// <param name="resizer">An array resizer.</param>
+        public BlockReadStream(FileInfo fi, int bufferLength = 32768, IArrayResizer resizer = null)
+            : this(new FileStream(fi.FullName, FileMode.Open, FileAccess.Read), bufferLength, resizer)
         { }
 
         /// <summary>
@@ -35,9 +40,11 @@ namespace Crypto.Streams
         /// </summary>
         /// <param name="stream">The source stream.</param>
         /// <param name="bufferLength">The block buffer length.</param>
-        public BlockReadStream(Stream stream, int bufferLength = 32768)
+        /// <param name="resizer">An array resizer.</param>
+        public BlockReadStream(Stream stream, int bufferLength = 32768, IArrayResizer resizer = null)
             : base(stream)
         {
+            arrayResizer = resizer ?? new ArrayResizer();
             blockBuffer = new byte[bufferLength];
             Uri = Guid.NewGuid().ToString();
         }
@@ -47,7 +54,7 @@ namespace Crypto.Streams
         {
             var bufLen = blockBuffer.Length;
             var receivedPoint = Position;
-            var startPoint = BlockPosition(Position, bufLen, out var initBlock, out var remainder);
+            var startPoint = StreamBlockUtils.BlockPosition(Position, bufLen, out var initBlock, out var remainder);
             if (remainder != 0)
             {
                 Seek(startPoint, SeekOrigin.Begin);
@@ -57,17 +64,12 @@ namespace Crypto.Streams
             var bytesWritten = 0;
 
             var iterPosition = receivedPoint;
-            for (var blockNo = initBlock; blockNo < (initBlock + blocksToRead); blockNo++)
+
+            foreach (var blockNo in Enumerable.Range((int)initBlock, (int)(initBlock + blocksToRead - 1)))
             {
                 var maxBlockRead = Math.Min(Length - iterPosition, bufLen);
                 var iterRead = inner.Read(blockBuffer, 0, (int)maxBlockRead);
-                if (iterRead == 0)
-                {
-                    break;
-                }
-
                 var targetBuffer = MapBlock(blockBuffer, blockNo);
-
                 for (var j = 0; j < iterRead
                     && offset + bytesWritten < buffer.Length
                     && bytesWritten < count
@@ -89,24 +91,6 @@ namespace Crypto.Streams
         }
 
         /// <summary>
-        /// Gets the position of the first block that covers the base position.
-        /// </summary>
-        /// <param name="basePosition">The queried base position.</param>
-        /// <param name="bufferLength">The block buffer length.</param>
-        /// <param name="blockNo">The sequential block number.</param>
-        /// <param name="remainder">The number of skippable bytes in the block before the requested
-        /// position is reached.</param>
-        /// <returns>The discrete block position.</returns>
-        protected static long BlockPosition(
-            long basePosition, int bufferLength, out long blockNo, out int remainder)
-        {
-            blockNo = 1 + (long)Math.Floor((double)basePosition / bufferLength);
-            var blockStart = bufferLength * (blockNo - 1);
-            remainder = (int)(basePosition - blockStart);
-            return blockStart;
-        }
-
-        /// <summary>
         /// Obtains a mapped block.
         /// </summary>
         /// <param name="sourceBuffer">The source buffer.</param>
@@ -124,9 +108,9 @@ namespace Crypto.Streams
         {
             var buffer = new byte[BufferLength];
             var actualRead = Read(buffer, 0, buffer.Length);
-            if (actualRead < BufferLength)
+            if (actualRead < buffer.Length)
             {
-                Array.Resize(ref buffer, actualRead);
+                arrayResizer.Resize(ref buffer, actualRead);
             }
 
             return buffer;

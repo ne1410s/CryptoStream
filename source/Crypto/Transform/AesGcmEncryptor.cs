@@ -1,4 +1,5 @@
 ﻿using Crypto.Keying;
+using Crypto.Utils;
 using Jose;
 
 namespace Crypto.Transform
@@ -11,9 +12,14 @@ namespace Crypto.Transform
         /// <summary>
         /// Initialises a new instance of <see cref="AesGcmEncryptor"/>.
         /// </summary>
-        /// <param name="keyDeriver"></param>
-        public AesGcmEncryptor(ICryptoKeyDeriver keyDeriver = null)
-            : base(keyDeriver ?? new DefaultKeyDeriver())
+        /// <param name="keyDeriver">Derives a crypto key.</param>
+        /// <param name="resizer">Resizes arrays.</param>
+        public AesGcmEncryptor(
+            ICryptoKeyDeriver keyDeriver = null,
+            IArrayResizer resizer = null)
+            : base(
+                  keyDeriver ?? new DefaultKeyDeriver(),
+                  resizer ?? new ArrayResizer())
         { }
 
         /// <inheritdoc/>
