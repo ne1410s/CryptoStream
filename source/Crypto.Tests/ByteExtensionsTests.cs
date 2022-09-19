@@ -1,7 +1,7 @@
-namespace Crypto.Tests;
+﻿namespace Crypto.Tests;
 
 /// <summary>
-/// Tests for the <see cref="ByteExtensions"/> class.
+/// Tests for <see cref="ByteExtensions"/>.
 /// </summary>
 public class ByteExtensionsTests
 {
@@ -10,7 +10,7 @@ public class ByteExtensionsTests
     [InlineData(255)]
     [InlineData(40442)]
     [InlineData(-1)]
-    public void CounterIncrement_SmallNumbers(int initial)
+    public void Increment_SmallNumbers_ReturnsExpected(int initial)
     {
         // Arrange
         var counter = BitConverter.GetBytes(initial);
@@ -29,7 +29,7 @@ public class ByteExtensionsTests
     [InlineData(24, 255, true)]
     [InlineData(24, 254, false)]
     [InlineData(0, 0, true)]
-    public void CounterIncrement_Resize(int initialSize, byte fill, bool expectResize)
+    public void Increment_VergingOnResize_ResizedWhereNecessary(int initialSize, byte fill, bool expectResize)
     {
         // Arrange
         var expectedFinalSize = expectResize ? initialSize + 1 : initialSize;
@@ -49,7 +49,7 @@ public class ByteExtensionsTests
     [InlineData(1, false, false)]
     [InlineData(24, true, true)]
     [InlineData(9623, false, false)]
-    public void CounterIncrement_Endianness(int initialSize, bool bigEndian, bool expectAppend)
+    public void Increment_VaryingEndianness_ReturnsExpected(int initialSize, bool bigEndian, bool expectAppend)
     {
         // Arrange
         var counter = new byte[initialSize];
@@ -72,10 +72,10 @@ public class ByteExtensionsTests
     [Theory]
     [InlineData(500, true, new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 244 })]
     [InlineData(500, false, new byte[] { 244, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })]
-    public void Pad12_Endianness(long number, bool bigEndian, byte[] expected)
+    public void RaiseBits_VaryingEndianness_ReturnsExpected(long number, bool bigEndian, byte[] expected)
     {
         // Arrange & Act
-        var result = number.Pad12(bigEndian);
+        var result = number.RaiseBits(bigEndian);
 
         // Assert
         result.Should().BeEquivalentTo(expected);
