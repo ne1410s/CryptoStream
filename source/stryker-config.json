@@ -1,7 +1,7 @@
 {
   "stryker-config": {
     "test-projects": [
-      "Crypto.Tests"
+      "Crypt.Tests"
     ],
     "thresholds": {
       "high": 100,
