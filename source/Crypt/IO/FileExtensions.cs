@@ -16,6 +16,14 @@ namespace Crypt.IO
             RegexOptions.Compiled);
 
         /// <summary>
+        /// Gets whether the file appears to be secure.
+        /// </summary>
+        /// <param name="fi">The file info.</param>
+        /// <returns>Whether the file appears secure.</returns>
+        public static bool IsSecure(this FileInfo fi)
+            => SaltRegex.IsMatch(fi.Name);
+
+        /// <summary>
         /// Gets a salt.
         /// </summary>
         /// <param name="fi">The file info.</param>

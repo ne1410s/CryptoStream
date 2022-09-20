@@ -124,6 +124,22 @@ public class FileExtensionsTests
     }
 
     [Theory]
+    [InlineData(TestRefs.CryptoFileName, true)]
+    [InlineData(TestRefs.CryptoFileName + ".txt", true)]
+    [InlineData(TestRefs.CryptoFileName + "e", false)]
+    public void IsSecure_VaryingFormat_ReturnsExpected(string name, bool expected)
+    {
+        // Arrange
+        var fi = new FileInfo(name);
+
+        // Act
+        var result = fi.IsSecure();
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
+    [Theory]
     [InlineData("abc")]
     [InlineData("T123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef")]
     [InlineData(TestRefs.CryptoFileName + ".")]
