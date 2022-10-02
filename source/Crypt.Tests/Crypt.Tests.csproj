@@ -46,6 +46,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Samples\0f5bed56f862512644ec87b7db6afc7299e2195c5bf9b27bcc631adb16785ed9.avi">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Samples\sample.avi">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="TestObjects\pixel.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
