@@ -52,41 +52,24 @@ namespace Crypt.Streams
         /// <inheritdoc/>
         public override int Read(byte[] buffer, int offset, int count)
         {
-            var bufLen = blockBuffer.Length;
-            var receivedPoint = Position;
-            var startPoint = StreamBlockUtils.BlockPosition(Position, bufLen, out var initBlock, out var remainder);
-            if (remainder != 0)
+            var originalPosition = Position;
+            Position = StreamBlockUtils.BlockPosition(Position, BufferLength, out var block1, out var remainder);
+            var blockSpan = (int)Math.Ceiling((double)(remainder + count) / BufferLength);
+            var totalBytesRead = 0;
+
+            foreach (var blockIndex in Enumerable.Range(0, blockSpan))
             {
-                Seek(startPoint, SeekOrigin.Begin);
-            }
-
-            var blocksToRead = Math.Ceiling((double)(remainder + count) / bufLen);
-            var bytesWritten = 0;
-            var iterPosition = receivedPoint;
-
-            foreach (var blockNo in Enumerable.Range((int)initBlock, (int)(initBlock + blocksToRead - 1)))
-            {
-                var maxBlockRead = Math.Min(Length - iterPosition, bufLen);
-                var iterRead = inner.Read(blockBuffer, 0, (int)maxBlockRead);
-                var targetBuffer = MapBlock(blockBuffer, blockNo);
-                for (var j = 0; j < iterRead
-                    && offset + bytesWritten < buffer.Length
-                    && bytesWritten < count
-                    && remainder + j < targetBuffer.Length; j++)
-                {
-                    buffer[offset + bytesWritten++] = targetBuffer[remainder + j];
-                }
-
-                // Subsequent blocks are always remainder-zero
+                var blockRead = inner.Read(blockBuffer, 0, BufferLength);
+                var pertinentBlockRead = Math.Min(blockRead - remainder, count - totalBytesRead);
+                pertinentBlockRead = (int)Math.Min((double)pertinentBlockRead, Length - (originalPosition + totalBytesRead));
+                var mappedBlock = MapBlock(blockBuffer, block1 + blockIndex);
+                Array.Copy(mappedBlock, remainder, buffer, totalBytesRead, pertinentBlockRead);
+                totalBytesRead += pertinentBlockRead;
                 remainder = 0;
-                iterPosition = Position;
             }
 
-            // Seek to final expected position
-            var seekTo = Math.Min(receivedPoint + count, Length);
-            Seek(seekTo, SeekOrigin.Begin);
-
-            return bytesWritten;
+            Position = originalPosition + totalBytesRead;
+            return totalBytesRead;
         }
 
         /// <summary>
