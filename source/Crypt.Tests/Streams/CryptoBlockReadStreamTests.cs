@@ -36,14 +36,14 @@ public class CryptoBlockReadStreamTests
     public void Read_VaryingStartPosition_MimicsNonBlockingAuthority(long position, int bufferLength = 32768)
     {
         // Arrange
-        var fi = new FileInfo(Path.Combine("Samples", "sample.avi"));
+        var fi = new FileInfo(Path.Combine("TestObjects", "sample.avi"));
         using var authority = new SimpleFileStream(fi, bufferLength);
         authority.Seek(position, SeekOrigin.Begin);
         var authBuffer = new byte[bufferLength];
         var authRead = authority.Read(authBuffer, 0, bufferLength);
         if (authRead < bufferLength) { Array.Resize(ref authBuffer, authRead); }
         var authMd5Hex = authBuffer.Hash(HashType.Md5).Encode(Codec.ByteHex);
-        var secureFi = new FileInfo(Path.Combine("Samples", "0f5bed56f862512644ec87b7db6afc7299e2195c5bf9b27bcc631adb16785ed9.avi"));
+        var secureFi = new FileInfo(Path.Combine("TestObjects", "0f5bed56f862512644ec87b7db6afc7299e2195c5bf9b27bcc631adb16785ed9.avi"));
         using var sut = new CryptoBlockReadStream(secureFi, TestRefs.TestKey);
         sut.Seek(position, SeekOrigin.Begin);
 

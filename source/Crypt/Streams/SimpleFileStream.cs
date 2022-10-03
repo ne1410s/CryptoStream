@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Crypt.Utils;
 
 namespace Crypt.Streams
 {
@@ -8,14 +9,18 @@ namespace Crypt.Streams
     /// </summary>
     public class SimpleFileStream : FileStream, ISimpleReadStream
     {
+        private readonly IArrayResizer arrayResizer;
+
         /// <summary>
         /// Initialises a new <see cref="SimpleFileStream"/>.
         /// </summary>
         /// <param name="fi">The source file.</param>
         /// <param name="bufferLength">The buffer length.</param>
-        public SimpleFileStream(FileInfo fi, int bufferLength = 32768)
+        /// <param name="resizer">An array resizer.</param>
+        public SimpleFileStream(FileInfo fi, int bufferLength = 32768, IArrayResizer resizer = null)
             : base(fi.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, bufferLength)
         {
+            arrayResizer = resizer ?? new ArrayResizer();
             BufferLength = bufferLength;
             Uri = fi.FullName;
         }
@@ -33,7 +38,7 @@ namespace Crypt.Streams
             var actuallyRead = Read(retVal, 0, BufferLength);
             if (actuallyRead < BufferLength)
             {
-                Array.Resize(ref retVal, actuallyRead);
+                arrayResizer.Resize(ref retVal, actuallyRead);
             }
 
             return retVal;

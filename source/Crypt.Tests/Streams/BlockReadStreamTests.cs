@@ -14,7 +14,7 @@ public class BlockReadStreamTests
     public void Ctor_SpecificMedia_HashExpected()
     {
         // Arrange
-        var fi = new FileInfo(Path.Combine("Samples", "sample.avi"));
+        var fi = new FileInfo(Path.Combine("TestObjects", "sample.avi"));
         var sut = new BlockReadStream(fi);
         const string expectedMd5Hex = "91d326694fdff83d0df74c357f3feb84";
 
@@ -33,7 +33,7 @@ public class BlockReadStreamTests
     public void Read_VaryingStartPosition_MimicsNonBlockingAuthority(long position, int bufferLength = 32768)
     {
         // Arrange
-        var fi = new FileInfo(Path.Combine("Samples", "sample.avi"));
+        var fi = new FileInfo(Path.Combine("TestObjects", "sample.avi"));
         using var authority = new SimpleFileStream(fi, bufferLength);
         authority.Seek(position, SeekOrigin.Begin);
         var authBuffer = new byte[bufferLength];
@@ -103,7 +103,7 @@ public class BlockReadStreamTests
 
         // Assert
         mockResizer.Verify(
-            m => m.Resize(ref It.Ref<byte[]>.IsAny, 38),
+            m => m.Resize(ref It.Ref<byte[]>.IsAny, 9),
             Times.Once);
     }
 
@@ -121,7 +121,7 @@ public class BlockReadStreamTests
         var block = sut.Read();
 
         // Assert
-        block.Length.Should().Be((int)fi.Length);
+        block.Length.Should().Be(9);
     }
 
     [Fact]
@@ -133,10 +133,9 @@ public class BlockReadStreamTests
         var bufferLength = fi.Length;
         var mockResizer = new Mock<IArrayResizer>();
         var sut = new BlockReadStream(fi, (int)bufferLength, mockResizer.Object);
-        sut.Seek(12);
 
         // Act
-        _ = sut.Read();
+        var x = sut.Read();
 
         // Assert
         mockResizer.Verify(
@@ -173,6 +172,6 @@ public class BlockReadStreamTests
         var read = sut.Read(buffer, 20, buffer.Length - 1);
 
         // Assert
-        read.Should().Be(2);
+        read.Should().Be(21);
     }
 }

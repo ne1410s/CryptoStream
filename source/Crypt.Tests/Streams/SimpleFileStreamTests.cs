@@ -1,6 +1,7 @@
 ﻿using Crypt.Encoding;
 using Crypt.Hashing;
 using Crypt.Streams;
+using Crypt.Utils;
 
 namespace Crypt.Tests.Streams
 {
@@ -10,12 +11,25 @@ namespace Crypt.Tests.Streams
     public class SimpleFileStreamTests
     {
         [Fact]
+        public void Ctor_WithFile_UriIsPath()
+        {
+            // Arrange
+            var fi = new FileInfo(Path.Combine("TestObjects", "sample.avi"));
+
+            // Act
+            var sut = new SimpleFileStream(fi);
+
+            // Assert
+            sut.Uri.Should().Be(fi.FullName);
+        }
+
+        [Fact]
         public void Ctor_SpecificMedia_HashExpected()
         {
             // Arrange
-            var fi = new FileInfo(Path.Combine("Samples", "sample.avi"));
+            var fi = new FileInfo(Path.Combine("TestObjects", "sample.avi"));
             var sut = new SimpleFileStream(fi);
-            var expectedMd5Hex = "91d326694fdff83d0df74c357f3feb84";
+            const string expectedMd5Hex = "91d326694fdff83d0df74c357f3feb84";
 
             // Act
             var actualMd5Hex = sut.Hash(HashType.Md5).Encode(Codec.ByteHex);
@@ -29,7 +43,7 @@ namespace Crypt.Tests.Streams
         public void Read_SpecificPosition_GivesExpected(long position, string expectedMd5Hex)
         {
             // Arrange
-            var fi = new FileInfo(Path.Combine("Samples", "sample.avi"));
+            var fi = new FileInfo(Path.Combine("TestObjects", "sample.avi"));
             var sut = new SimpleFileStream(fi);
             sut.Seek(position);
 
@@ -39,6 +53,42 @@ namespace Crypt.Tests.Streams
 
             // Assert
             actualMd5Hex.Should().Be(expectedMd5Hex);
+        }
+
+        [Fact]
+        public void Read_OversizedBuffer_ResizesBuffer()
+        {
+            // Arrange
+            var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
+            File.WriteAllText(fi.FullName, "this is a string that is of some size.");
+            const int bufferLength = 1024;
+            var sut = new SimpleFileStream(fi, bufferLength);
+            sut.Seek(fi.Length - 9);
+
+            // Act
+            var block = sut.Read();
+
+            // Assert
+            block.Length.Should().Be(9);
+        }
+
+        [Fact]
+        public void Read_PerfectFitBuffer_NotResized()
+        {
+            // Arrange
+            var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
+            File.WriteAllText(fi.FullName, "hello here is a string");
+            var bufferLength = fi.Length;
+            var mockResizer = new Mock<IArrayResizer>();
+            var sut = new SimpleFileStream(fi, (int)bufferLength, mockResizer.Object);
+
+            // Act
+            var x = sut.Read();
+
+            // Assert
+            mockResizer.Verify(
+                m => m.Resize(ref It.Ref<byte[]>.IsAny, It.IsAny<int>()),
+                Times.Never);
         }
     }
 }
