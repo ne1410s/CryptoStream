@@ -5,6 +5,7 @@
 namespace Crypt.Streams
 {
     using System;
+    using System.Diagnostics.CodeAnalysis;
     using System.IO;
 
     /// <summary>
@@ -73,10 +74,11 @@ namespace Crypt.Streams
             => throw new NotSupportedException("This stream is read-only.");
 
         /// <inheritdoc/>
+        [SuppressMessage(
+            "Usage", "CA2215:Dispose methods should call base class dispose", Justification = "Nothing to dispose")]
         protected override void Dispose(bool disposing)
         {
             this.Inner.Dispose();
-            base.Dispose(disposing);
         }
     }
 }
