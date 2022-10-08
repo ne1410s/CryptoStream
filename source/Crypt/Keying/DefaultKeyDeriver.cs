@@ -1,9 +1,13 @@
-﻿using System.Linq;
-using Crypt.Encoding;
-using Crypt.Hashing;
+﻿// <copyright file="DefaultKeyDeriver.cs" company="ne1410s">
+// Copyright (c) ne1410s. All rights reserved.
+// </copyright>
 
 namespace Crypt.Keying
 {
+    using System.Linq;
+    using Crypt.Encoding;
+    using Crypt.Hashing;
+
     /// <inheritdoc cref="IKeyDeriver"/>
     public class DefaultKeyDeriver : IKeyDeriver, ICryptoKeyDeriver
     {

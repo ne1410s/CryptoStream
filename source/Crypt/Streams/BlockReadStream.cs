@@ -1,10 +1,14 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using Crypt.Utils;
+﻿// <copyright file="BlockReadStream.cs" company="ne1410s">
+// Copyright (c) ne1410s. All rights reserved.
+// </copyright>
 
 namespace Crypt.Streams
 {
+    using System;
+    using System.IO;
+    using System.Linq;
+    using Crypt.Utils;
+
     /// <summary>
     /// A file stream that enforces discrete positions and read operations according to the
     /// specified buffer length. Using this implementation directly is not generally recommended.
@@ -15,18 +19,7 @@ namespace Crypt.Streams
         private readonly IArrayResizer arrayResizer;
 
         /// <summary>
-        /// The source buffer.
-        /// </summary>
-        protected readonly byte[] blockBuffer;
-
-        /// <inheritdoc/>
-        public string Uri { get; }
-
-        /// <inheritdoc/>
-        public int BufferLength => blockBuffer.Length;
-
-        /// <summary>
-        /// Creates a new file block read stream.
+        /// Initialises a new instance of the <see cref="BlockReadStream"/> class.
         /// </summary>
         /// <param name="fi">The source file.</param>
         /// <param name="bufferLength">The block buffer length.</param>
@@ -36,7 +29,7 @@ namespace Crypt.Streams
         { }
 
         /// <summary>
-        /// Creates a new file block stream.
+        /// Initialises a new instance of the <see cref="BlockReadStream"/> class.
         /// </summary>
         /// <param name="stream">The source stream.</param>
         /// <param name="bufferLength">The block buffer length.</param>
@@ -44,33 +37,63 @@ namespace Crypt.Streams
         public BlockReadStream(Stream stream, int bufferLength = 32768, IArrayResizer resizer = null)
             : base(stream)
         {
-            arrayResizer = resizer ?? new ArrayResizer();
-            blockBuffer = new byte[bufferLength];
-            Uri = Guid.NewGuid().ToString();
+            this.arrayResizer = resizer ?? new ArrayResizer();
+            this.BlockBuffer = new byte[bufferLength];
+            this.Uri = Guid.NewGuid().ToString();
         }
+
+        /// <inheritdoc/>
+        public string Uri { get; }
+
+        /// <inheritdoc/>
+        public int BufferLength => this.BlockBuffer.Length;
+
+        /// <summary>
+        /// Gets the source buffer.
+        /// </summary>
+        protected byte[] BlockBuffer { get; }
 
         /// <inheritdoc/>
         public override int Read(byte[] buffer, int offset, int count)
         {
-            var originalPosition = Position;
-            Position = StreamBlockUtils.BlockPosition(Position, BufferLength, out var block1, out var remainder);
-            var blockSpan = (int)Math.Ceiling((double)(remainder + count) / BufferLength);
+            var originalPosition = this.Position;
+            this.Position = StreamBlockUtils.BlockPosition(
+                this.Position, this.BufferLength, out var block1, out var remainder);
+            var blockSpan = (int)Math.Ceiling((double)(remainder + count) / this.BufferLength);
             var totalBytesRead = 0;
 
             foreach (var blockIndex in Enumerable.Range(0, blockSpan))
             {
-                var blockRead = inner.Read(blockBuffer, 0, BufferLength);
+                var blockRead = this.Inner.Read(this.BlockBuffer, 0, this.BufferLength);
                 var pertinentBlockRead = Math.Min(blockRead - remainder, count - totalBytesRead);
-                pertinentBlockRead = (int)Math.Min((double)pertinentBlockRead, Length - (originalPosition + totalBytesRead));
-                var mappedBlock = MapBlock(blockBuffer, block1 + blockIndex);
+                pertinentBlockRead = (int)Math.Min(
+                    (double)pertinentBlockRead,
+                    this.Length - (originalPosition + totalBytesRead));
+                var mappedBlock = this.MapBlock(this.BlockBuffer, block1 + blockIndex);
                 Array.Copy(mappedBlock, remainder, buffer, totalBytesRead, pertinentBlockRead);
                 totalBytesRead += pertinentBlockRead;
                 remainder = 0;
             }
 
-            Position = originalPosition + totalBytesRead;
+            this.Position = originalPosition + totalBytesRead;
             return totalBytesRead;
         }
+
+        /// <inheritdoc/>
+        public byte[] Read()
+        {
+            var buffer = new byte[this.BufferLength];
+            var actualRead = this.Read(buffer, 0, buffer.Length);
+            if (actualRead < buffer.Length)
+            {
+                this.arrayResizer.Resize(ref buffer, actualRead);
+            }
+
+            return buffer;
+        }
+
+        /// <inheritdoc/>
+        public virtual long Seek(long position) => this.Seek(position, SeekOrigin.Begin);
 
         /// <summary>
         /// Obtains a mapped block.
@@ -84,21 +107,5 @@ namespace Crypt.Streams
             Array.Copy(sourceBuffer, retVal, sourceBuffer.Length);
             return retVal;
         }
-
-        /// <inheritdoc/>
-        public byte[] Read()
-        {
-            var buffer = new byte[BufferLength];
-            var actualRead = Read(buffer, 0, buffer.Length);
-            if (actualRead < buffer.Length)
-            {
-                arrayResizer.Resize(ref buffer, actualRead);
-            }
-
-            return buffer;
-        }
-
-        /// <inheritdoc/>
-        public virtual long Seek(long offset) => Seek(offset, SeekOrigin.Begin);
     }
 }

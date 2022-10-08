@@ -1,7 +1,11 @@
-﻿using System.IO;
+﻿// <copyright file="IEncryptor.cs" company="ne1410s">
+// Copyright (c) ne1410s. All rights reserved.
+// </copyright>
 
 namespace Crypt.Transform
 {
+    using System.IO;
+
     /// <summary>
     /// Encrypts a stream of contiguous bytes (end to end).
     /// </summary>

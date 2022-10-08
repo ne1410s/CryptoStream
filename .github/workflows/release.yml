@@ -6,6 +6,7 @@ on:
 jobs:
   call_test:
     uses: ./.github/workflows/test.yml
+    secrets: inherit
   release:
     needs: call_test
     runs-on: ubuntu-latest
@@ -16,13 +17,15 @@ jobs:
     - uses: actions/setup-dotnet@v2
       with:
         dotnet-version: 6.0.x
-    - name: Publish NuGet package
+    - name: Pack and Publish
+      env:
+        READ_REPO_PACKAGES: ${{ secrets.READ_REPO_PACKAGES }}
       run: |
         cd ./source
         vversion=${{ github.ref_name }}
+        dotnet nuget add source "https://nuget.pkg.github.com/ne1410s/index.json" --name ne1410s --username ne1410s --password "${{ env.READ_REPO_PACKAGES }}" --store-password-in-clear-text
         dotnet pack -c Release -o ${{ runner.temp }}/nu -p:Version=${vversion:1}
-        dotnet nuget add source --username ne1410s --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/ne1410s/index.json"
-        dotnet nuget push ${{ runner.temp }}/nu/*.nupkg -s github
+        dotnet nuget push ${{ runner.temp }}/nu/*.nupkg --api-key ${{ secrets.GITHUB_TOKEN }} --source "https://nuget.pkg.github.com/ne1410s/index.json"
     - name: Increment patch (if stable release)
       run: |
         if [[ ${{ github.ref_name }} =~ ^v([0-9]+\.[0-9]+\.)([0-9]+)$ ]]

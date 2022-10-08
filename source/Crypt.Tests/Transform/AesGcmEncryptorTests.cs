@@ -1,4 +1,8 @@
-﻿using Crypt.Encoding;
+﻿// <copyright file="AesGcmEncryptorTests.cs" company="ne1410s">
+// Copyright (c) ne1410s. All rights reserved.
+// </copyright>
+
+using Crypt.Encoding;
 using Crypt.Tests.TestObjects;
 using Crypt.Transform;
 using Crypt.Utils;

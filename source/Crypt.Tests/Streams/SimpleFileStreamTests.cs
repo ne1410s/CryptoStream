@@ -1,4 +1,8 @@
-﻿using Crypt.Encoding;
+﻿// <copyright file="SimpleFileStreamTests.cs" company="ne1410s">
+// Copyright (c) ne1410s. All rights reserved.
+// </copyright>
+
+using Crypt.Encoding;
 using Crypt.Hashing;
 using Crypt.Streams;
 using Crypt.Utils;

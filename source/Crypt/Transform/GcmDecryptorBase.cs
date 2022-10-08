@@ -1,11 +1,15 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using Crypt.Keying;
-using Crypt.Utils;
+﻿// <copyright file="GcmDecryptorBase.cs" company="ne1410s">
+// Copyright (c) ne1410s. All rights reserved.
+// </copyright>
 
 namespace Crypt.Transform
 {
+    using System;
+    using System.IO;
+    using System.Linq;
+    using Crypt.Keying;
+    using Crypt.Utils;
+
     /// <inheritdoc cref="IGcmDecryptor"/>
     public abstract class GcmDecryptorBase : IGcmDecryptor
     {
@@ -13,7 +17,7 @@ namespace Crypt.Transform
         private readonly IArrayResizer resizer;
 
         /// <summary>
-        /// Initialises a new instance of <see cref="GcmDecryptorBase"/>.
+        /// Initialises a new instance of the <see cref="GcmDecryptorBase"/> class.
         /// </summary>
         /// <param name="keyDeriver">The key deriver.</param>
         /// <param name="resizer">An array resizer.</param>
@@ -48,9 +52,9 @@ namespace Crypt.Transform
         {
             var macBuffer = new byte[16];
             var srcBuffer = new byte[bufferLength];
-            var pepper = ReadPepper(input);
-            var cryptoKey = keyDeriver.DeriveCryptoKey(userKey, salt, pepper);
-            var inputSize = input.Length - PepperLength;
+            var pepper = this.ReadPepper(input);
+            var cryptoKey = this.keyDeriver.DeriveCryptoKey(userKey, salt, pepper);
+            var inputSize = input.Length - this.PepperLength;
             var totalBlocks = (long)Math.Ceiling(inputSize / (double)bufferLength);
             mac?.Seek(0, SeekOrigin.Begin);
 
@@ -65,11 +69,11 @@ namespace Crypt.Transform
                 var counter = blockNumber.RaiseBits();
                 if (readSize < srcBuffer.Length)
                 {
-                    resizer.Resize(ref srcBuffer, readSize);
+                    this.resizer.Resize(ref srcBuffer, readSize);
                 }
 
                 var block = new GcmEncryptedBlock(srcBuffer, macBuffer);
-                var trgBuffer = DecryptBlock(block, cryptoKey, counter, mac != null);
+                var trgBuffer = this.DecryptBlock(block, cryptoKey, counter, mac != null);
                 output.Write(trgBuffer, 0, trgBuffer.Length);
             }
 
@@ -79,8 +83,8 @@ namespace Crypt.Transform
         /// <inheritdoc/>
         public byte[] ReadPepper(Stream input)
         {
-            var pepper = new byte[PepperLength];
-            input.Seek(-PepperLength, SeekOrigin.End);
+            var pepper = new byte[this.PepperLength];
+            input.Seek(-this.PepperLength, SeekOrigin.End);
             input.Read(pepper, 0, pepper.Length);
             input.Position = 0;
             return pepper;

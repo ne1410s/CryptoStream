@@ -1,10 +1,15 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using Crypt.Hashing;
-using Crypt.Transform;
+﻿// <copyright file="DirectoryExtensions.cs" company="ne1410s">
+// Copyright (c) ne1410s. All rights reserved.
+// </copyright>
 
 namespace Crypt.IO
 {
+    using System.Collections.Generic;
+    using System.Globalization;
+    using System.IO;
+    using Crypt.Hashing;
+    using Crypt.Transform;
+
     /// <summary>
     /// Extensions for <see cref="DirectoryInfo"/>.
     /// </summary>
@@ -20,9 +25,10 @@ namespace Crypt.IO
         /// <param name="mode">The hash mode.</param>
         /// <param name="includes">Factors contributing to uniqueness.</param>
         /// <returns>The hash sum.</returns>
-        public static byte[] HashSum(this DirectoryInfo di, HashType mode, HashSumIncludes includes = HashSumIncludes.FileContents)
+        public static byte[] HashSum(
+            this DirectoryInfo di, HashType mode, HashSumIncludes includes = HashSumIncludes.FileContents)
         {
-            var hashSeed = includes.HasFlag(HashSumIncludes.DirectoryRootName) ? di.Name : "";
+            var hashSeed = includes.HasFlag(HashSumIncludes.DirectoryRootName) ? di.Name : string.Empty;
             var hash = hashSeed.Hash(mode);
 
             foreach (var fsi in di.EnumerateFileSystemInfos(Wildcard, SearchOption.AllDirectories))
@@ -37,7 +43,7 @@ namespace Crypt.IO
 
                     if (includes.HasFlag(HashSumIncludes.FileTimestamp))
                     {
-                        entryBytes.AddRange(fi.LastWriteTime.ToString().Hash(mode));
+                        entryBytes.AddRange(fi.LastWriteTime.ToString(CultureInfo.InvariantCulture).Hash(mode));
                     }
                 }
 

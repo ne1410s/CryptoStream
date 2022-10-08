@@ -1,4 +1,8 @@
-﻿using Crypt.Encoding;
+﻿// <copyright file="HashingExtensionsTests.cs" company="ne1410s">
+// Copyright (c) ne1410s. All rights reserved.
+// </copyright>
+
+using Crypt.Encoding;
 using Crypt.Hashing;
 
 namespace Crypt.Tests.Hashing;
@@ -13,7 +17,8 @@ public class HashingExtensionsTests
     [InlineData(HashType.Sha1, "cDeAcZjCKn0rCAc3HXY3eahP388=")]
     [InlineData(HashType.Sha256, "A5BYxvLAy0ksUzsKTRTvd8wPeKvMztUofYShogEc+4E=")]
     [InlineData(HashType.Sha384, "hiKdxtL/vqxzgHRBVKpwApHAZDUqDb3He57T8sjh2sTcMlhn053f8dJim3o5PUf2")]
-    [InlineData(HashType.Sha512, "J4ZMxSGalRp6blK4yN3faYHQmNoWWNliWMhwssiN+8tRhBrqFyoouvpqeXMRZVhGdwZgRclZ7Q+ZKWiNBN78KQ==")]
+    [InlineData(
+        HashType.Sha512, "J4ZMxSGalRp6blK4yN3faYHQmNoWWNliWMhwssiN+8tRhBrqFyoouvpqeXMRZVhGdwZgRclZ7Q+ZKWiNBN78KQ==")]
     public void Hash_VaryingHashType_ReturnsExpected(HashType mode, string expectedBase64)
     {
         // Arrange

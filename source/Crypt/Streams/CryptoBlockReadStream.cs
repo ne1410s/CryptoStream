@@ -1,10 +1,15 @@
-﻿using System.IO;
-using Crypt.IO;
-using Crypt.Keying;
-using Crypt.Transform;
+﻿// <copyright file="CryptoBlockReadStream.cs" company="ne1410s">
+// Copyright (c) ne1410s. All rights reserved.
+// </copyright>
 
 namespace Crypt.Streams
 {
+    using System;
+    using System.IO;
+    using Crypt.IO;
+    using Crypt.Keying;
+    using Crypt.Transform;
+
     /// <summary>
     /// Provides a stream for reading a cryptographic file.
     /// </summary>
@@ -15,7 +20,7 @@ namespace Crypt.Streams
         private readonly IGcmDecryptor decryptor;
 
         /// <summary>
-        /// Creates a new cryptographic file read stream.
+        /// Initialises a new instance of the <see cref="CryptoBlockReadStream"/> class.
         /// </summary>
         /// <param name="fi">The source file.</param>
         /// <param name="key">The key.</param>
@@ -31,31 +36,32 @@ namespace Crypt.Streams
         { }
 
         /// <summary>
-        /// Creates a new cryptographic file read stream.
+        /// Initialises a new instance of the <see cref="CryptoBlockReadStream"/> class.
         /// </summary>
         /// <param name="stream">The source stream.</param>
         /// <param name="salt">The salt.</param>
         /// <param name="userKey">The key.</param>
         /// <param name="bufferSize">The buffer size.</param>
         /// <param name="decryptor">Decryptor override (optional).</param>
-        public CryptoBlockReadStream(Stream stream, byte[] salt, byte[] userKey, int bufferSize = 32768, IGcmDecryptor decryptor = null)
+        public CryptoBlockReadStream(
+            Stream stream, byte[] salt, byte[] userKey, int bufferSize = 32768, IGcmDecryptor decryptor = null)
             : base(stream, bufferSize)
         {
             this.decryptor = decryptor ?? new AesGcmDecryptor();
             var pepper = this.decryptor.ReadPepper(stream);
-            pepperLength = pepper.Length;
-            cryptoKey = new DefaultKeyDeriver().DeriveCryptoKey(userKey, salt, pepper);
+            this.pepperLength = pepper.Length;
+            this.cryptoKey = new DefaultKeyDeriver().DeriveCryptoKey(userKey, salt, pepper);
         }
 
         /// <inheritdoc/>
-        public override long Length => inner.Length - pepperLength;
+        public override long Length => this.Inner.Length - this.pepperLength;
 
         /// <inheritdoc/>
-        protected override byte[] MapBlock(byte[] sourceBuffer, long chunkNumber)
+        protected override byte[] MapBlock(byte[] sourceBuffer, long blockNo)
         {
-            var counter = chunkNumber.RaiseBits();
-            var encryptedBlock = new GcmEncryptedBlock(sourceBuffer, new byte[0]);
-            return decryptor.DecryptBlock(encryptedBlock, cryptoKey, counter, false);
+            var counter = blockNo.RaiseBits();
+            var encryptedBlock = new GcmEncryptedBlock(sourceBuffer, Array.Empty<byte>());
+            return this.decryptor.DecryptBlock(encryptedBlock, this.cryptoKey, counter, false);
         }
     }
 }

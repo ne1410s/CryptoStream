@@ -1,10 +1,14 @@
-﻿using System.IO;
-using Crypt.Encoding;
-using Crypt.Hashing;
-using Crypt.Transform;
+﻿// <copyright file="StringExtensions.cs" company="ne1410s">
+// Copyright (c) ne1410s. All rights reserved.
+// </copyright>
 
 namespace Crypt
 {
+    using System.IO;
+    using Crypt.Encoding;
+    using Crypt.Hashing;
+    using Crypt.Transform;
+
     /// <summary>
     /// Extensions for strings.
     /// </summary>
@@ -35,15 +39,13 @@ namespace Crypt
             IEncryptor encryptor = null,
             int bufferLength = 32768)
         {
-            encryptor = encryptor ?? new AesGcmEncryptor();
+            encryptor ??= new AesGcmEncryptor();
             var userKey = password.Decode(Codec.CharUtf8);
 
-            using (var srcStream = new MemoryStream(str.Decode(Codec.CharUtf8)))
-            using (var trgStream = new MemoryStream())
-            {
-                saltBase64 = encryptor.Encrypt(srcStream, trgStream, userKey, bufferLength).Encode(Codec.ByteBase64);
-                return trgStream.ToArray().Encode(Codec.ByteBase64);
-            }
+            using var srcStream = new MemoryStream(str.Decode(Codec.CharUtf8));
+            using var trgStream = new MemoryStream();
+            saltBase64 = encryptor.Encrypt(srcStream, trgStream, userKey, bufferLength).Encode(Codec.ByteBase64);
+            return trgStream.ToArray().Encode(Codec.ByteBase64);
         }
 
         /// <summary>
@@ -62,16 +64,14 @@ namespace Crypt
             IDecryptor decryptor = null,
             int bufferLength = 32768)
         {
-            decryptor = decryptor ?? new AesGcmDecryptor();
+            decryptor ??= new AesGcmDecryptor();
             var userKey = password.Decode(Codec.CharUtf8);
             var salt = saltBase64.Decode(Codec.ByteBase64);
 
-            using (var srcStream = new MemoryStream(strBase64.Decode(Codec.ByteBase64)))
-            using (var trgStream = new MemoryStream())
-            {
-                decryptor.Decrypt(srcStream, trgStream, userKey, salt, bufferLength);
-                return trgStream.ToArray().Encode(Codec.CharUtf8);
-            }
+            using var srcStream = new MemoryStream(strBase64.Decode(Codec.ByteBase64));
+            using var trgStream = new MemoryStream();
+            decryptor.Decrypt(srcStream, trgStream, userKey, salt, bufferLength);
+            return trgStream.ToArray().Encode(Codec.CharUtf8);
         }
     }
 }

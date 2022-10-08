@@ -1,4 +1,8 @@
-﻿using Crypt.Encoding;
+﻿// <copyright file="StringExtensionsTests.cs" company="ne1410s">
+// Copyright (c) ne1410s. All rights reserved.
+// </copyright>
+
+using Crypt.Encoding;
 using Crypt.Hashing;
 using Crypt.Tests.TestObjects;
 
@@ -55,10 +59,23 @@ public class StringExtensionsTests
     }
 
     [Fact]
+    public void Decrypt_CustomProviders_ReturnsExpected()
+    {
+        // Arrange
+        var customCrypto = new TestCrypto();
+
+        // Act
+        var plain = "AgQG".Decrypt("pass", "AQID", customCrypto);
+
+        // Assert
+        plain.Should().Be("\u0001\u0003\u0005");
+    }
+
+    [Fact]
     public void Hash_WithString_ReturnsExpected()
     {
         // Arrange
-        var str = "hi!";
+        const string str = "hi!";
 
         // Act
         var result = str.Hash(HashType.Md5).Encode(Codec.ByteBase64);

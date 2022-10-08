@@ -1,11 +1,15 @@
-﻿using System.Text;
+﻿// <copyright file="EncodingExtensionsTests.cs" company="ne1410s">
+// Copyright (c) ne1410s. All rights reserved.
+// </copyright>
+
+using System.Text;
 using Crypt.Encoding;
 using Crypt.Hashing;
 
 namespace Crypt.Tests.Encoding;
 
 /// <summary>
-/// Tests for the <see cref="EncodingExtensions"/> class.
+/// Tests for the <see cref="Crypt.Encoding.EncodingExtensions"/> class.
 /// </summary>
 public class EncodingExtensionsTests
 {

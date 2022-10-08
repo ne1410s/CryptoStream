@@ -1,4 +1,8 @@
-﻿using Crypt.Encoding;
+﻿// <copyright file="BlockReadStreamTests.cs" company="ne1410s">
+// Copyright (c) ne1410s. All rights reserved.
+// </copyright>
+
+using Crypt.Encoding;
 using Crypt.Hashing;
 using Crypt.Streams;
 using Crypt.Utils;
@@ -38,7 +42,11 @@ public class BlockReadStreamTests
         authority.Seek(position, SeekOrigin.Begin);
         var authBuffer = new byte[bufferLength];
         var authRead = authority.Read(authBuffer, 0, bufferLength);
-        if (authRead < bufferLength) { Array.Resize(ref authBuffer, authRead); }
+        if (authRead < bufferLength)
+        {
+            Array.Resize(ref authBuffer, authRead);
+        }
+
         var authMd5Hex = authBuffer.Hash(HashType.Md5).Encode(Codec.ByteHex);
         using var sut = new BlockReadStream(fi);
         sut.Seek(position, SeekOrigin.Begin);

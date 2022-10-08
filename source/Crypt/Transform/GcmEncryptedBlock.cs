@@ -1,4 +1,8 @@
-﻿namespace Crypt.Transform
+﻿// <copyright file="GcmEncryptedBlock.cs" company="ne1410s">
+// Copyright (c) ne1410s. All rights reserved.
+// </copyright>
+
+namespace Crypt.Transform
 {
     /// <summary>
     /// A block encrypted for counter-mode.
@@ -12,8 +16,8 @@
         /// <param name="macBuffer">The mac buffer.</param>
         public GcmEncryptedBlock(byte[] messageBuffer, byte[] macBuffer)
         {
-            MessageBuffer = messageBuffer;
-            MacBuffer = macBuffer;
+            this.MessageBuffer = messageBuffer;
+            this.MacBuffer = macBuffer;
         }
 
         /// <summary>

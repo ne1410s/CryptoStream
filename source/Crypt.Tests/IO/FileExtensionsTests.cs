@@ -1,4 +1,8 @@
-﻿using Crypt.Encoding;
+﻿// <copyright file="FileExtensionsTests.cs" company="ne1410s">
+// Copyright (c) ne1410s. All rights reserved.
+// </copyright>
+
+using Crypt.Encoding;
 using Crypt.Hashing;
 using Crypt.IO;
 using Crypt.Tests.TestObjects;
@@ -7,7 +11,7 @@ using Crypt.Transform;
 namespace Crypt.Tests.IO;
 
 /// <summary>
-/// Tests for <see cref="FileExtensions"/>
+/// Tests for <see cref="FileExtensions"/>.
 /// </summary>
 public class FileExtensionsTests
 {
@@ -24,7 +28,9 @@ public class FileExtensionsTests
         fi.DecryptTo(trgStream, TestRefs.TestKey, mockDecryptor.Object);
 
         // Assert
-        mockDecryptor.Verify(m => m.Decrypt(It.IsAny<Stream>(), trgStream, TestRefs.TestKey, It.IsAny<byte[]>(), 32768, null));
+        mockDecryptor.Verify(
+            m => m.Decrypt(It.IsAny<Stream>(), trgStream, TestRefs.TestKey, It.IsAny<byte[]>(), 32768, null),
+            Times.Once());
     }
 
     [Fact]
@@ -84,7 +90,7 @@ public class FileExtensionsTests
     {
         // Arrange
         var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
-        File.WriteAllText(fi.FullName, $"hi{nameof(EncryptInSitu_WithSameContent_SaltIsDeterministic)}");
+        File.WriteAllText(fi.FullName, $"hi{nameof(this.EncryptInSitu_WithSameContent_SaltIsDeterministic)}");
 
         // Act
         var salt = fi.EncryptInSitu(TestRefs.TestKey);
@@ -154,7 +160,7 @@ public class FileExtensionsTests
 
         // Assert
         act.Should().ThrowExactly<ArgumentException>()
-            .WithMessage($"Unable to obtain salt: '{notASalt}' (Parameter 'fileName')");
+            .WithMessage($"Unable to obtain salt: '{notASalt}' (Parameter 'fi')");
     }
 
     [Theory]
@@ -176,7 +182,7 @@ public class FileExtensionsTests
             1, 35, 69, 103, 137, 171, 205, 239,
             1, 35, 69, 103, 137, 171, 205, 239,
             1, 35, 69, 103, 137, 171, 205, 239,
-            1, 35, 69, 103, 137, 171, 205, 239
+            1, 35, 69, 103, 137, 171, 205, 239,
         });
     }
 
@@ -185,7 +191,7 @@ public class FileExtensionsTests
     {
         // Arrange
         var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
-        File.WriteAllText(fi.FullName, $"hi{nameof(HashLite_WithFile_ReturnsExpected)}");
+        File.WriteAllText(fi.FullName, $"hi{nameof(this.HashLite_WithFile_ReturnsExpected)}");
 
         // Act
         var result = fi.Hash(HashType.Md5).Encode(Codec.ByteHex);
@@ -208,7 +214,7 @@ public class FileExtensionsTests
         result.Should().BeEquivalentTo(new byte[]
         {
             180, 30, 103, 199, 233, 171, 46, 76,
-            96, 8, 95, 82, 185, 89, 12, 135
+            96, 8, 95, 82, 185, 89, 12, 135,
         });
     }
 }

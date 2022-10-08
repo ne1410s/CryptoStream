@@ -1,9 +1,13 @@
-﻿using Crypt.Streams;
+﻿// <copyright file="ReadStreamTests.cs" company="ne1410s">
+// Copyright (c) ne1410s. All rights reserved.
+// </copyright>
+
+using Crypt.Streams;
 
 namespace Crypt.Tests.Streams;
 
 /// <summary>
-/// Tests for the <see cref="ReadStream"/>
+/// Tests for the <see cref="ReadStream"/>.
 /// </summary>
 public class ReadStreamTests
 {

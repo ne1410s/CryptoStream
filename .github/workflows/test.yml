@@ -15,34 +15,49 @@ jobs:
     - uses: actions/setup-dotnet@v2
       with:
         dotnet-version: 6.0.x
+    - name: Add local packages source
+      env:
+        READ_REPO_PACKAGES: ${{ secrets.READ_REPO_PACKAGES }}
+      run: dotnet nuget add source --name ne1410s --username ne1410s --password "${{ env.READ_REPO_PACKAGES }}" --store-password-in-clear-text "https://nuget.pkg.github.com/ne1410s/index.json"
     - name: Restore tools
       run: dotnet tool restore
     - name: Build for release
       run: dotnet build -c Release
-    - name: Get test project dll
-      run: |
-        shopt -s extglob globstar
-        echo "TEST_PROJECT_DLL=$(ls ./**/bin/Release/**/*.+(Test*(s)|UnitTest*(s)).dll | head -n1)" >> $GITHUB_ENV
     - name: Generate raw coverage data
-      id: gen_coverage
-      run: dotnet coverlet ${{ env.TEST_PROJECT_DLL }} -t dotnet -a "test ${{ env.TEST_PROJECT_DLL }} -c Release --no-build" --threshold 100 -f cobertura -o TestResults/coverage
+      run: dotnet test -c Release -s .runsettings; dotnet reportgenerator -targetdir:coveragereport -reports:**/coverage.cobertura.xml -reporttypes:"html;jsonsummary"
+    - name: Get coverage json
+      id: getjson
+      run: |
+        json=$(tr '\r\n' ' ' <coveragereport/Summary.json)
+        echo "::set-output name=json::$json"
+    - name: Check coverage values
+      id: check_coverage
+      run: |
+        line=${{ fromJson(steps.getjson.outputs.json).summary.linecoverage }}
+        branch=${{ fromJson(steps.getjson.outputs.json).summary.branchcoverage }}
+        method=${{ fromJson(steps.getjson.outputs.json).summary.methodcoverage }}
+        [ "$line" == 100 ] && ([ "$branch" == "" ] || [ "$branch" == 100 ]) && [ "$method" == 100 ] && exit 0
+        exit 1
     - name: Process coverage report
-      if: success() || steps.gen_coverage.outcome == 'failure'
+      if: success() || steps.check_coverage.outcome == 'failure'
       run: |
         dotnet reportgenerator -targetdir:'${{ github.workspace }}/drop/reports' -reports:**/coverage.cobertura.xml -reporttypes:"htmlsummary"
         rm -f ${{ github.workspace }}/drop/reports/summary.htm
         mv ${{ github.workspace }}/drop/reports/summary.html ${{ github.workspace }}/drop/reports/coverage-report.html
     - name: Generate raw mutation data
       id: gen_mutation
-      if: success() || steps.gen_coverage.outcome == 'failure'
-      run: dotnet stryker
+      if: success() || steps.check_coverage.outcome == 'failure'
+      run: |
+        shopt -s extglob globstar
+        status=0
+        for testproj in *.+(Test*(s)|UnitTest*(s)); do dotnet stryker -tp "$testproj"; status=$(($status + $?)); done; exit $status
     - name: Process mutation report
-      if: success() || steps.gen_coverage.outcome == 'failure' || steps.gen_mutation.outcome == 'failure'
+      if: success() || steps.check_coverage.outcome == 'failure' || steps.gen_mutation.outcome == 'failure'
       run: |
         strykerFile=$(find ./StrykerOutput -name mutation-report.html)
         cp $strykerFile ${{ github.workspace }}/drop/reports
     - name: Drop artifact - reports
-      if: success() || steps.gen_coverage.outcome == 'failure' || steps.gen_mutation.outcome == 'failure'
+      if: success() || steps.check_coverage.outcome == 'failure' || steps.gen_mutation.outcome == 'failure'
       uses: actions/upload-artifact@v3
       with:
         name: reports

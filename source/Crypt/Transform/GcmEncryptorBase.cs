@@ -1,12 +1,16 @@
-﻿using System;
-using System.IO;
-using System.Security.Cryptography;
-using Crypt.Hashing;
-using Crypt.Keying;
-using Crypt.Utils;
+﻿// <copyright file="GcmEncryptorBase.cs" company="ne1410s">
+// Copyright (c) ne1410s. All rights reserved.
+// </copyright>
 
 namespace Crypt.Transform
 {
+    using System;
+    using System.IO;
+    using System.Security.Cryptography;
+    using Crypt.Hashing;
+    using Crypt.Keying;
+    using Crypt.Utils;
+
     /// <inheritdoc cref="IGcmEncryptor"/>
     public abstract class GcmEncryptorBase : IGcmEncryptor
     {
@@ -14,7 +18,7 @@ namespace Crypt.Transform
         private readonly IArrayResizer resizer;
 
         /// <summary>
-        /// Initialises a new instance of <see cref="GcmEncryptorBase"/>.
+        /// Initialises a new instance of the <see cref="GcmEncryptorBase"/> class.
         /// </summary>
         /// <param name="keyDeriver">The key deriver.</param>
         /// <param name="resizer">An array resizer.</param>
@@ -44,9 +48,9 @@ namespace Crypt.Transform
         {
             var counter = new byte[12];
             var srcBuffer = new byte[bufferLength];
-            var salt = GenerateSalt(input);
-            var pepper = GeneratePepper(input);
-            var cryptoKey = keyDeriver.DeriveCryptoKey(userKey, salt, pepper);
+            var salt = this.GenerateSalt(input);
+            var pepper = this.GeneratePepper(input);
+            var cryptoKey = this.keyDeriver.DeriveCryptoKey(userKey, salt, pepper);
 
             int readSize;
             while ((readSize = input.Read(srcBuffer, 0, srcBuffer.Length)) != 0)
@@ -54,10 +58,10 @@ namespace Crypt.Transform
                 ByteExtensions.Increment(ref counter);
                 if (readSize < srcBuffer.Length)
                 {
-                    resizer.Resize(ref srcBuffer, readSize);
+                    this.resizer.Resize(ref srcBuffer, readSize);
                 }
 
-                var result = EncryptBlock(srcBuffer, cryptoKey, counter);
+                var result = this.EncryptBlock(srcBuffer, cryptoKey, counter);
                 if (input == output)
                 {
                     input.Position -= readSize;
@@ -75,7 +79,7 @@ namespace Crypt.Transform
         public byte[] GeneratePepper(Stream input)
         {
             var rng = RandomNumberGenerator.Create();
-            var pepper = new byte[PepperLength];
+            var pepper = new byte[this.PepperLength];
             rng.GetNonZeroBytes(pepper);
             return pepper;
         }

@@ -1,8 +1,12 @@
-﻿using System;
-using System.Linq;
+﻿// <copyright file="ByteExtensions.cs" company="ne1410s">
+// Copyright (c) ne1410s. All rights reserved.
+// </copyright>
 
 namespace Crypt
 {
+    using System;
+    using System.Linq;
+
     /// <summary>
     /// Extensions for bytes and byte arrays.
     /// </summary>
@@ -21,7 +25,7 @@ namespace Crypt
         /// endian it is last. e.g. 16|8|4|2|1 is big endian.</remarks>
         public static void Increment(ref byte[] counter, bool? bigEndian = null)
         {
-            bigEndian = bigEndian ?? !BitConverter.IsLittleEndian;
+            bigEndian ??= !BitConverter.IsLittleEndian;
             var start = bigEndian.Value ? counter.Length - 1 : 0;
             var terminate = bigEndian.Value ? -1 : counter.Length;
             var increment = bigEndian.Value ? -1 : 1;
@@ -56,7 +60,7 @@ namespace Crypt
         /// <returns>A twelve-bytes array.</returns>
         public static byte[] RaiseBits(this long number, bool? bigEndian = null)
         {
-            bigEndian = bigEndian ?? !BitConverter.IsLittleEndian;
+            bigEndian ??= !BitConverter.IsLittleEndian;
             var eightBytes = BitConverter.GetBytes(number);
             if (bigEndian == BitConverter.IsLittleEndian)
             {

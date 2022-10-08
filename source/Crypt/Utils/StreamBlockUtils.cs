@@ -1,7 +1,11 @@
-﻿using System;
+﻿// <copyright file="StreamBlockUtils.cs" company="ne1410s">
+// Copyright (c) ne1410s. All rights reserved.
+// </copyright>
 
 namespace Crypt.Utils
 {
+    using System;
+
     /// <summary>
     /// Utilities for working with blocks and streams.
     /// </summary>

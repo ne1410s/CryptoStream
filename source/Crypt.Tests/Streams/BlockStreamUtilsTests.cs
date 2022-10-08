@@ -1,4 +1,8 @@
-﻿using Crypt.Utils;
+﻿// <copyright file="BlockStreamUtilsTests.cs" company="ne1410s">
+// Copyright (c) ne1410s. All rights reserved.
+// </copyright>
+
+using Crypt.Utils;
 
 namespace Crypt.Tests.Streams;
 

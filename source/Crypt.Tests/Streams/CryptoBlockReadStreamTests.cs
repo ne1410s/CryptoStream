@@ -1,4 +1,8 @@
-﻿using Crypt.Encoding;
+﻿// <copyright file="CryptoBlockReadStreamTests.cs" company="ne1410s">
+// Copyright (c) ne1410s. All rights reserved.
+// </copyright>
+
+using Crypt.Encoding;
 using Crypt.Hashing;
 using Crypt.IO;
 using Crypt.Streams;
@@ -41,9 +45,14 @@ public class CryptoBlockReadStreamTests
         authority.Seek(position, SeekOrigin.Begin);
         var authBuffer = new byte[bufferLength];
         var authRead = authority.Read(authBuffer, 0, bufferLength);
-        if (authRead < bufferLength) { Array.Resize(ref authBuffer, authRead); }
+        if (authRead < bufferLength)
+        {
+            Array.Resize(ref authBuffer, authRead);
+        }
+
         var authMd5Hex = authBuffer.Hash(HashType.Md5).Encode(Codec.ByteHex);
-        var secureFi = new FileInfo(Path.Combine("TestObjects", "0f5bed56f862512644ec87b7db6afc7299e2195c5bf9b27bcc631adb16785ed9.avi"));
+        var secureFi = new FileInfo(
+            Path.Combine("TestObjects", "0f5bed56f862512644ec87b7db6afc7299e2195c5bf9b27bcc631adb16785ed9.avi"));
         using var sut = new CryptoBlockReadStream(secureFi, TestRefs.TestKey);
         sut.Seek(position, SeekOrigin.Begin);
 

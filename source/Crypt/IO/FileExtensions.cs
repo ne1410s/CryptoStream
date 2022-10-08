@@ -1,17 +1,22 @@
-﻿using System.IO;
-using System.Text.RegularExpressions;
-using Crypt.Encoding;
-using Crypt.Hashing;
-using Crypt.Transform;
+﻿// <copyright file="FileExtensions.cs" company="ne1410s">
+// Copyright (c) ne1410s. All rights reserved.
+// </copyright>
 
 namespace Crypt.IO
 {
+    using System.Globalization;
+    using System.IO;
+    using System.Text.RegularExpressions;
+    using Crypt.Encoding;
+    using Crypt.Hashing;
+    using Crypt.Transform;
+
     /// <summary>
     /// Extensions for <see cref="FileInfo"/>.
     /// </summary>
     public static class FileExtensions
     {
-        private static readonly Regex SaltRegex = new Regex(
+        private static readonly Regex SaltRegex = new(
             @"^(?<hex>[a-f0-9]{64})(?<ext>\.[\w-]+){0,1}$",
             RegexOptions.Compiled);
 
@@ -35,7 +40,7 @@ namespace Crypt.IO
                 ? match.Groups["hex"].Value.Decode(Codec.ByteHex)
                 : throw new System.ArgumentException(
                     $"Unable to obtain salt: '{fi.Name}'",
-                    "fileName");
+                    nameof(fi));
         }
 
         /// <summary>
@@ -46,10 +51,8 @@ namespace Crypt.IO
         /// <returns>A hash.</returns>
         public static byte[] Hash(this FileInfo fi, HashType mode)
         {
-            using (var stream = fi.OpenRead())
-            {
-                return stream.Hash(mode);
-            }
+            using var stream = fi.OpenRead();
+            return stream.Hash(mode);
         }
 
         /// <summary>
@@ -63,10 +66,8 @@ namespace Crypt.IO
         /// <returns>A weak hash.</returns>
         public static byte[] HashLite(this FileInfo fi, HashType mode, int reads = 100, int chunkSize = 4096)
         {
-            using (var stream = fi.OpenRead())
-            {
-                return stream.HashLite(mode, reads, chunkSize);
-            }
+            using var stream = fi.OpenRead();
+            return stream.HashLite(mode, reads, chunkSize);
         }
 
         /// <summary>
@@ -86,13 +87,11 @@ namespace Crypt.IO
             int bufferLength = 32768,
             Stream mac = null)
         {
-            decryptor = decryptor ?? new AesGcmDecryptor();
+            decryptor ??= new AesGcmDecryptor();
             var salt = fi.ToSalt();
 
-            using (var stream = fi.OpenRead())
-            {
-                decryptor.Decrypt(stream, target, userKey, salt, bufferLength, mac);
-            }
+            using var stream = fi.OpenRead();
+            decryptor.Decrypt(stream, target, userKey, salt, bufferLength, mac);
         }
 
         /// <summary>
@@ -112,14 +111,14 @@ namespace Crypt.IO
             int bufferLength = 32768,
             Stream mac = null)
         {
-            encryptor = encryptor ?? new AesGcmEncryptor();
+            encryptor ??= new AesGcmEncryptor();
 
             var saltHex = (string)null;
             using (var stream = fi.Open(FileMode.Open))
             {
                 saltHex = encryptor.Encrypt(stream, stream, userKey, bufferLength, mac)
                     .Encode(Codec.ByteHex)
-                    .ToLower();
+                    .ToLower(CultureInfo.InvariantCulture);
             }
 
             var target = Path.Combine(fi.DirectoryName, saltHex + fi.Extension);

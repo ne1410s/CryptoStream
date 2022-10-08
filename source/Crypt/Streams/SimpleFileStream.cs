@@ -1,9 +1,13 @@
-﻿using System;
-using System.IO;
-using Crypt.Utils;
+﻿// <copyright file="SimpleFileStream.cs" company="ne1410s">
+// Copyright (c) ne1410s. All rights reserved.
+// </copyright>
 
 namespace Crypt.Streams
 {
+    using System;
+    using System.IO;
+    using Crypt.Utils;
+
     /// <summary>
     /// A file stream supporting basic read operations.
     /// </summary>
@@ -12,7 +16,7 @@ namespace Crypt.Streams
         private readonly IArrayResizer arrayResizer;
 
         /// <summary>
-        /// Initialises a new <see cref="SimpleFileStream"/>.
+        /// Initialises a new instance of the <see cref="SimpleFileStream"/> class.
         /// </summary>
         /// <param name="fi">The source file.</param>
         /// <param name="bufferLength">The buffer length.</param>
@@ -20,9 +24,9 @@ namespace Crypt.Streams
         public SimpleFileStream(FileInfo fi, int bufferLength = 32768, IArrayResizer resizer = null)
             : base(fi.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, bufferLength)
         {
-            arrayResizer = resizer ?? new ArrayResizer();
-            BufferLength = bufferLength;
-            Uri = fi.FullName;
+            this.arrayResizer = resizer ?? new ArrayResizer();
+            this.BufferLength = bufferLength;
+            this.Uri = fi.FullName;
         }
 
         /// <inheritdoc/>
@@ -34,17 +38,17 @@ namespace Crypt.Streams
         /// <inheritdoc/>
         public byte[] Read()
         {
-            var retVal = new byte[BufferLength];
-            var actuallyRead = Read(retVal, 0, BufferLength);
-            if (actuallyRead < BufferLength)
+            var retVal = new byte[this.BufferLength];
+            var actuallyRead = this.Read(retVal, 0, this.BufferLength);
+            if (actuallyRead < this.BufferLength)
             {
-                arrayResizer.Resize(ref retVal, actuallyRead);
+                this.arrayResizer.Resize(ref retVal, actuallyRead);
             }
 
             return retVal;
         }
 
         /// <inheritdoc/>
-        public long Seek(long position) => Seek(position, SeekOrigin.Begin);
+        public long Seek(long position) => this.Seek(position, SeekOrigin.Begin);
     }
 }

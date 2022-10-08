@@ -1,4 +1,8 @@
-﻿namespace Crypt.Keying
+﻿// <copyright file="ICryptoKeyDeriver.cs" company="ne1410s">
+// Copyright (c) ne1410s. All rights reserved.
+// </copyright>
+
+namespace Crypt.Keying
 {
     /// <summary>
     /// Derives keys for cryptographic processes.

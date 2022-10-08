@@ -1,8 +1,13 @@
-﻿using System;
-using SysEncoding = System.Text.Encoding;
+﻿// <copyright file="EncodingExtensions.cs" company="ne1410s">
+// Copyright (c) ne1410s. All rights reserved.
+// </copyright>
 
 namespace Crypt.Encoding
 {
+    using System;
+    using System.Globalization;
+    using SysEncoding = System.Text.Encoding;
+
     /// <summary>
     /// Transforms bytes to text and vice versa.
     /// </summary>
@@ -15,17 +20,15 @@ namespace Crypt.Encoding
         /// <param name="codec">The encoding type.</param>
         /// <returns>The encoded text.</returns>
         public static string Encode(this byte[] bytes, Codec codec)
-        {
-            switch (codec)
+            => codec switch
             {
-                case Codec.ByteBase64: return Convert.ToBase64String(bytes);
-                case Codec.ByteHex: return EncodeHex(bytes);
-                case Codec.CharAscii: return SysEncoding.ASCII.GetString(bytes);
-                case Codec.CharUnicode: return SysEncoding.Unicode.GetString(bytes);
-                case Codec.CharUtf8: return SysEncoding.UTF8.GetString(bytes);
-                default: throw new ArgumentException($"Bad codec: {codec}", nameof(codec));
-            }
-        }
+                Codec.ByteBase64 => Convert.ToBase64String(bytes),
+                Codec.ByteHex => EncodeHex(bytes),
+                Codec.CharAscii => SysEncoding.ASCII.GetString(bytes),
+                Codec.CharUnicode => SysEncoding.Unicode.GetString(bytes),
+                Codec.CharUtf8 => SysEncoding.UTF8.GetString(bytes),
+                _ => throw new ArgumentException($"Bad codec: {codec}", nameof(codec)),
+            };
 
         /// <summary>
         /// Transforms text to an array of bytes.
@@ -34,17 +37,15 @@ namespace Crypt.Encoding
         /// <param name="codec">The encoding type.</param>
         /// <returns>A byte array.</returns>
         public static byte[] Decode(this string text, Codec codec)
-        {
-            switch (codec)
+            => codec switch
             {
-                case Codec.ByteBase64: return Convert.FromBase64String(text);
-                case Codec.ByteHex: return DecodeHex(text);
-                case Codec.CharAscii: return SysEncoding.ASCII.GetBytes(text);
-                case Codec.CharUnicode: return SysEncoding.Unicode.GetBytes(text);
-                case Codec.CharUtf8: return SysEncoding.UTF8.GetBytes(text);
-                default: throw new ArgumentException($"Bad codec: {codec}", nameof(codec));
-            }
-        }
+                Codec.ByteBase64 => Convert.FromBase64String(text),
+                Codec.ByteHex => DecodeHex(text),
+                Codec.CharAscii => SysEncoding.ASCII.GetBytes(text),
+                Codec.CharUnicode => SysEncoding.Unicode.GetBytes(text),
+                Codec.CharUtf8 => SysEncoding.UTF8.GetBytes(text),
+                _ => throw new ArgumentException($"Bad codec: {codec}", nameof(codec)),
+            };
 
         private static byte[] DecodeHex(string hex)
         {
@@ -62,7 +63,7 @@ namespace Crypt.Encoding
             var sb = new System.Text.StringBuilder();
             foreach (var b in bytes)
             {
-                sb.Append(b.ToString("x2"));
+                sb.Append(b.ToString("x2", CultureInfo.InvariantCulture));
             }
 
             return sb.ToString();
