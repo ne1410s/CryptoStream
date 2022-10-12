@@ -8,7 +8,7 @@ dotnet tool restore
 gci **/TestResults/ | ri -r; dotnet test -c Release -s .runsettings; dotnet reportgenerator -targetdir:coveragereport -reports:**/coverage.cobertura.xml -reporttypes:"html;jsonsummary"; start coveragereport/index.html;
 
 # Run mutation tests and show report (per project)
-if (Test-Path StrykerOutput) { rm -r StrykerOutput }; dotnet stryker -o -tp Crypt.Tests
+$tp="Crypt.Tests"; gci **/StrykerOutput/ | ri -r; dotnet stryker -o -tp $tp -f "$tp/stryker-config.json"
 ```
 
 ## Original Project Setup
@@ -23,7 +23,6 @@ dotnet new globaljson --sdk-version 6.0.400
 dotnet new tool-manifest
 
 # add some tools
-dotnet tool install coverlet.console
 dotnet tool install dotnet-reportgenerator-globaltool
 dotnet tool install dotnet-stryker
 ```

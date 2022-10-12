@@ -48,13 +48,18 @@ jobs:
       id: gen_mutation
       if: success() || steps.check_coverage.outcome == 'failure'
       run: |
+        baseSha=${{ github.event.pull_request.base.sha }}
+        if [ "$baseSha" ]; then
+          git fetch &>/dev/null
+          sinceArg="--since:$baseSha"
+        fi
         returncode=0
         shopt -s extglob globstar
         for testproj in *.+(Test*(s)|UnitTest*(s)); do
           echo "Generating mutants for: $testproj..."
-          iterr=$(dotnet stryker -tp "$testproj" &>/dev/null; echo $?)
-          [ $iterr != 0 ] && echo " -- failed to destroy all mutants :(" && returncode=1
-          [ $iterr == 0 ] && echo " -- you destroyed all the mutants :)"
+          iterr=$(dotnet stryker -tp "$testproj" -f "$testproj/stryker-config.json" $sinceArg &>/dev/null; echo $?)
+          [ "$iterr" != 0 ] && echo " -- failed to destroy all mutants :(" && returncode=1
+          [ "$iterr" == 0 ] && echo " -- you destroyed all the mutants :)"
           echo " -- staging report to artifact location..."
           mv ./StrykerOutput/**/mutation-report.html "${{ github.workspace }}/drop/reports/mutation-$testproj.html"
         done

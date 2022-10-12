@@ -9,15 +9,9 @@
       ]
     },
     "dotnet-stryker": {
-      "version": "1.5.3",
+      "version": "3.0.1",
       "commands": [
         "dotnet-stryker"
-      ]
-    },
-    "coverlet.console": {
-      "version": "3.1.2",
-      "commands": [
-        "coverlet"
       ]
     }
   }
