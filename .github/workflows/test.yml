@@ -27,15 +27,13 @@ jobs:
       run: dotnet test -c Release -s .runsettings; dotnet reportgenerator -targetdir:coveragereport -reports:**/coverage.cobertura.xml -reporttypes:"html;jsonsummary"
     - name: Get coverage json
       id: getjson
-      run: |
-        json=$(tr '\r\n' ' ' <coveragereport/Summary.json)
-        echo "::set-output name=json::$json"
+      run: echo COVERAGE_JSON=$(tr '\r\n' ' ' <coveragereport/Summary.json) >> $GITHUB_ENV
     - name: Check coverage values
       id: check_coverage
       run: |
-        line=${{ fromJson(steps.getjson.outputs.json).summary.linecoverage }}
-        branch=${{ fromJson(steps.getjson.outputs.json).summary.branchcoverage }}
-        method=${{ fromJson(steps.getjson.outputs.json).summary.methodcoverage }}
+        line=${{ fromJson(env.COVERAGE_JSON).summary.linecoverage }}
+        branch=${{ fromJson(env.COVERAGE_JSON).summary.branchcoverage }}
+        method=${{ fromJson(env.COVERAGE_JSON).summary.methodcoverage }}
         [ "$line" == 100 ] && ([ "$branch" == "" ] || [ "$branch" == 100 ]) && [ "$method" == 100 ] && exit 0
         exit 1
     - name: Process coverage report
