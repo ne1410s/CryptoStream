@@ -17,7 +17,7 @@ namespace Crypt.IO
     public static class FileExtensions
     {
         private static readonly Regex SaltRegex = new(
-            @"^(?<hex>[a-f0-9]{64})(?<ext>\.[\w-]+){0,1}$",
+            @"\b(?<hex>[a-f0-9]{64})(?<ext>\.[\w-]+){0,1}$",
             RegexOptions.Compiled);
 
         /// <summary>

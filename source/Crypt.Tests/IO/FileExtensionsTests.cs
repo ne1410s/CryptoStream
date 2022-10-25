@@ -132,6 +132,7 @@ public class FileExtensionsTests
     [Theory]
     [InlineData(TestRefs.CryptoFileName, true)]
     [InlineData(TestRefs.CryptoFileName + ".txt", true)]
+    [InlineData("other-junk." + TestRefs.CryptoFileName + ".txt", true)]
     [InlineData(TestRefs.CryptoFileName + "e", false)]
     public void IsSecure_VaryingFormat_ReturnsExpected(string name, bool expected)
     {
