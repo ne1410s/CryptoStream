@@ -13,6 +13,8 @@ namespace Crypt.Transform
     /// <inheritdoc cref="IGcmDecryptor"/>
     public abstract class GcmDecryptorBase : IGcmDecryptor
     {
+        private const int PepperLength = 32;
+
         private readonly ICryptoKeyDeriver keyDeriver;
         private readonly IArrayResizer resizer;
 
@@ -28,11 +30,6 @@ namespace Crypt.Transform
             this.keyDeriver = keyDeriver;
             this.resizer = resizer;
         }
-
-        /// <summary>
-        /// Gets the pepper length.
-        /// </summary>
-        protected int PepperLength => 32;
 
         /// <inheritdoc/>
         public abstract byte[] DecryptBlock(
@@ -50,11 +47,13 @@ namespace Crypt.Transform
             int bufferLength = 32768,
             Stream mac = null)
         {
+            output = output ?? throw new ArgumentNullException(nameof(output));
+
             var macBuffer = new byte[16];
             var srcBuffer = new byte[bufferLength];
             var pepper = this.ReadPepper(input);
             var cryptoKey = this.keyDeriver.DeriveCryptoKey(userKey, salt, pepper);
-            var inputSize = input.Length - this.PepperLength;
+            var inputSize = input.Length - PepperLength;
             var totalBlocks = (long)Math.Ceiling(inputSize / (double)bufferLength);
             mac?.Seek(0, SeekOrigin.Begin);
 
@@ -83,8 +82,10 @@ namespace Crypt.Transform
         /// <inheritdoc/>
         public byte[] ReadPepper(Stream input)
         {
-            var pepper = new byte[this.PepperLength];
-            input.Seek(-this.PepperLength, SeekOrigin.End);
+            input = input ?? throw new ArgumentNullException(nameof(input));
+
+            var pepper = new byte[PepperLength];
+            input.Seek(-PepperLength, SeekOrigin.End);
             input.Read(pepper, 0, pepper.Length);
             input.Position = 0;
             return pepper;

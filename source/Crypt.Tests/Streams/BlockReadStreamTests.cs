@@ -2,12 +2,12 @@
 // Copyright (c) ne1410s. All rights reserved.
 // </copyright>
 
+namespace Crypt.Tests.Streams;
+
 using Crypt.Encoding;
 using Crypt.Hashing;
 using Crypt.Streams;
 using Crypt.Utils;
-
-namespace Crypt.Tests.Streams;
 
 /// <summary>
 /// Tests for the <see cref="BlockReadStream"/>.
@@ -27,6 +27,19 @@ public class BlockReadStreamTests
 
         // Assert
         actualMd5Hex.Should().Be(expectedMd5Hex);
+    }
+
+    [Fact]
+    public void Ctor_NullFile_ThrowsException()
+    {
+        // Arrange
+        var fi = (FileInfo)null!;
+
+        // Act
+        var act = () => new BlockReadStream(fi);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>();
     }
 
     [Theory]
@@ -181,5 +194,43 @@ public class BlockReadStreamTests
 
         // Assert
         read.Should().Be(21);
+    }
+
+    [Fact]
+    public void SubclassMapBlock_WithBuffer_DoesNotThrow()
+    {
+        // Arrange
+        var sut = new VanillaBlockReadStream(new MemoryStream());
+
+        // Act
+        var act = () => sut.TestMapBlock(Array.Empty<byte>());
+
+        // Assert
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void SubclassMapBlock_NullBuffer_ThrowsException()
+    {
+        // Arrange
+        var sut = new VanillaBlockReadStream(new MemoryStream());
+
+        // Act
+        var act = () => sut.TestMapBlock(null!);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    private class VanillaBlockReadStream : BlockReadStream
+    {
+        public VanillaBlockReadStream(Stream stream)
+            : base(stream)
+        { }
+
+        public void TestMapBlock(byte[] sourceBuffer)
+        {
+            this.MapBlock(sourceBuffer, 1);
+        }
     }
 }

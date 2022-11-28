@@ -25,7 +25,7 @@ namespace Crypt.Streams
         /// <param name="bufferLength">The block buffer length.</param>
         /// <param name="resizer">An array resizer.</param>
         public BlockReadStream(FileInfo fi, int bufferLength = 32768, IArrayResizer resizer = null)
-            : this(new FileStream(fi.FullName, FileMode.Open, FileAccess.Read), bufferLength, resizer)
+            : this(new FileStream(fi?.FullName, FileMode.Open, FileAccess.Read), bufferLength, resizer)
         { }
 
         /// <summary>
@@ -103,6 +103,7 @@ namespace Crypt.Streams
         /// <returns>Mapped bytes.</returns>
         protected virtual byte[] MapBlock(byte[] sourceBuffer, long blockNo)
         {
+            sourceBuffer = sourceBuffer ?? throw new ArgumentNullException(nameof(sourceBuffer));
             var retVal = new byte[sourceBuffer.Length];
             Array.Copy(sourceBuffer, retVal, sourceBuffer.Length);
             return retVal;

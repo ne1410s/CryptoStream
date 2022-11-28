@@ -2,18 +2,66 @@
 // Copyright (c) ne1410s. All rights reserved.
 // </copyright>
 
+namespace Crypt.Tests.Transform;
+
 using Crypt.IO;
 using Crypt.Tests.TestObjects;
 using Crypt.Transform;
 using Crypt.Utils;
-
-namespace Crypt.Tests.Transform;
 
 /// <summary>
 /// Tests for the <see cref="AesGcmDecryptor"/>.
 /// </summary>
 public class AesGcmDecryptorTests
 {
+    [Fact]
+    public void DecryptTo_OversizedTarget_GetsResized()
+    {
+        // Arrange
+        var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
+        File.WriteAllText(fi.FullName, "hey!");
+        fi.EncryptInSitu(TestRefs.TestKey);
+        using var trgStream = new MemoryStream(Enumerable.Repeat((byte)1, 20).ToArray());
+
+        // Act
+        fi.DecryptTo(trgStream, TestRefs.TestKey);
+
+        // Assert
+        trgStream.Length.Should().Be(4);
+    }
+
+    [Fact]
+    public void Decrypt_NullTarget_ThrowsException()
+    {
+        // Arrange
+        var mockResizer = new Mock<IArrayResizer>();
+        var sut = new AesGcmDecryptor(resizer: mockResizer.Object);
+        var salt = new byte[] { 1, 2, 3 };
+        using var srcStream = new MemoryStream();
+        var trgStream = (Stream)null!;
+
+        // Act
+        var act = () => sut.Decrypt(srcStream, trgStream, TestRefs.TestKey, salt);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public void ReadPepper_NullSource_ThrowsException()
+    {
+        // Arrange
+        var mockResizer = new Mock<IArrayResizer>();
+        var sut = new AesGcmDecryptor(resizer: mockResizer.Object);
+        var srcStream = (Stream)null!;
+
+        // Act
+        var act = () => sut.ReadPepper(srcStream);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>();
+    }
+
     [Fact]
     public void Decrypt_OversizedTarget_CallsResize()
     {
@@ -34,22 +82,6 @@ public class AesGcmDecryptorTests
         mockResizer.Verify(
             m => m.Resize(ref It.Ref<byte[]>.IsAny, 4),
             Times.Once);
-    }
-
-    [Fact]
-    public void Decrypt_OversizedTarget_GetsResized()
-    {
-        // Arrange
-        var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
-        File.WriteAllText(fi.FullName, "hey!");
-        fi.EncryptInSitu(TestRefs.TestKey);
-        using var trgStream = new MemoryStream(Enumerable.Repeat((byte)1, 20).ToArray());
-
-        // Act
-        fi.DecryptTo(trgStream, TestRefs.TestKey);
-
-        // Assert
-        trgStream.Length.Should().Be(4);
     }
 
     [Fact]

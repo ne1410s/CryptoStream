@@ -2,13 +2,13 @@
 // Copyright (c) ne1410s. All rights reserved.
 // </copyright>
 
-using Crypt.Encoding;
-using Crypt.Hashing;
-using Crypt.Streams;
-using Crypt.Utils;
-
 namespace Crypt.Tests.Streams
 {
+    using Crypt.Encoding;
+    using Crypt.Hashing;
+    using Crypt.Streams;
+    using Crypt.Utils;
+
     /// <summary>
     /// Tests for the <see cref="SimpleFileStream"/>.
     /// </summary>

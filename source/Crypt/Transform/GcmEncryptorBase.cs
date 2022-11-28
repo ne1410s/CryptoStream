@@ -14,6 +14,8 @@ namespace Crypt.Transform
     /// <inheritdoc cref="IGcmEncryptor"/>
     public abstract class GcmEncryptorBase : IGcmEncryptor
     {
+        private const int PepperLength = 32;
+
         private readonly ICryptoKeyDeriver keyDeriver;
         private readonly IArrayResizer resizer;
 
@@ -30,11 +32,6 @@ namespace Crypt.Transform
             this.resizer = resizer;
         }
 
-        /// <summary>
-        /// Gets the pepper length.
-        /// </summary>
-        protected int PepperLength => 32;
-
         /// <inheritdoc/>
         public abstract GcmEncryptedBlock EncryptBlock(byte[] source, byte[] cryptoKey, byte[] counter);
 
@@ -46,6 +43,9 @@ namespace Crypt.Transform
             int bufferLength = 32768,
             Stream mac = null)
         {
+            input = input ?? throw new ArgumentNullException(nameof(input));
+            output = output ?? throw new ArgumentNullException(nameof(output));
+
             var counter = new byte[12];
             var srcBuffer = new byte[bufferLength];
             var salt = this.GenerateSalt(input);
@@ -79,7 +79,7 @@ namespace Crypt.Transform
         public byte[] GeneratePepper(Stream input)
         {
             using var rng = RandomNumberGenerator.Create();
-            var pepper = new byte[this.PepperLength];
+            var pepper = new byte[PepperLength];
             rng.GetNonZeroBytes(pepper);
             return pepper;
         }
