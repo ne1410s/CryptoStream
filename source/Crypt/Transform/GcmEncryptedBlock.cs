@@ -10,7 +10,7 @@ namespace Crypt.Transform
     public class GcmEncryptedBlock
     {
         /// <summary>
-        /// Initialises a new instance of the <see cref="GcmEncryptedBlock"/> class.
+        /// Initializes a new instance of the <see cref="GcmEncryptedBlock"/> class.
         /// </summary>
         /// <param name="messageBuffer">The message buffer.</param>
         /// <param name="macBuffer">The mac buffer.</param>

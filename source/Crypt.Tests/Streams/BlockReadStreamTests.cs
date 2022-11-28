@@ -107,7 +107,7 @@ public class BlockReadStreamTests
         sut.Seek(fi.Length - 9);
 
         // Act
-        var block = sut.Read();
+        _ = sut.Read();
 
         // Assert
         mockResizer.Verify(
@@ -143,7 +143,7 @@ public class BlockReadStreamTests
         var sut = new BlockReadStream(fi, (int)bufferLength, mockResizer.Object);
 
         // Act
-        var x = sut.Read();
+        _ = sut.Read();
 
         // Assert
         mockResizer.Verify(

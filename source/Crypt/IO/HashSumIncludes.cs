@@ -10,6 +10,10 @@ namespace Crypt.IO
     /// Items to include in the hash sum algorithm.
     /// </summary>
     [Flags]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(
+        "Critical Code Smell",
+        "S2346:Flags enumerations zero-value members should be named \"None\"",
+        Justification = "Better match for natural behaviour")]
     public enum HashSumIncludes
     {
         /// <summary>

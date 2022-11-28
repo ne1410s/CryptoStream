@@ -87,7 +87,7 @@ namespace Crypt.Tests.Streams
             var sut = new SimpleFileStream(fi, (int)bufferLength, mockResizer.Object);
 
             // Act
-            var x = sut.Read();
+            _ = sut.Read();
 
             // Assert
             mockResizer.Verify(

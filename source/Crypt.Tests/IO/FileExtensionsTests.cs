@@ -123,7 +123,7 @@ public class FileExtensionsTests
         using var macStream = new MemoryStream();
 
         // Act
-        var salt = fi.EncryptInSitu(TestRefs.TestKey, mac: macStream);
+        _ = fi.EncryptInSitu(TestRefs.TestKey, mac: macStream);
 
         // Assert
         macStream.ToArray().Length.Should().Be(16);

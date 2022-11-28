@@ -17,7 +17,7 @@ namespace Crypt.Transform
         private readonly IArrayResizer resizer;
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="GcmDecryptorBase"/> class.
+        /// Initializes a new instance of the <see cref="GcmDecryptorBase"/> class.
         /// </summary>
         /// <param name="keyDeriver">The key deriver.</param>
         /// <param name="resizer">An array resizer.</param>

@@ -19,7 +19,7 @@ namespace Crypt.Streams
         private readonly IArrayResizer arrayResizer;
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="BlockReadStream"/> class.
+        /// Initializes a new instance of the <see cref="BlockReadStream"/> class.
         /// </summary>
         /// <param name="fi">The source file.</param>
         /// <param name="bufferLength">The block buffer length.</param>
@@ -29,7 +29,7 @@ namespace Crypt.Streams
         { }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="BlockReadStream"/> class.
+        /// Initializes a new instance of the <see cref="BlockReadStream"/> class.
         /// </summary>
         /// <param name="stream">The source stream.</param>
         /// <param name="bufferLength">The block buffer length.</param>

@@ -4,7 +4,6 @@
 
 namespace Crypt.Streams
 {
-    using System;
     using System.IO;
     using Crypt.Utils;
 
@@ -16,7 +15,7 @@ namespace Crypt.Streams
         private readonly IArrayResizer arrayResizer;
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="SimpleFileStream"/> class.
+        /// Initializes a new instance of the <see cref="SimpleFileStream"/> class.
         /// </summary>
         /// <param name="fi">The source file.</param>
         /// <param name="bufferLength">The buffer length.</param>

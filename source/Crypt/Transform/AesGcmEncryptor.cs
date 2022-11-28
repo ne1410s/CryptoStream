@@ -15,7 +15,7 @@ namespace Crypt.Transform
     public class AesGcmEncryptor : GcmEncryptorBase
     {
         /// <summary>
-        /// Initialises a new instance of the <see cref="AesGcmEncryptor"/> class.
+        /// Initializes a new instance of the <see cref="AesGcmEncryptor"/> class.
         /// </summary>
         /// <param name="keyDeriver">Derives a crypto key.</param>
         /// <param name="resizer">Resizes arrays.</param>

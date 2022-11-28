@@ -11,10 +11,14 @@ namespace Crypt.Streams
     /// <summary>
     /// A read stream to assist with testing / diagnosis of derived types.
     /// </summary>
+    [SuppressMessage(
+        "Major Code Smell",
+        "S3881:\"IDisposable\" should be implemented correctly",
+        Justification = "Only a testing construct")]
     public class ReadStream : Stream
     {
         /// <summary>
-        /// Initialises a new instance of the <see cref="ReadStream"/> class.
+        /// Initializes a new instance of the <see cref="ReadStream"/> class.
         /// </summary>
         /// <param name="fi">The source file.</param>
         public ReadStream(FileInfo fi)
@@ -22,7 +26,7 @@ namespace Crypt.Streams
         { }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="ReadStream"/> class.
+        /// Initializes a new instance of the <see cref="ReadStream"/> class.
         /// </summary>
         /// <param name="stream">The source stream.</param>
         public ReadStream(Stream stream)

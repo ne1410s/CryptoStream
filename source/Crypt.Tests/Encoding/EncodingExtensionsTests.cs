@@ -2,7 +2,6 @@
 // Copyright (c) ne1410s. All rights reserved.
 // </copyright>
 
-using System.Text;
 using Crypt.Encoding;
 using Crypt.Hashing;
 

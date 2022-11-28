@@ -20,7 +20,7 @@ namespace Crypt.Streams
         private readonly IGcmDecryptor decryptor;
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="CryptoBlockReadStream"/> class.
+        /// Initializes a new instance of the <see cref="CryptoBlockReadStream"/> class.
         /// </summary>
         /// <param name="fi">The source file.</param>
         /// <param name="key">The key.</param>
@@ -36,7 +36,7 @@ namespace Crypt.Streams
         { }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="CryptoBlockReadStream"/> class.
+        /// Initializes a new instance of the <see cref="CryptoBlockReadStream"/> class.
         /// </summary>
         /// <param name="stream">The source stream.</param>
         /// <param name="salt">The salt.</param>

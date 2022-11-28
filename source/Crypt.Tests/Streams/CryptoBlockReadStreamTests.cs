@@ -83,7 +83,7 @@ public class CryptoBlockReadStreamTests
         sut.Seek(12);
 
         // Act
-        var block = sut.Read();
+        _ = sut.Read();
 
         // Assert
         mockDecryptor.Verify(
