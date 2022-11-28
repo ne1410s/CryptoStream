@@ -74,4 +74,19 @@ public class AesGcmDecryptorTests
             m => m.Resize(ref It.Ref<byte[]>.IsAny, It.IsAny<int>()),
             Times.Never);
     }
+
+    [Fact]
+    public void DecryptBlock_NullBlock_ThrowsExpected()
+    {
+        // Arrange
+        var mockResizer = new Mock<IArrayResizer>();
+        var sut = new AesGcmDecryptor(resizer: mockResizer.Object);
+        var block = (GcmEncryptedBlock)null!;
+
+        // Act
+        var act = () => sut.DecryptBlock(block, Array.Empty<byte>(), Array.Empty<byte>(), true);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>();
+    }
 }

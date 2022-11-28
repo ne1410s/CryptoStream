@@ -16,6 +16,19 @@ namespace Crypt.Tests.IO;
 public class DirectoryExtensionsTests
 {
     [Fact]
+    public void HashSum_NullDir_ThrowsException()
+    {
+        // Arrange
+        var di = (DirectoryInfo)null!;
+
+        // Act
+        var act = () => di.HashSum(HashType.Sha256);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
     public void HashSum_NoContents_ReturnsExpected()
     {
         // Arrange
@@ -170,5 +183,19 @@ public class DirectoryExtensionsTests
         mockEncryptor.Verify(
             m => m.Encrypt(It.IsAny<Stream>(), It.IsAny<Stream>(), TestRefs.TestKey, 32768, null),
             Times.Exactly(2));
+    }
+
+    [Fact]
+    public void EncryptAllInSitu_NullDir_ThrowsException()
+    {
+        // Arrange
+        var mockEncryptor = new Mock<IEncryptor>();
+        var di = (DirectoryInfo)null!;
+
+        // Act
+        var act = () => di.EncryptAllInSitu(TestRefs.TestKey, mockEncryptor.Object);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>();
     }
 }

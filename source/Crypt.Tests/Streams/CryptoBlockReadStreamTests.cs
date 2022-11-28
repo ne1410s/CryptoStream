@@ -26,10 +26,23 @@ public class CryptoBlockReadStreamTests
         var mockDecryptor = new Mock<IGcmDecryptor>();
 
         // Act
-        _ = new CryptoBlockReadStream(fi, TestRefs.TestKey, decryptor: mockDecryptor.Object);
+        using var str = new CryptoBlockReadStream(fi, TestRefs.TestKey, decryptor: mockDecryptor.Object);
 
         // Assert
         mockDecryptor.Verify(m => m.ReadPepper(It.IsAny<Stream>()), Times.Once);
+    }
+
+    [Fact]
+    public void Ctor_NullFile_ThrowsException()
+    {
+        // Arrange
+        var fi = (FileInfo)null!;
+
+        // Act
+        var act = () => new CryptoBlockReadStream(fi, TestRefs.TestKey);
+
+        // Assert
+        act.Should().ThrowExactly<ArgumentNullException>();
     }
 
     [Theory]
@@ -79,7 +92,7 @@ public class CryptoBlockReadStreamTests
             .Setup(m => m.DecryptBlock(It.IsAny<GcmEncryptedBlock>(), It.IsAny<byte[]>(), It.IsAny<byte[]>(), false))
             .Returns((GcmEncryptedBlock eb, byte[] _, byte[] _, bool _) => new byte[eb.MessageBuffer.Length]);
         using var stream = fi.OpenRead();
-        var sut = new CryptoBlockReadStream(stream, salt, TestRefs.TestKey, bufferLength, mockDecryptor.Object);
+        using var sut = new CryptoBlockReadStream(stream, salt, TestRefs.TestKey, bufferLength, mockDecryptor.Object);
         sut.Seek(12);
 
         // Act
@@ -100,7 +113,7 @@ public class CryptoBlockReadStreamTests
         fi.EncryptInSitu(TestRefs.TestKey);
         var salt = fi.ToSalt();
         using var stream = fi.OpenRead();
-        var sut = new CryptoBlockReadStream(stream, salt, TestRefs.TestKey);
+        using var sut = new CryptoBlockReadStream(stream, salt, TestRefs.TestKey);
 
         // Act
         var uri = sut.Uri;

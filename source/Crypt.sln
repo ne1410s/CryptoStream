@@ -9,6 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Crypt.Tests", "Crypt.Tests\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A72557B3-75E6-4DBF-8C7F-3E84F52126DE}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		.gitignore = .gitignore
 		.runsettings = .runsettings
 		.config\dotnet-tools.json = .config\dotnet-tools.json

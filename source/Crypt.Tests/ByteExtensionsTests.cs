@@ -73,6 +73,19 @@ public class ByteExtensionsTests
         counter[expectOneAt].Should().Be(1);
     }
 
+    [Fact]
+    public void Increment_NullCounter_ThrowsArgumentException()
+    {
+        // Arrange
+        var counter = (byte[])null!;
+
+        // Act
+        var act = () => ByteExtensions.Increment(ref counter);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>();
+    }
+
     [Theory]
     [InlineData(500, true, new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 244 })]
     [InlineData(500, false, new byte[] { 244, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })]

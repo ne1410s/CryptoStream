@@ -49,7 +49,7 @@ namespace Crypt.Encoding
 
         private static byte[] DecodeHex(string hex)
         {
-            var bytes = new byte[hex.Length / 2];
+            var bytes = new byte[(hex ?? throw new ArgumentNullException(nameof(hex))).Length / 2];
             for (var i = 0; i < bytes.Length; i++)
             {
                 bytes[i] = Convert.ToByte(hex.Substring(i * 2, 2), 16);
@@ -61,7 +61,7 @@ namespace Crypt.Encoding
         private static string EncodeHex(byte[] bytes)
         {
             var sb = new System.Text.StringBuilder();
-            foreach (var b in bytes)
+            foreach (var b in bytes ?? throw new ArgumentNullException(nameof(bytes)))
             {
                 sb.Append(b.ToString("x2", CultureInfo.InvariantCulture));
             }

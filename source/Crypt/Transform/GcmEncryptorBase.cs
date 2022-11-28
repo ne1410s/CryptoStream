@@ -78,7 +78,7 @@ namespace Crypt.Transform
         /// <inheritdoc/>
         public byte[] GeneratePepper(Stream input)
         {
-            var rng = RandomNumberGenerator.Create();
+            using var rng = RandomNumberGenerator.Create();
             var pepper = new byte[this.PepperLength];
             rng.GetNonZeroBytes(pepper);
             return pepper;

@@ -32,8 +32,12 @@ namespace Crypt.Transform
             GcmEncryptedBlock block,
             byte[] cryptoKey,
             byte[] counter,
-            bool authenticate) => authenticate
+            bool authenticate)
+        {
+            block = block ?? throw new ArgumentNullException(nameof(block));
+            return authenticate
                 ? AesGcm.Decrypt(cryptoKey, counter, Array.Empty<byte>(), block.MessageBuffer, block.MacBuffer)
                 : AesGcm.Encrypt(cryptoKey, counter, Array.Empty<byte>(), block.MessageBuffer)[0];
+        }
     }
 }

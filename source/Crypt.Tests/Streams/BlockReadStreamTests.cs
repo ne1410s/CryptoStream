@@ -67,7 +67,7 @@ public class BlockReadStreamTests
         const int bufferLength = 1024;
         var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         File.WriteAllText(fi.FullName, "this is a string that is for sure more than twelve bytes!");
-        var sut = new BlockReadStream(fi, bufferLength);
+        using var sut = new BlockReadStream(fi, bufferLength);
         sut.Seek(12);
 
         // Act
@@ -103,7 +103,7 @@ public class BlockReadStreamTests
         File.WriteAllText(fi.FullName, "this is a string that is of some size.");
         const int bufferLength = 1024;
         var mockResizer = new Mock<IArrayResizer>();
-        var sut = new BlockReadStream(fi, bufferLength, mockResizer.Object);
+        using var sut = new BlockReadStream(fi, bufferLength, mockResizer.Object);
         sut.Seek(fi.Length - 9);
 
         // Act
@@ -122,7 +122,7 @@ public class BlockReadStreamTests
         var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         File.WriteAllText(fi.FullName, "this is a string that is of some size.");
         const int bufferLength = 1024;
-        var sut = new BlockReadStream(fi, bufferLength);
+        using var sut = new BlockReadStream(fi, bufferLength);
         sut.Seek(fi.Length - 9);
 
         // Act
@@ -140,7 +140,7 @@ public class BlockReadStreamTests
         File.WriteAllText(fi.FullName, "hello here is a string");
         var bufferLength = fi.Length;
         var mockResizer = new Mock<IArrayResizer>();
-        var sut = new BlockReadStream(fi, (int)bufferLength, mockResizer.Object);
+        using var sut = new BlockReadStream(fi, (int)bufferLength, mockResizer.Object);
 
         // Act
         _ = sut.Read();
@@ -157,7 +157,7 @@ public class BlockReadStreamTests
         // Arrange
         var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         File.WriteAllText(fi.FullName, "hello here is a string");
-        var sut = new BlockReadStream(fi);
+        using var sut = new BlockReadStream(fi);
         var buffer = new byte[fi.Length];
 
         // Act
@@ -173,7 +173,7 @@ public class BlockReadStreamTests
         // Arrange
         var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         File.WriteAllText(fi.FullName, "hello here is a string");
-        var sut = new BlockReadStream(fi);
+        using var sut = new BlockReadStream(fi);
         var buffer = new byte[fi.Length];
 
         // Act

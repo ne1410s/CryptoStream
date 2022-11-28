@@ -21,7 +21,12 @@ namespace Crypt.Streams
         /// <param name="bufferLength">The buffer length.</param>
         /// <param name="resizer">An array resizer.</param>
         public SimpleFileStream(FileInfo fi, int bufferLength = 32768, IArrayResizer resizer = null)
-            : base(fi.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, bufferLength)
+            : base(
+                fi?.FullName,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.Read,
+                bufferLength)
         {
             this.arrayResizer = resizer ?? new ArrayResizer();
             this.BufferLength = bufferLength;

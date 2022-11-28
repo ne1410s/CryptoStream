@@ -22,8 +22,9 @@ namespace Crypt.Hashing
         /// <returns>A signature.</returns>
         public static byte[] Hash(this Stream input, HashType mode)
         {
-            input.Position = 0;
-            return ToAlgo(mode).ComputeHash(input);
+            (input ?? throw new ArgumentNullException(nameof(input))).Position = 0;
+            using var algo = ToAlgo(mode);
+            return algo.ComputeHash(input);
         }
 
         /// <summary>
@@ -33,7 +34,10 @@ namespace Crypt.Hashing
         /// <param name="mode">The hash mode.</param>
         /// <returns>A signature.</returns>
         public static byte[] Hash(this byte[] input, HashType mode)
-            => ToAlgo(mode).ComputeHash(input);
+        {
+            using var algo = ToAlgo(mode);
+            return algo.ComputeHash(input);
+        }
 
         /// <summary>
         /// Obtains a signature from a stream (when you're in a hurry). Results
@@ -47,7 +51,8 @@ namespace Crypt.Hashing
         /// <returns>A signature.</returns>
         public static byte[] HashLite(this Stream input, HashType mode, int reads = 100, int chunkSize = 4096)
         {
-            var algo = ToAlgo(mode);
+            input = input ?? throw new ArgumentNullException(nameof(input));
+            using var algo = ToAlgo(mode);
             var seedBytes = System.Text.Encoding.UTF8.GetBytes($"{input.Length}");
             var seed = Hash(seedBytes, mode);
             var dump = new byte[seed.Length];

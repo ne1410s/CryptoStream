@@ -4,6 +4,7 @@
 
 namespace Crypt.IO
 {
+    using System;
     using System.Collections.Generic;
     using System.Globalization;
     using System.IO;
@@ -28,6 +29,7 @@ namespace Crypt.IO
         public static byte[] HashSum(
             this DirectoryInfo di, HashType mode, HashSumIncludes includes = HashSumIncludes.FileContents)
         {
+            di = di ?? throw new ArgumentNullException(nameof(di));
             var hashSeed = includes.HasFlag(HashSumIncludes.DirectoryRootName) ? di.Name : string.Empty;
             var hash = hashSeed.Hash(mode);
 
@@ -71,6 +73,7 @@ namespace Crypt.IO
             IEncryptor encryptor = null,
             int bufferLength = 32768)
         {
+            di = di ?? throw new ArgumentNullException(nameof(di));
             foreach (var fi in di.EnumerateFiles(Wildcard, SearchOption.AllDirectories))
             {
                 fi.EncryptInSitu(userKey, encryptor, bufferLength);

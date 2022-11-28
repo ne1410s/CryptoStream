@@ -42,6 +42,19 @@ namespace Crypt.Tests.Streams
             actualMd5Hex.Should().Be(expectedMd5Hex);
         }
 
+        [Fact]
+        public void Ctor_NullFile_ThrowsException()
+        {
+            // Arrange
+            var fi = (FileInfo)null!;
+
+            // Act
+            var act = () => new SimpleFileStream(fi);
+
+            // Assert
+            act.Should().ThrowExactly<ArgumentNullException>();
+        }
+
         [Theory]
         [InlineData(3370848, "251b6820114a93dd0ed52a81ce33e716")]
         public void Read_SpecificPosition_GivesExpected(long position, string expectedMd5Hex)

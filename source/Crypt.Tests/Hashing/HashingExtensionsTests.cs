@@ -45,4 +45,30 @@ public class HashingExtensionsTests
         act.Should().ThrowExactly<ArgumentException>()
             .WithMessage("Bad hash mode: 9999 (Parameter 'mode')");
     }
+
+    [Fact]
+    public void Hash_NullStream_ThrowsException()
+    {
+        // Arrange
+        var stream = (Stream)null!;
+
+        // Act
+        var act = () => stream.Hash(HashType.Sha1);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public void HashLite_NullStream_ThrowsException()
+    {
+        // Arrange
+        var stream = (Stream)null!;
+
+        // Act
+        var act = () => stream.HashLite(HashType.Sha1);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>();
+    }
 }

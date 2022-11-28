@@ -100,6 +100,19 @@ public class FileExtensionsTests
     }
 
     [Fact]
+    public void EncryptInSitu_WithNullFile_ThrowsException()
+    {
+        // Arrange
+        var fi = (FileInfo)null!;
+
+        // Act
+        var act = () => fi.EncryptInSitu(TestRefs.TestKey);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
     public void EncryptInSitu_WithFile_UpdatesFileInfoReference()
     {
         // Arrange
@@ -144,6 +157,32 @@ public class FileExtensionsTests
 
         // Assert
         result.Should().Be(expected);
+    }
+
+    [Fact]
+    public void IsSecure_NullFile_ThrowsException()
+    {
+        // Arrange
+        var fi = (FileInfo)null!;
+
+        // Act
+        var act = fi.IsSecure;
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public void ToSalt_NullFile_ThrowsException()
+    {
+        // Arrange
+        var fi = (FileInfo)null!;
+
+        // Act
+        var act = fi.ToSalt;
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>();
     }
 
     [Theory]
@@ -202,6 +241,19 @@ public class FileExtensionsTests
     }
 
     [Fact]
+    public void Hash_NullStream_ThrowsException()
+    {
+        // Arrange
+        var fi = (FileInfo)null!;
+
+        // Act
+        var act = () => fi.Hash(HashType.Md5);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
     public void HashLite_WithFile_ReturnsExpected()
     {
         // Arrange
@@ -217,5 +269,18 @@ public class FileExtensionsTests
             180, 30, 103, 199, 233, 171, 46, 76,
             96, 8, 95, 82, 185, 89, 12, 135,
         });
+    }
+
+    [Fact]
+    public void HashLite_NullStream_ThrowsException()
+    {
+        // Arrange
+        var fi = (FileInfo)null!;
+
+        // Act
+        var act = () => fi.HashLite(HashType.Md5);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>();
     }
 }

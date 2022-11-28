@@ -4,6 +4,7 @@
 
 namespace Crypt.IO
 {
+    using System;
     using System.Globalization;
     using System.IO;
     using System.Text.RegularExpressions;
@@ -25,8 +26,7 @@ namespace Crypt.IO
         /// </summary>
         /// <param name="fi">The file info.</param>
         /// <returns>Whether the file appears secure.</returns>
-        public static bool IsSecure(this FileInfo fi)
-            => SaltRegex.IsMatch(fi.Name);
+        public static bool IsSecure(this FileInfo fi) => SaltRegex.IsMatch(fi?.Name);
 
         /// <summary>
         /// Gets a salt.
@@ -35,10 +35,10 @@ namespace Crypt.IO
         /// <returns>A salt.</returns>
         public static byte[] ToSalt(this FileInfo fi)
         {
-            var match = SaltRegex.Match(fi.Name);
+            var match = SaltRegex.Match(fi?.Name);
             return match.Success
                 ? match.Groups["hex"].Value.Decode(Codec.ByteHex)
-                : throw new System.ArgumentException(
+                : throw new ArgumentException(
                     $"Unable to obtain salt: '{fi.Name}'",
                     nameof(fi));
         }
@@ -51,7 +51,7 @@ namespace Crypt.IO
         /// <returns>A hash.</returns>
         public static byte[] Hash(this FileInfo fi, HashType mode)
         {
-            using var stream = fi.OpenRead();
+            using var stream = (fi ?? throw new ArgumentNullException(nameof(fi))).OpenRead();
             return stream.Hash(mode);
         }
 
@@ -66,7 +66,7 @@ namespace Crypt.IO
         /// <returns>A weak hash.</returns>
         public static byte[] HashLite(this FileInfo fi, HashType mode, int reads = 100, int chunkSize = 4096)
         {
-            using var stream = fi.OpenRead();
+            using var stream = (fi ?? throw new ArgumentNullException(nameof(fi))).OpenRead();
             return stream.HashLite(mode, reads, chunkSize);
         }
 
@@ -114,7 +114,7 @@ namespace Crypt.IO
             encryptor ??= new AesGcmEncryptor();
 
             var saltHex = (string)null;
-            using (var stream = fi.Open(FileMode.Open))
+            using (var stream = (fi ?? throw new ArgumentNullException(nameof(fi))).Open(FileMode.Open))
             {
                 saltHex = encryptor.Encrypt(stream, stream, userKey, bufferLength, mac)
                     .Encode(Codec.ByteHex)

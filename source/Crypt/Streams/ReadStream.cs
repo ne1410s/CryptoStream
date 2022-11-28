@@ -22,7 +22,7 @@ namespace Crypt.Streams
         /// </summary>
         /// <param name="fi">The source file.</param>
         public ReadStream(FileInfo fi)
-            : this(new FileStream(fi.FullName, FileMode.Open, FileAccess.Read))
+            : this(new FileStream(fi?.FullName, FileMode.Open, FileAccess.Read))
         { }
 
         /// <summary>

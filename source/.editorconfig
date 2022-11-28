@@ -1,0 +1,4 @@
+﻿[*.cs]
+
+# buffer arrays are integral part of solution
+dotnet_diagnostic.CA1819.severity = suggestion

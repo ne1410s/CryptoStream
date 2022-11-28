@@ -25,6 +25,7 @@ namespace Crypt
         /// endian it is last. e.g. 16|8|4|2|1 is big endian.</remarks>
         public static void Increment(ref byte[] counter, bool? bigEndian = null)
         {
+            counter = counter ?? throw new ArgumentNullException(nameof(counter));
             bigEndian ??= !BitConverter.IsLittleEndian;
             var start = bigEndian.Value ? counter.Length - 1 : 0;
             var terminate = bigEndian.Value ? -1 : counter.Length;

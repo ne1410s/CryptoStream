@@ -44,6 +44,19 @@ public class EncodingExtensionsTests
             .WithMessage("Bad codec: 9999 (Parameter 'codec')");
     }
 
+    [Fact]
+    public void Encode_HexNull_ThrowsArgumentException()
+    {
+        // Arrange
+        var source = (byte[])null!;
+
+        // Act
+        var act = () => source.Encode(Codec.ByteHex);
+
+        // Assert
+        act.Should().ThrowExactly<ArgumentNullException>();
+    }
+
     [Theory]
     [InlineData(Codec.ByteBase64, "e1b3e2de848872ff73a635b7d7fbb6a0")]
     [InlineData(Codec.ByteHex, "225243157f20e346ebd2771d5c35b887")]
@@ -74,5 +87,18 @@ public class EncodingExtensionsTests
         // Assert
         act.Should().ThrowExactly<ArgumentException>()
             .WithMessage("Bad codec: 9999 (Parameter 'codec')");
+    }
+
+    [Fact]
+    public void Decode_HexNull_ThrowsArgumentException()
+    {
+        // Arrange
+        const string source = null!;
+
+        // Act
+        var act = () => source.Decode(Codec.ByteHex);
+
+        // Assert
+        act.Should().ThrowExactly<ArgumentNullException>();
     }
 }

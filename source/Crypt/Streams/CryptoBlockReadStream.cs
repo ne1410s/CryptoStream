@@ -28,11 +28,11 @@ namespace Crypt.Streams
         /// <param name="decryptor">Decryptor override (optional).</param>
         public CryptoBlockReadStream(FileInfo fi, byte[] key, int bufferSize = 32768, IGcmDecryptor decryptor = null)
             : this(
-                  new FileStream(fi.FullName, FileMode.Open, FileAccess.Read),
-                  fi.ToSalt(),
-                  key,
-                  bufferSize,
-                  decryptor)
+                new FileStream(fi?.FullName, FileMode.Open, FileAccess.Read),
+                fi.ToSalt(),
+                key,
+                bufferSize,
+                decryptor)
         { }
 
         /// <summary>

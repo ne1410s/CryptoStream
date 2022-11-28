@@ -31,6 +31,19 @@ public class ReadStreamTests
     }
 
     [Fact]
+    public void Ctor_NullFile_ThrowsException()
+    {
+        // Arrange
+        var fi = (FileInfo)null!;
+
+        // Act
+        var act = () => new ReadStream(fi);
+
+        // Assert
+        act.Should().ThrowExactly<ArgumentNullException>();
+    }
+
+    [Fact]
     public void Flush_WhenCalled_ThrowsException()
     {
         // Arrange
