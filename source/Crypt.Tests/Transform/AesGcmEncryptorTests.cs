@@ -3,6 +3,7 @@
 // </copyright>
 
 using Crypt.Encoding;
+using Crypt.Keying;
 using Crypt.Tests.TestObjects;
 using Crypt.Transform;
 using Crypt.Utils;
@@ -100,5 +101,25 @@ public class AesGcmEncryptorTests
         mockResizer.Verify(
             m => m.Resize(ref It.Ref<byte[]>.IsAny, It.IsAny<int>()),
             Times.Never);
+    }
+
+    [Fact]
+    public void Encrypt_WithKeyDeriver_CallsDerive()
+    {
+        // Arrange
+        var mockDeriver = new Mock<ICryptoKeyDeriver>();
+        var key = new byte[] { 99 };
+        mockDeriver
+            .Setup(m => m.DeriveCryptoKey(key, It.IsAny<byte[]>(), It.IsAny<byte[]>()))
+            .Returns(Guid.NewGuid().ToByteArray());
+        var sut = new AesGcmEncryptor(mockDeriver.Object);
+        using var stream = new MemoryStream(new byte[] { 1, 2, 3 });
+
+        // Act
+        _ = sut.Encrypt(stream, new MemoryStream(), key);
+
+        // Assert
+        mockDeriver.Verify(
+            m => m.DeriveCryptoKey(key, It.IsAny<byte[]>(), It.IsAny<byte[]>()));
     }
 }

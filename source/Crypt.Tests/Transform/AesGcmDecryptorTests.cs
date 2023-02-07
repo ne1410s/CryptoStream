@@ -5,6 +5,7 @@
 namespace Crypt.Tests.Transform;
 
 using Crypt.IO;
+using Crypt.Keying;
 using Crypt.Tests.TestObjects;
 using Crypt.Transform;
 using Crypt.Utils;
@@ -120,5 +121,26 @@ public class AesGcmDecryptorTests
 
         // Assert
         act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public void Decrypt_WithKeyDeriver_CallsDerive()
+    {
+        // Arrange
+        var mockDeriver = new Mock<ICryptoKeyDeriver>();
+        var key = new byte[] { 25 };
+        mockDeriver
+            .Setup(m => m.DeriveCryptoKey(key, It.IsAny<byte[]>(), It.IsAny<byte[]>()))
+            .Returns(Guid.NewGuid().ToByteArray());
+        var sut = new AesGcmDecryptor(mockDeriver.Object);
+        var bytes = Enumerable.Range(0, 5).SelectMany(_ => Guid.NewGuid().ToByteArray());
+        using var stream = new MemoryStream(bytes.ToArray());
+
+        // Act
+        sut.Decrypt(stream, new MemoryStream(), key, new byte[] { 2 });
+
+        // Assert
+        mockDeriver.Verify(
+            m => m.DeriveCryptoKey(key, It.IsAny<byte[]>(), It.IsAny<byte[]>()));
     }
 }

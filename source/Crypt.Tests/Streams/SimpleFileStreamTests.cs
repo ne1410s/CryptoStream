@@ -90,6 +90,24 @@ namespace Crypt.Tests.Streams
         }
 
         [Fact]
+        public void Read_WithResizer_CallsResize()
+        {
+            // Arrange
+            var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
+            File.WriteAllText(fi.FullName, "this is a string that is of some size.");
+            const int bufferLength = 1024;
+            var mockResizer = new Mock<IArrayResizer>();
+            var sut = new SimpleFileStream(fi, bufferLength, mockResizer.Object);
+            sut.Seek(fi.Length - 9);
+
+            // Act
+            _ = sut.Read();
+
+            // Assert
+            mockResizer.Verify(m => m.Resize(ref It.Ref<byte[]>.IsAny, It.IsAny<int>()));
+        }
+
+        [Fact]
         public void Read_PerfectFitBuffer_NotResized()
         {
             // Arrange
