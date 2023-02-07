@@ -17,14 +17,14 @@ namespace Crypt.Hashing
         /// <summary>
         /// Obtains a signature from a stream.
         /// </summary>
-        /// <param name="input">The stream.</param>
+        /// <param name="stream">The stream.</param>
         /// <param name="mode">The hash mode.</param>
         /// <returns>A signature.</returns>
-        public static byte[] Hash(this Stream input, HashType mode)
+        public static byte[] Hash(this Stream stream, HashType mode)
         {
-            (input ?? throw new ArgumentNullException(nameof(input))).Position = 0;
+            (stream ?? throw new ArgumentNullException(nameof(stream))).Position = 0;
             using var algo = ToAlgo(mode);
-            return algo.ComputeHash(input);
+            return algo.ComputeHash(stream);
         }
 
         /// <summary>
