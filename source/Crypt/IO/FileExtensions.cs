@@ -39,7 +39,7 @@ namespace Crypt.IO
             return match.Success
                 ? match.Groups["hex"].Value.Decode(Codec.ByteHex)
                 : throw new ArgumentException(
-                    $"Unable to obtain salt: '{fi.Name}'",
+                    $"Unable to obtain salt: '{fi!.Name}'",
                     nameof(fi));
         }
 
