@@ -17,6 +17,9 @@ namespace Crypt.IO
     /// </summary>
     public static class FileExtensions
     {
+        private const string AlreadySecureMessage = "File already appears to be secure. "
+            + "If you wish to secure it, please rename it first";
+
         private static readonly Regex SaltRegex = new(
             @"\b(?<hex>[a-f0-9]{64})(?<ext>\.[\w-]+){0,1}$",
             RegexOptions.Compiled);
@@ -33,13 +36,14 @@ namespace Crypt.IO
         /// </summary>
         /// <param name="fi">The file info.</param>
         /// <returns>A salt.</returns>
+        /// <exception cref="ArgumentException">File suitability.</exception>
         public static byte[] ToSalt(this FileInfo fi)
         {
             var match = SaltRegex.Match(fi?.Name);
             return match.Success
                 ? match.Groups["hex"].Value.Decode(Codec.ByteHex)
                 : throw new ArgumentException(
-                    $"Unable to obtain salt: '{fi.Name}'",
+                    $"Unable to obtain salt: '{fi!.Name}'",
                     nameof(fi));
         }
 
@@ -113,15 +117,21 @@ namespace Crypt.IO
         {
             encryptor ??= new AesGcmEncryptor();
 
+            var isSecure = fi?.IsSecure() ?? throw new ArgumentNullException(nameof(fi));
+            if (isSecure)
+            {
+                throw new ArgumentException(AlreadySecureMessage, nameof(fi));
+            }
+
             var saltHex = (string)null;
-            using (var stream = (fi ?? throw new ArgumentNullException(nameof(fi))).Open(FileMode.Open))
+            using (var stream = fi.Open(FileMode.Open))
             {
                 saltHex = encryptor.Encrypt(stream, stream, userKey, bufferLength, mac)
                     .Encode(Codec.ByteHex)
                     .ToLower(CultureInfo.InvariantCulture);
             }
 
-            var target = Path.Combine(fi.DirectoryName, saltHex + fi.Extension);
+            var target = Path.Combine(fi.DirectoryName, saltHex + fi.Extension.ToLower());
             if (target != fi.FullName)
             {
                 File.Delete(target);

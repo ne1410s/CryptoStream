@@ -148,7 +148,7 @@ public class DirectoryExtensionsTests
     }
 
     [Fact]
-    public void HashSum_ChangeFileTimestampsIncluded_DifferentResult()
+    public async Task HashSum_ChangeFileTimestampsIncluded_DifferentResult()
     {
         // Arrange
         var di = new DirectoryInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}"));
@@ -157,7 +157,7 @@ public class DirectoryExtensionsTests
         // Act
         File.WriteAllText(Path.Combine(di.FullName, "file.txt"), "hi!");
         var hashSum1Base64 = di.HashSum(HashType.Sha256, HashSumIncludes.FileTimestamp).Encode(Codec.ByteBase64);
-        Thread.Sleep(1100);
+        await Task.Delay(1100);
         File.WriteAllText(Path.Combine(di.FullName, "file.txt"), "hi!");
         var hashSum2Base64 = di.HashSum(HashType.Sha256, HashSumIncludes.FileTimestamp).Encode(Codec.ByteBase64);
 
@@ -197,5 +197,26 @@ public class DirectoryExtensionsTests
 
         // Assert
         act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public void EncryptAllInSitu_AlreadySecure_NotProcessed()
+    {
+        // Arrange
+        var folder = Guid.NewGuid().ToString();
+        Directory.CreateDirectory(folder);
+        var mockEncryptor = new Mock<IEncryptor>();
+        const string secureName = "0f5bed56f862512644ec87b7db6afc7299e2195c5bf9b27bcc631adb16785ed9.avi";
+        File.Copy(Path.Combine("TestObjects", "pixel.png"), Path.Combine(folder, "pixel.png"));
+        File.Copy(Path.Combine("TestObjects", secureName), Path.Combine(folder, secureName));
+
+        // Act
+        new DirectoryInfo(folder).EncryptAllInSitu(TestRefs.TestKey, mockEncryptor.Object);
+
+        // Assert
+        mockEncryptor.Verify(
+            m => m.Encrypt(
+                It.IsAny<Stream>(), It.IsAny<Stream>(), It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<Stream>()),
+            Times.Once());
     }
 }

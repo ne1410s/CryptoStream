@@ -86,6 +86,37 @@ public class FileExtensionsTests
     }
 
     [Fact]
+    public void EncryptInSitu_AlreadyEncrypted_ThrowsArgumentException()
+    {
+        // Arrange
+        var fi = new FileInfo(
+            Path.Combine(
+                "TestObjects",
+                "0f5bed56f862512644ec87b7db6afc7299e2195c5bf9b27bcc631adb16785ed9.avi"));
+
+        // Act
+        var act = () => fi.EncryptInSitu(TestRefs.TestKey);
+
+        // Assert
+        act.Should().ThrowExactly<ArgumentException>()
+            .WithMessage("File*already*secure*");
+    }
+
+    [Fact]
+    public void EncryptInSitu_WithUpperCaseExt_SavesAsLower()
+    {
+        // Arrange
+        var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.TXT"));
+        File.WriteAllText(fi.FullName, $"hi{nameof(this.EncryptInSitu_WithUpperCaseExt_SavesAsLower)}");
+
+        // Act
+        fi.EncryptInSitu(TestRefs.TestKey);
+
+        // Assert
+        fi.Name.Should().EndWith(".txt");
+    }
+
+    [Fact]
     public void EncryptInSitu_WithSameContent_SaltIsDeterministic()
     {
         // Arrange

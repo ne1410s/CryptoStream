@@ -61,7 +61,7 @@ namespace Crypt.IO
         }
 
         /// <summary>
-        /// Encrypts all files in-situ, recursively.
+        /// Encrypts all unsecured files in-situ, recursively.
         /// </summary>
         /// <param name="di">The directory.</param>
         /// <param name="userKey">The user key.</param>
@@ -76,7 +76,10 @@ namespace Crypt.IO
             di = di ?? throw new ArgumentNullException(nameof(di));
             foreach (var fi in di.EnumerateFiles(Wildcard, SearchOption.AllDirectories))
             {
-                fi.EncryptInSitu(userKey, encryptor, bufferLength);
+                if (!fi.IsSecure())
+                {
+                    fi.EncryptInSitu(userKey, encryptor, bufferLength);
+                }
             }
         }
     }

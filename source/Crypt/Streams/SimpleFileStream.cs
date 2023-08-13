@@ -30,7 +30,7 @@ namespace Crypt.Streams
         {
             this.arrayResizer = resizer ?? new ArrayResizer();
             this.BufferLength = bufferLength;
-            this.Uri = fi.FullName;
+            this.Uri = fi!.FullName;
         }
 
         /// <inheritdoc/>
