@@ -2,13 +2,13 @@
 // Copyright (c) ne1410s. All rights reserved.
 // </copyright>
 
+namespace Crypt.Tests.IO;
+
 using Crypt.Encoding;
 using Crypt.Hashing;
 using Crypt.IO;
 using Crypt.Tests.TestObjects;
 using Crypt.Transform;
-
-namespace Crypt.Tests.IO;
 
 /// <summary>
 /// Tests for <see cref="DirectoryExtensions"/>.
@@ -165,8 +165,10 @@ public class DirectoryExtensionsTests
         hashSum1Base64.Should().NotBe(hashSum2Base64);
     }
 
-    [Fact]
-    public void EncryptAllInSitu_WithNesting_FindsAllFiles()
+    [Theory]
+    [InlineData(false, 1)]
+    [InlineData(true, 2)]
+    public void EncryptAllInSitu_VaryingRecurseFlag_FindsExpectedFiles(bool recurse, int expectedCount)
     {
         // Arrange
         var mockEncryptor = new Mock<IEncryptor>();
@@ -177,12 +179,12 @@ public class DirectoryExtensionsTests
         File.WriteAllText(Path.Combine(di.FullName, "mydir", "ho.txt"), "ho");
 
         // Act
-        di.EncryptAllInSitu(TestRefs.TestKey, mockEncryptor.Object);
+        di.EncryptAllInSitu(TestRefs.TestKey, recurse, encryptor: mockEncryptor.Object);
 
         // Assert
         mockEncryptor.Verify(
             m => m.Encrypt(It.IsAny<Stream>(), It.IsAny<Stream>(), TestRefs.TestKey, 32768, null),
-            Times.Exactly(2));
+            Times.Exactly(expectedCount));
     }
 
     [Fact]
@@ -193,7 +195,7 @@ public class DirectoryExtensionsTests
         var di = (DirectoryInfo)null!;
 
         // Act
-        var act = () => di.EncryptAllInSitu(TestRefs.TestKey, mockEncryptor.Object);
+        var act = () => di.EncryptAllInSitu(TestRefs.TestKey, encryptor: mockEncryptor.Object);
 
         // Assert
         act.Should().Throw<ArgumentNullException>();
@@ -211,7 +213,28 @@ public class DirectoryExtensionsTests
         File.Copy(Path.Combine("TestObjects", secureName), Path.Combine(folder, secureName));
 
         // Act
-        new DirectoryInfo(folder).EncryptAllInSitu(TestRefs.TestKey, mockEncryptor.Object);
+        new DirectoryInfo(folder).EncryptAllInSitu(TestRefs.TestKey, encryptor: mockEncryptor.Object);
+
+        // Assert
+        mockEncryptor.Verify(
+            m => m.Encrypt(
+                It.IsAny<Stream>(), It.IsAny<Stream>(), It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<Stream>()),
+            Times.Once());
+    }
+
+    [Fact]
+    public void EncryptAllInSitu_WithPredicate_FindsExpectedFiles()
+    {
+        // Arrange
+        var folder = Guid.NewGuid().ToString();
+        Directory.CreateDirectory(folder);
+        var mockEncryptor = new Mock<IEncryptor>();
+        File.Copy(Path.Combine("TestObjects", "pixel.png"), Path.Combine(folder, "pixel.png"));
+        File.Copy(Path.Combine("TestObjects", "pixel.png"), Path.Combine(folder, "otherfile.png"));
+        static bool Filter(FileInfo fi) => fi.Name.StartsWith("pixel");
+
+        // Act
+        new DirectoryInfo(folder).EncryptAllInSitu(TestRefs.TestKey, where: Filter, encryptor: mockEncryptor.Object);
 
         // Assert
         mockEncryptor.Verify(

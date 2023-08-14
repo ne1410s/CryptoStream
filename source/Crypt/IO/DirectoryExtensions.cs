@@ -65,18 +65,23 @@ namespace Crypt.IO
         /// </summary>
         /// <param name="di">The directory.</param>
         /// <param name="userKey">The user key.</param>
+        /// <param name="recurse">Whether to include sub-directories.</param>
+        /// <param name="where">File filter.</param>
         /// <param name="encryptor">The encryptor.</param>
         /// <param name="bufferLength">The buffer length.</param>
         public static void EncryptAllInSitu(
             this DirectoryInfo di,
             byte[] userKey,
+            bool recurse = false,
+            Func<FileInfo, bool> where = null,
             IEncryptor encryptor = null,
             int bufferLength = 32768)
         {
             di = di ?? throw new ArgumentNullException(nameof(di));
-            foreach (var fi in di.EnumerateFiles(Wildcard, SearchOption.AllDirectories))
+            var searchOpt = recurse ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+            foreach (var fi in di.EnumerateFiles(Wildcard, searchOpt))
             {
-                if (!fi.IsSecure())
+                if (!fi.IsSecure() && (where?.Invoke(fi) ?? true))
                 {
                     fi.EncryptInSitu(userKey, encryptor, bufferLength);
                 }
