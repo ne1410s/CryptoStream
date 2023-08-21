@@ -28,6 +28,7 @@ public class FileExtensionsTests
         fi.DecryptTo(trgStream, TestRefs.TestKey, mockDecryptor.Object);
 
         // Assert
+        trgStream.Position.Should().Be(0);
         mockDecryptor.Verify(
             m => m.Decrypt(It.IsAny<Stream>(), trgStream, TestRefs.TestKey, It.IsAny<byte[]>(), 32768, null),
             Times.Once());

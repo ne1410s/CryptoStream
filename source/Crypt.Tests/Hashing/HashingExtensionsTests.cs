@@ -4,6 +4,7 @@
 
 using Crypt.Encoding;
 using Crypt.Hashing;
+using Crypt.Tests.TestObjects;
 
 namespace Crypt.Tests.Hashing;
 
@@ -70,5 +71,62 @@ public class HashingExtensionsTests
 
         // Assert
         act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public void HashLite_SeekableStream_ReturnedToStart()
+    {
+        // Arrange
+        var stream = new MemoryStream(new byte[] { 1, 2, 3 });
+
+        // Act
+        _ = stream.HashLite(HashType.Md5);
+
+        // Assert
+        stream.Position.Should().Be(0);
+    }
+
+    [Fact]
+    public void HashLite_UnseekableStreamNotAtStart_ThrowsException()
+    {
+        // Arrange
+        var stream = new UnseekableStream(new byte[] { 1, 2, 3 });
+        stream.ReadByte();
+
+        // Act
+        var act = () => stream.HashLite(HashType.Md5);
+
+        // Assert
+        act.Should().Throw<NotSupportedException>();
+    }
+
+    [Fact]
+    public void HashLite_UnseekableStreamAtStart_DoesNotThrow()
+    {
+        // Arrange
+        var stream = new UnseekableStream(new byte[] { 1, 2, 3 });
+
+        // Act
+        var act = () => stream.HashLite(HashType.Md5);
+
+        // Assert
+        act.Should().NotThrow();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void HashLite_WithStream_ReturnsExpected(bool seekable)
+    {
+        // Arrange
+        var bytes = new byte[] { 1, 2, 3, 4, 5, 6 };
+        var stream = seekable ? new MemoryStream(bytes) : new UnseekableStream(bytes);
+        const string expectedMd5Hex = "55d19fee6edc7075afb392d6203e095e";
+
+        // Act
+        var result = stream.HashLite(HashType.Md5, 2, 2).Encode(Codec.ByteHex);
+
+        // Assert
+        result.Should().Be(expectedMd5Hex);
     }
 }

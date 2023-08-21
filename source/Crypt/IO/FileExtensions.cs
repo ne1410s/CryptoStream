@@ -39,7 +39,7 @@ namespace Crypt.IO
         /// <exception cref="ArgumentException">File suitability.</exception>
         public static byte[] ToSalt(this FileInfo fi)
         {
-            var match = SaltRegex.Match(fi?.Name);
+            var match = SaltRegex.Match((fi ?? throw new ArgumentNullException(nameof(fi))).Name);
             return match.Success
                 ? match.Groups["hex"].Value.Decode(Codec.ByteHex)
                 : throw new ArgumentException(

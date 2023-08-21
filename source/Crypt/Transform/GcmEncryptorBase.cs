@@ -9,6 +9,7 @@ namespace Crypt.Transform
     using System.Security.Cryptography;
     using Crypt.Hashing;
     using Crypt.Keying;
+    using Crypt.Streams;
     using Crypt.Utils;
 
     /// <inheritdoc cref="IGcmEncryptor"/>
@@ -88,7 +89,7 @@ namespace Crypt.Transform
         public byte[] GenerateSalt(Stream input)
         {
             var salt = input.Hash(HashType.Sha256);
-            input.Position = 0;
+            input.Reset();
             Array.Reverse(salt, 0, 8);
             Array.Reverse(salt, 5, salt.Length - 5);
             Array.Reverse(salt);
