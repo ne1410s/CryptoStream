@@ -14,7 +14,7 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Title>$(AssemblyName)</Title>
-    <VersionPrefix>1.1.10</VersionPrefix>
+    <VersionPrefix>1.1.11</VersionPrefix>
   </PropertyGroup>
 
   <ItemGroup>
