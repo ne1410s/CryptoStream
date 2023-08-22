@@ -75,11 +75,9 @@ public static class HashingExtensions
             else
             {
                 var toSkip = (int)skipSize;
-                var reRead = -1;
-                while (toSkip > 0 && reRead != 0)
+                while ((lastRead = input.Read(chunk, 0, Math.Min(toSkip, chunkSize))) != 0)
                 {
-                    reRead = input.Read(chunk, 0, Math.Min(toSkip, chunkSize));
-                    toSkip -= reRead;
+                    toSkip -= lastRead;
                 }
             }
         }

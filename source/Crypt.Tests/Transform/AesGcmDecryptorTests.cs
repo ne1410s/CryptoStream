@@ -80,6 +80,7 @@ public class AesGcmDecryptorTests
         sut.Decrypt(srcStream, trgStream, TestRefs.TestKey, salt);
 
         // Assert
+        trgStream.Position.Should().Be(0);
         mockResizer.Verify(
             m => m.Resize(ref It.Ref<byte[]>.IsAny, 4),
             Times.Once);
