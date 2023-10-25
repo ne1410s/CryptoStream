@@ -108,7 +108,7 @@ public class AesGcmEncryptorTests
     {
         // Arrange
         var mockDeriver = new Mock<ICryptoKeyDeriver>();
-        var key = "c"u8.ToArray();
+        var key = new byte[] { 99 };
         mockDeriver
             .Setup(m => m.DeriveCryptoKey(key, It.IsAny<byte[]>(), It.IsAny<byte[]>()))
             .Returns(Guid.NewGuid().ToByteArray());
