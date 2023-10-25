@@ -2,9 +2,9 @@
 // Copyright (c) ne1410s. All rights reserved.
 // </copyright>
 
-using Crypt.Streams;
-
 namespace Crypt.Tests.Streams;
+
+using Crypt.Streams;
 
 /// <summary>
 /// Tests for the <see cref="ReadStream"/>.

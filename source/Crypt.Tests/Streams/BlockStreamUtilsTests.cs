@@ -2,9 +2,9 @@
 // Copyright (c) ne1410s. All rights reserved.
 // </copyright>
 
-using Crypt.Utils;
-
 namespace Crypt.Tests.Streams;
+
+using Crypt.Utils;
 
 /// <summary>
 /// Tests for the <see cref="StreamBlockUtils"/>.

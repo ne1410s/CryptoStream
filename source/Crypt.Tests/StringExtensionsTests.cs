@@ -2,11 +2,11 @@
 // Copyright (c) ne1410s. All rights reserved.
 // </copyright>
 
+namespace Crypt.Tests;
+
 using Crypt.Encoding;
 using Crypt.Hashing;
 using Crypt.Tests.TestObjects;
-
-namespace Crypt.Tests;
 
 /// <summary>
 /// Tests for the <see cref="StringExtensions"/> class.

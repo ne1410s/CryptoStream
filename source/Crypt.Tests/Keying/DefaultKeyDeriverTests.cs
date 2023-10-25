@@ -2,10 +2,10 @@
 // Copyright (c) ne1410s. All rights reserved.
 // </copyright>
 
+namespace Crypt.Tests.Keying;
+
 using Crypt.Encoding;
 using Crypt.Keying;
-
-namespace Crypt.Tests.Keying;
 
 /// <summary>
 /// Tests for the <see cref="DefaultKeyDeriver"/>. class.

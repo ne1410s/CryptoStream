@@ -2,89 +2,88 @@
 // Copyright (c) ne1410s. All rights reserved.
 // </copyright>
 
-namespace Crypt.IO
+namespace Crypt.IO;
+
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using Crypt.Hashing;
+using Crypt.Transform;
+
+/// <summary>
+/// Extensions for <see cref="DirectoryInfo"/>.
+/// </summary>
+public static class DirectoryExtensions
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Globalization;
-    using System.IO;
-    using Crypt.Hashing;
-    using Crypt.Transform;
+    private const string Wildcard = "*";
 
     /// <summary>
-    /// Extensions for <see cref="DirectoryInfo"/>.
+    /// Signs a folder structure recursively. This process is not sensitive
+    /// to changes in metadata.
     /// </summary>
-    public static class DirectoryExtensions
+    /// <param name="di">The directory.</param>
+    /// <param name="mode">The hash mode.</param>
+    /// <param name="includes">Factors contributing to uniqueness.</param>
+    /// <returns>The hash sum.</returns>
+    public static byte[] HashSum(
+        this DirectoryInfo di, HashType mode, HashSumIncludes includes = HashSumIncludes.FileContents)
     {
-        private const string Wildcard = "*";
+        di = di ?? throw new ArgumentNullException(nameof(di));
+        var hashSeed = includes.HasFlag(HashSumIncludes.DirectoryRootName) ? di.Name : string.Empty;
+        var hash = hashSeed.Hash(mode);
 
-        /// <summary>
-        /// Signs a folder structure recursively. This process is not sensitive
-        /// to changes in metadata.
-        /// </summary>
-        /// <param name="di">The directory.</param>
-        /// <param name="mode">The hash mode.</param>
-        /// <param name="includes">Factors contributing to uniqueness.</param>
-        /// <returns>The hash sum.</returns>
-        public static byte[] HashSum(
-            this DirectoryInfo di, HashType mode, HashSumIncludes includes = HashSumIncludes.FileContents)
+        foreach (var fsi in di.EnumerateFileSystemInfos(Wildcard, SearchOption.AllDirectories))
         {
-            di = di ?? throw new ArgumentNullException(nameof(di));
-            var hashSeed = includes.HasFlag(HashSumIncludes.DirectoryRootName) ? di.Name : string.Empty;
-            var hash = hashSeed.Hash(mode);
-
-            foreach (var fsi in di.EnumerateFileSystemInfos(Wildcard, SearchOption.AllDirectories))
+            var entryBytes = new List<byte>(hash);
+            if (fsi is FileInfo fi)
             {
-                var entryBytes = new List<byte>(hash);
-                if (fsi is FileInfo fi)
+                if (includes.HasFlag(HashSumIncludes.FileContents))
                 {
-                    if (includes.HasFlag(HashSumIncludes.FileContents))
-                    {
-                        entryBytes.AddRange(fi.Hash(mode));
-                    }
-
-                    if (includes.HasFlag(HashSumIncludes.FileTimestamp))
-                    {
-                        entryBytes.AddRange(fi.LastWriteTime.ToString(CultureInfo.InvariantCulture).Hash(mode));
-                    }
+                    entryBytes.AddRange(fi.Hash(mode));
                 }
 
-                if (includes.HasFlag(HashSumIncludes.DirectoryStructure))
+                if (includes.HasFlag(HashSumIncludes.FileTimestamp))
                 {
-                    entryBytes.AddRange(fsi.Name.Hash(mode));
+                    entryBytes.AddRange(fi.LastWriteTime.ToString(CultureInfo.InvariantCulture).Hash(mode));
                 }
-
-                hash = entryBytes.ToArray().Hash(mode);
             }
 
-            return hash;
+            if (includes.HasFlag(HashSumIncludes.DirectoryStructure))
+            {
+                entryBytes.AddRange(fsi.Name.Hash(mode));
+            }
+
+            hash = entryBytes.ToArray().Hash(mode);
         }
 
-        /// <summary>
-        /// Encrypts all unsecured files in-situ, recursively.
-        /// </summary>
-        /// <param name="di">The directory.</param>
-        /// <param name="userKey">The user key.</param>
-        /// <param name="recurse">Whether to include sub-directories.</param>
-        /// <param name="where">File filter.</param>
-        /// <param name="encryptor">The encryptor.</param>
-        /// <param name="bufferLength">The buffer length.</param>
-        public static void EncryptAllInSitu(
-            this DirectoryInfo di,
-            byte[] userKey,
-            bool recurse = false,
-            Func<FileInfo, bool> where = null,
-            IEncryptor encryptor = null,
-            int bufferLength = 32768)
+        return hash;
+    }
+
+    /// <summary>
+    /// Encrypts all unsecured files in-situ, recursively.
+    /// </summary>
+    /// <param name="di">The directory.</param>
+    /// <param name="userKey">The user key.</param>
+    /// <param name="recurse">Whether to include sub-directories.</param>
+    /// <param name="where">File filter.</param>
+    /// <param name="encryptor">The encryptor.</param>
+    /// <param name="bufferLength">The buffer length.</param>
+    public static void EncryptAllInSitu(
+        this DirectoryInfo di,
+        byte[] userKey,
+        bool recurse = false,
+        Func<FileInfo, bool> where = null,
+        IEncryptor encryptor = null,
+        int bufferLength = 32768)
+    {
+        di = di ?? throw new ArgumentNullException(nameof(di));
+        var searchOpt = recurse ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+        foreach (var fi in di.EnumerateFiles(Wildcard, searchOpt))
         {
-            di = di ?? throw new ArgumentNullException(nameof(di));
-            var searchOpt = recurse ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-            foreach (var fi in di.EnumerateFiles(Wildcard, searchOpt))
+            if (!fi.IsSecure() && (where?.Invoke(fi) ?? true))
             {
-                if (!fi.IsSecure() && (where?.Invoke(fi) ?? true))
-                {
-                    fi.EncryptInSitu(userKey, encryptor, bufferLength);
-                }
+                fi.EncryptInSitu(userKey, encryptor, bufferLength);
             }
         }
     }

@@ -2,13 +2,13 @@
 // Copyright (c) ne1410s. All rights reserved.
 // </copyright>
 
+namespace Crypt.Tests.Transform;
+
 using Crypt.Encoding;
 using Crypt.Keying;
 using Crypt.Tests.TestObjects;
 using Crypt.Transform;
 using Crypt.Utils;
-
-namespace Crypt.Tests.Transform;
 
 /// <summary>
 /// Test for the <see cref="AesGcmEncryptor"/>.
@@ -108,7 +108,7 @@ public class AesGcmEncryptorTests
     {
         // Arrange
         var mockDeriver = new Mock<ICryptoKeyDeriver>();
-        var key = new byte[] { 99 };
+        var key = "c"u8.ToArray();
         mockDeriver
             .Setup(m => m.DeriveCryptoKey(key, It.IsAny<byte[]>(), It.IsAny<byte[]>()))
             .Returns(Guid.NewGuid().ToByteArray());

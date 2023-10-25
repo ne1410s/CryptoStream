@@ -2,10 +2,10 @@
 // Copyright (c) ne1410s. All rights reserved.
 // </copyright>
 
+namespace Crypt.Tests.Encoding;
+
 using Crypt.Encoding;
 using Crypt.Hashing;
-
-namespace Crypt.Tests.Encoding;
 
 /// <summary>
 /// Tests for the <see cref="Crypt.Encoding.EncodingExtensions"/> class.

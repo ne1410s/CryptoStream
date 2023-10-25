@@ -2,13 +2,13 @@
 // Copyright (c) ne1410s. All rights reserved.
 // </copyright>
 
+namespace Crypt.Tests.IO;
+
 using Crypt.Encoding;
 using Crypt.Hashing;
 using Crypt.IO;
 using Crypt.Tests.TestObjects;
 using Crypt.Transform;
-
-namespace Crypt.Tests.IO;
 
 /// <summary>
 /// Tests for <see cref="FileExtensions"/>.

@@ -2,11 +2,11 @@
 // Copyright (c) ne1410s. All rights reserved.
 // </copyright>
 
+namespace Crypt.Tests.Hashing;
+
 using Crypt.Encoding;
 using Crypt.Hashing;
 using Crypt.Tests.TestObjects;
-
-namespace Crypt.Tests.Hashing;
 
 /// <summary>
 /// Tests for the <see cref="HashingExtensions"/> class.

@@ -2,15 +2,14 @@
 // Copyright (c) ne1410s. All rights reserved.
 // </copyright>
 
-namespace Crypt.Utils
-{
-    using System;
+namespace Crypt.Utils;
 
-    /// <inheritdoc cref="IArrayResizer"/>
-    public class ArrayResizer : IArrayResizer
-    {
-        /// <inheritdoc/>
-        public void Resize(ref byte[] bytes, int newSize)
-            => Array.Resize(ref bytes, newSize);
-    }
+using System;
+
+/// <inheritdoc cref="IArrayResizer"/>
+public class ArrayResizer : IArrayResizer
+{
+    /// <inheritdoc/>
+    public void Resize(ref byte[] bytes, int newSize)
+        => Array.Resize(ref bytes, newSize);
 }

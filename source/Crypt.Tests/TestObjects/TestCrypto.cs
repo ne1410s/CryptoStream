@@ -2,9 +2,9 @@
 // Copyright (c) ne1410s. All rights reserved.
 // </copyright>
 
-using Crypt.Transform;
-
 namespace Crypt.Tests.TestObjects;
+
+using Crypt.Transform;
 
 public class TestCrypto : IEncryptor, IDecryptor
 {

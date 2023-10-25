@@ -231,7 +231,7 @@ public class DirectoryExtensionsTests
         var mockEncryptor = new Mock<IEncryptor>();
         File.Copy(Path.Combine("TestObjects", "pixel.png"), Path.Combine(folder, "pixel.png"));
         File.Copy(Path.Combine("TestObjects", "pixel.png"), Path.Combine(folder, "otherfile.png"));
-        static bool Filter(FileInfo fi) => fi.Name.StartsWith("pixel");
+        static bool Filter(FileInfo fi) => fi.Name.StartsWith("pixel", StringComparison.Ordinal);
 
         // Act
         new DirectoryInfo(folder).EncryptAllInSitu(TestRefs.TestKey, where: Filter, encryptor: mockEncryptor.Object);
