@@ -21,7 +21,7 @@ public class SimpleFileStreamTests
         var fi = new FileInfo(Path.Combine("TestObjects", "sample.avi"));
 
         // Act
-        var sut = new SimpleFileStream(fi);
+        using var sut = new SimpleFileStream(fi);
 
         // Assert
         sut.Uri.Should().Be(fi.FullName);
@@ -32,7 +32,7 @@ public class SimpleFileStreamTests
     {
         // Arrange
         var fi = new FileInfo(Path.Combine("TestObjects", "sample.avi"));
-        var sut = new SimpleFileStream(fi);
+        using var sut = new SimpleFileStream(fi);
         const string expectedMd5Hex = "91d326694fdff83d0df74c357f3feb84";
 
         // Act
@@ -61,7 +61,7 @@ public class SimpleFileStreamTests
     {
         // Arrange
         var fi = new FileInfo(Path.Combine("TestObjects", "sample.avi"));
-        var sut = new SimpleFileStream(fi);
+        using var sut = new SimpleFileStream(fi);
         sut.Seek(position);
 
         // Act
@@ -79,7 +79,7 @@ public class SimpleFileStreamTests
         var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         File.WriteAllText(fi.FullName, "this is a string that is of some size.");
         const int bufferLength = 1024;
-        var sut = new SimpleFileStream(fi, bufferLength);
+        using var sut = new SimpleFileStream(fi, bufferLength);
         sut.Seek(fi.Length - 9);
 
         // Act
@@ -97,7 +97,7 @@ public class SimpleFileStreamTests
         File.WriteAllText(fi.FullName, "this is a string that is of some size.");
         const int bufferLength = 1024;
         var mockResizer = new Mock<IArrayResizer>();
-        var sut = new SimpleFileStream(fi, bufferLength, mockResizer.Object);
+        using var sut = new SimpleFileStream(fi, bufferLength, mockResizer.Object);
         sut.Seek(fi.Length - 9);
 
         // Act
@@ -115,7 +115,7 @@ public class SimpleFileStreamTests
         File.WriteAllText(fi.FullName, "hello here is a string");
         var bufferLength = fi.Length;
         var mockResizer = new Mock<IArrayResizer>();
-        var sut = new SimpleFileStream(fi, (int)bufferLength, mockResizer.Object);
+        using var sut = new SimpleFileStream(fi, (int)bufferLength, mockResizer.Object);
 
         // Act
         _ = sut.Read();

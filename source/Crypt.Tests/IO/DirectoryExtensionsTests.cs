@@ -155,10 +155,10 @@ public class DirectoryExtensionsTests
         di.Create();
 
         // Act
-        File.WriteAllText(Path.Combine(di.FullName, "file.txt"), "hi!");
+        await File.WriteAllTextAsync(Path.Combine(di.FullName, "file.txt"), "hi!");
         var hashSum1Base64 = di.HashSum(HashType.Sha256, HashSumIncludes.FileTimestamp).Encode(Codec.ByteBase64);
         await Task.Delay(1100);
-        File.WriteAllText(Path.Combine(di.FullName, "file.txt"), "hi!");
+        await File.WriteAllTextAsync(Path.Combine(di.FullName, "file.txt"), "hi!");
         var hashSum2Base64 = di.HashSum(HashType.Sha256, HashSumIncludes.FileTimestamp).Encode(Codec.ByteBase64);
 
         // Assert

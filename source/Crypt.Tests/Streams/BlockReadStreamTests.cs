@@ -19,7 +19,7 @@ public class BlockReadStreamTests
     {
         // Arrange
         var fi = new FileInfo(Path.Combine("TestObjects", "sample.avi"));
-        var sut = new BlockReadStream(fi);
+        using var sut = new BlockReadStream(fi);
         const string expectedMd5Hex = "91d326694fdff83d0df74c357f3feb84";
 
         // Act
@@ -98,7 +98,7 @@ public class BlockReadStreamTests
         const int bufferLength = 8;
         var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         File.WriteAllText(fi.FullName, "this is a string that is for sure more than twelve bytes!");
-        var sut = new BlockReadStream(fi, bufferLength);
+        using var sut = new BlockReadStream(fi, bufferLength);
         sut.Seek(6);
 
         // Act
@@ -200,10 +200,10 @@ public class BlockReadStreamTests
     public void SubclassMapBlock_WithBuffer_DoesNotThrow()
     {
         // Arrange
-        var sut = new VanillaBlockReadStream(new MemoryStream());
+        using var sut = new VanillaBlockReadStream(new MemoryStream());
 
         // Act
-        var act = () => sut.TestMapBlock(Array.Empty<byte>());
+        var act = () => sut.TestMapBlock([]);
 
         // Assert
         act.Should().NotThrow();
@@ -213,7 +213,7 @@ public class BlockReadStreamTests
     public void SubclassMapBlock_NullBuffer_ThrowsException()
     {
         // Arrange
-        var sut = new VanillaBlockReadStream(new MemoryStream());
+        using var sut = new VanillaBlockReadStream(new MemoryStream());
 
         // Act
         var act = () => sut.TestMapBlock(null!);
@@ -222,12 +222,8 @@ public class BlockReadStreamTests
         act.Should().Throw<ArgumentNullException>();
     }
 
-    private class VanillaBlockReadStream : BlockReadStream
+    private sealed class VanillaBlockReadStream(Stream stream) : BlockReadStream(stream)
     {
-        public VanillaBlockReadStream(Stream stream)
-            : base(stream)
-        { }
-
         public void TestMapBlock(byte[] sourceBuffer)
         {
             this.MapBlock(sourceBuffer, 1);

@@ -29,7 +29,7 @@ public class StreamExtensionsTests
     public void Reset_UnseekableButAtStart_DoesNotThrow()
     {
         // Arrange
-        var stream = new UnseekableStream(new byte[] { 1, 2, 3 });
+        using var stream = new UnseekableStream([1, 2, 3]);
 
         // Act
         var act = () => stream.Reset();
@@ -42,7 +42,7 @@ public class StreamExtensionsTests
     public void Reset_UnseekableButNotAtStart_ThrowsException()
     {
         // Arrange
-        var stream = new UnseekableStream(new byte[] { 1, 2, 3 });
+        using var stream = new UnseekableStream([1, 2, 3]);
         stream.ReadByte();
 
         // Act
@@ -56,7 +56,7 @@ public class StreamExtensionsTests
     public void Reset_UnseekableNotAtStartButSkipped_DoesNotThrow()
     {
         // Arrange
-        var stream = new UnseekableStream(new byte[] { 1, 2, 3 });
+        using var stream = new UnseekableStream([1, 2, 3]);
         stream.ReadByte();
 
         // Act

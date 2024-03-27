@@ -77,7 +77,7 @@ public class HashingExtensionsTests
     public void HashLite_SeekableStream_ReturnedToStart()
     {
         // Arrange
-        var stream = new MemoryStream(new byte[] { 1, 2, 3 });
+        var stream = new MemoryStream([1, 2, 3]);
 
         // Act
         _ = stream.HashLite(HashType.Md5);
@@ -90,7 +90,7 @@ public class HashingExtensionsTests
     public void HashLite_UnseekableStreamNotAtStart_ThrowsException()
     {
         // Arrange
-        var stream = new UnseekableStream(new byte[] { 1, 2, 3 });
+        using var stream = new UnseekableStream([1, 2, 3]);
         stream.ReadByte();
 
         // Act
@@ -104,7 +104,7 @@ public class HashingExtensionsTests
     public void HashLite_UnseekableStreamAtStart_DoesNotThrow()
     {
         // Arrange
-        var stream = new UnseekableStream(new byte[] { 1, 2, 3 });
+        using var stream = new UnseekableStream([1, 2, 3]);
 
         // Act
         var act = () => stream.HashLite(HashType.Md5);
@@ -120,7 +120,7 @@ public class HashingExtensionsTests
     {
         // Arrange
         var bytes = new byte[] { 1, 2, 3, 4, 5, 6 };
-        var stream = seekable ? new MemoryStream(bytes) : new UnseekableStream(bytes);
+        using var stream = seekable ? new MemoryStream(bytes) : new UnseekableStream(bytes);
         const string expectedMd5Hex = "55d19fee6edc7075afb392d6203e095e";
 
         // Act

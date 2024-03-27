@@ -3,13 +3,13 @@
   "isRoot": true,
   "tools": {
     "dotnet-reportgenerator-globaltool": {
-      "version": "5.1.26",
+      "version": "5.2.4",
       "commands": [
         "reportgenerator"
       ]
     },
     "dotnet-stryker": {
-      "version": "3.10.0",
+      "version": "4.0.2",
       "commands": [
         "dotnet-stryker"
       ]
