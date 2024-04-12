@@ -118,10 +118,30 @@ public class AesGcmDecryptorTests
         var block = (GcmEncryptedBlock)null!;
 
         // Act
-        var act = () => sut.DecryptBlock(block, Array.Empty<byte>(), Array.Empty<byte>(), true);
+        var act = () => sut.DecryptBlock(block, [], [], true);
 
         // Assert
         act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(20_000_000_001)]
+    public void Decrypt_BadLength_ThrowsExpected(long badSize)
+    {
+        // Arrange
+        var sut = new AesGcmDecryptor();
+        var cryptoKey = Guid.NewGuid().ToByteArray();
+        var sizeBlock = sut.DecryptBlock(new(badSize.RaiseBits(), []), cryptoKey, 1L.RaiseBits(), false);
+        var bytes = sizeBlock.Concat(Enumerable.Range(0, 2).SelectMany(_ => Guid.NewGuid().ToByteArray()));
+        using var stream = new MemoryStream(bytes.ToArray());
+
+        // Act
+        var act = () => sut.Decrypt(stream, new MemoryStream(), [25], [2]);
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("Unexpected source state.");
     }
 
     [Fact]
@@ -129,19 +149,22 @@ public class AesGcmDecryptorTests
     {
         // Arrange
         var mockDeriver = new Mock<ICryptoKeyDeriver>();
-        var key = new byte[] { 25 };
+        var userKey = new byte[] { 25 };
+        var cryptoKey = Guid.NewGuid().ToByteArray();
         mockDeriver
-            .Setup(m => m.DeriveCryptoKey(key, It.IsAny<byte[]>(), It.IsAny<byte[]>()))
-            .Returns(Guid.NewGuid().ToByteArray());
+            .Setup(m => m.DeriveCryptoKey(userKey, It.IsAny<byte[]>(), It.IsAny<byte[]>()))
+            .Returns(cryptoKey);
         var sut = new AesGcmDecryptor(mockDeriver.Object);
-        var bytes = Enumerable.Range(0, 5).SelectMany(_ => Guid.NewGuid().ToByteArray());
+        var sizeBlock = sut.DecryptBlock(new(14L.RaiseBits(), []), cryptoKey, 1L.RaiseBits(), false);
+
+        var bytes = sizeBlock.Concat(Enumerable.Range(0, 2).SelectMany(_ => Guid.NewGuid().ToByteArray()));
         using var stream = new MemoryStream(bytes.ToArray());
 
         // Act
-        sut.Decrypt(stream, new MemoryStream(), key, [2]);
+        sut.Decrypt(stream, new MemoryStream(), userKey, [2]);
 
         // Assert
         mockDeriver.Verify(
-            m => m.DeriveCryptoKey(key, It.IsAny<byte[]>(), It.IsAny<byte[]>()));
+            m => m.DeriveCryptoKey(userKey, It.IsAny<byte[]>(), It.IsAny<byte[]>()));
     }
 }

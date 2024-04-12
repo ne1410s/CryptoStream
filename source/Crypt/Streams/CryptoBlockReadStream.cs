@@ -4,7 +4,6 @@
 
 namespace Crypt.Streams;
 
-using System;
 using System.IO;
 using Crypt.IO;
 using Crypt.Keying;
@@ -60,7 +59,7 @@ public class CryptoBlockReadStream : BlockReadStream
     protected override byte[] MapBlock(byte[] sourceBuffer, long blockNo)
     {
         var counter = blockNo.RaiseBits();
-        var encryptedBlock = new GcmEncryptedBlock(sourceBuffer, Array.Empty<byte>());
+        var encryptedBlock = new GcmEncryptedBlock(sourceBuffer, []);
         return this.decryptor.DecryptBlock(encryptedBlock, this.cryptoKey, counter, false);
     }
 }

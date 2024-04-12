@@ -22,6 +22,7 @@ public abstract class GcmDecryptorBase(
     IArrayResizer resizer) : IGcmDecryptor
 {
     private const int PepperLength = 32;
+    private const int SizerLength = 12;
 
     /// <inheritdoc/>
     public abstract byte[] DecryptBlock(
@@ -45,7 +46,7 @@ public abstract class GcmDecryptorBase(
         var srcBuffer = new byte[bufferLength];
         var pepper = this.ReadPepper(input);
         var cryptoKey = keyDeriver.DeriveCryptoKey(userKey, salt, pepper);
-        var inputSize = input.Length - PepperLength;
+        var inputSize = this.GetOriginalSize(input, cryptoKey);
         var totalBlocks = (long)Math.Ceiling(inputSize / (double)bufferLength);
         mac?.Reset();
 
@@ -81,5 +82,18 @@ public abstract class GcmDecryptorBase(
         input.Read(pepper, 0, pepper.Length);
         input.Reset();
         return pepper;
+    }
+
+    private long GetOriginalSize(Stream input, byte[] key)
+    {
+        var sizerBytes = new byte[SizerLength];
+        input.Seek(-(PepperLength + SizerLength), SeekOrigin.End);
+        input.Read(sizerBytes, 0, SizerLength);
+        input.Reset();
+        var churn = this.DecryptBlock(new(sizerBytes, []), key, 1L.RaiseBits(), false);
+        var retVal = BitConverter.ToInt64(churn, 0);
+        return retVal < 0 || retVal > 20_000_000_000
+            ? throw new InvalidOperationException("Unexpected source state.")
+            : retVal;
     }
 }

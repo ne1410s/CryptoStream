@@ -4,12 +4,8 @@
 
 namespace Crypt.Tests.TestObjects;
 
-public class UnseekableStream : MemoryStream
+public class UnseekableStream(byte[] buffer) : MemoryStream(buffer)
 {
-    public UnseekableStream(byte[] buffer)
-        : base(buffer)
-    { }
-
     public override bool CanSeek => false;
 
     public override long Seek(long offset, SeekOrigin loc)

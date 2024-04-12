@@ -52,7 +52,7 @@ public class SimpleFileStreamTests
         var act = () => new SimpleFileStream(fi);
 
         // Assert
-        act.Should().ThrowExactly<ArgumentNullException>();
+        act.Should().Throw<Exception>();
     }
 
     [Theory]

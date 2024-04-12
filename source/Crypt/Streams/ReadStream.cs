@@ -11,7 +11,11 @@ using System.IO;
 /// <summary>
 /// A read stream to assist with testing / diagnosis of derived types.
 /// </summary>
-public class ReadStream : Stream
+/// <remarks>
+/// Initializes a new instance of the <see cref="ReadStream"/> class.
+/// </remarks>
+/// <param name="stream">The source stream.</param>
+public class ReadStream(Stream stream) : Stream
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="ReadStream"/> class.
@@ -20,15 +24,6 @@ public class ReadStream : Stream
     public ReadStream(FileInfo fi)
         : this(new FileStream(fi?.FullName, FileMode.Open, FileAccess.Read))
     { }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ReadStream"/> class.
-    /// </summary>
-    /// <param name="stream">The source stream.</param>
-    public ReadStream(Stream stream)
-    {
-        this.Inner = stream;
-    }
 
     /// <inheritdoc/>
     public override bool CanRead => this.Inner.CanRead;
@@ -48,7 +43,7 @@ public class ReadStream : Stream
     /// <summary>
     /// Gets the inner stream.
     /// </summary>
-    protected Stream Inner { get; }
+    protected Stream Inner { get; } = stream;
 
     /// <inheritdoc/>
     public override long Seek(long offset, SeekOrigin origin) => this.Inner.Seek(offset, origin);

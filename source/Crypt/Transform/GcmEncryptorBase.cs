@@ -64,6 +64,13 @@ public abstract class GcmEncryptorBase(
             output.Write(result.MessageBuffer, 0, result.MessageBuffer.Length);
         }
 
+        var sizeBlock = this.EncryptBlock(input.Length.RaiseBits(), cryptoKey, 1L.RaiseBits()).MessageBuffer;
+        var padSize = StreamBlockUtils.GetPadSize(input.Length, sizeBlock.Length + pepper.Length);
+        var padding = new byte[padSize - (input.Length + sizeBlock.Length + pepper.Length)];
+        using var rng = RandomNumberGenerator.Create();
+        rng.GetNonZeroBytes(padding);
+        output.Write(padding, 0, padding.Length);
+        output.Write(sizeBlock, 0, sizeBlock.Length);
         output.Write(pepper, 0, pepper.Length);
         return salt;
     }

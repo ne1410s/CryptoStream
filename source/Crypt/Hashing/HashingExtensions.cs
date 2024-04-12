@@ -83,7 +83,7 @@ public static class HashingExtensions
         }
 
         input.Reset(true);
-        algo.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+        algo.TransformFinalBlock([], 0, 0);
         return algo.Hash;
     }
 

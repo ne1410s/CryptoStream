@@ -14,9 +14,16 @@ using Crypt.Utils;
 /// specified buffer length. Using this implementation directly is not generally recommended.
 /// It is provided to separate logical processing and to assist with testing of derived streams.
 /// </summary>
-public class BlockReadStream : ReadStream, ISimpleReadStream
+/// <remarks>
+/// Initializes a new instance of the <see cref="BlockReadStream"/> class.
+/// </remarks>
+/// <param name="stream">The source stream.</param>
+/// <param name="bufferLength">The block buffer length.</param>
+/// <param name="resizer">An array resizer.</param>
+public class BlockReadStream(Stream stream, int bufferLength = 32768, IArrayResizer resizer = null)
+    : ReadStream(stream), ISimpleReadStream
 {
-    private readonly IArrayResizer arrayResizer;
+    private readonly IArrayResizer arrayResizer = resizer ?? new ArrayResizer();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="BlockReadStream"/> class.
@@ -28,22 +35,8 @@ public class BlockReadStream : ReadStream, ISimpleReadStream
         : this(new FileStream(fi?.FullName, FileMode.Open, FileAccess.Read), bufferLength, resizer)
     { }
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="BlockReadStream"/> class.
-    /// </summary>
-    /// <param name="stream">The source stream.</param>
-    /// <param name="bufferLength">The block buffer length.</param>
-    /// <param name="resizer">An array resizer.</param>
-    public BlockReadStream(Stream stream, int bufferLength = 32768, IArrayResizer resizer = null)
-        : base(stream)
-    {
-        this.arrayResizer = resizer ?? new ArrayResizer();
-        this.BlockBuffer = new byte[bufferLength];
-        this.Uri = Guid.NewGuid().ToString();
-    }
-
     /// <inheritdoc/>
-    public string Uri { get; }
+    public string Uri { get; } = Guid.NewGuid().ToString();
 
     /// <inheritdoc/>
     public int BufferLength => this.BlockBuffer.Length;
@@ -51,7 +44,7 @@ public class BlockReadStream : ReadStream, ISimpleReadStream
     /// <summary>
     /// Gets the source buffer.
     /// </summary>
-    protected byte[] BlockBuffer { get; }
+    protected byte[] BlockBuffer { get; } = new byte[bufferLength];
 
     /// <inheritdoc/>
     public override int Read(byte[] buffer, int offset, int count)
