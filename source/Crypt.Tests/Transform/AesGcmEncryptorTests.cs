@@ -114,7 +114,7 @@ public class AesGcmEncryptorTests
             .Setup(m => m.DeriveCryptoKey(key, It.IsAny<byte[]>(), It.IsAny<byte[]>()))
             .Returns(Guid.NewGuid().ToByteArray());
         var sut = new AesGcmEncryptor(mockDeriver.Object);
-        using var stream = new MemoryStream(new byte[] { 1, 2, 3 });
+        using var stream = new MemoryStream([1, 2, 3]);
 
         // Act
         _ = sut.Encrypt(stream, new MemoryStream(), key);

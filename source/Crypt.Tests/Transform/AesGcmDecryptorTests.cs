@@ -138,7 +138,7 @@ public class AesGcmDecryptorTests
         using var stream = new MemoryStream(bytes.ToArray());
 
         // Act
-        sut.Decrypt(stream, new MemoryStream(), key, new byte[] { 2 });
+        sut.Decrypt(stream, new MemoryStream(), key, [2]);
 
         // Assert
         mockDeriver.Verify(
