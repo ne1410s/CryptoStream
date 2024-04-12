@@ -92,6 +92,11 @@ public class CryptoBlockReadStreamTests
         fi.EncryptInSitu(TestRefs.TestKey, bufferLength: bufferLength);
         var salt = fi.ToSalt();
         var mockDecryptor = new Mock<IGcmDecryptor>();
+        var originalLength = 5000L;
+        Dictionary<string, string> metadata;
+        mockDecryptor
+            .Setup(m => m.ReadPepper(It.IsAny<Stream>(), It.IsAny<byte[]>(), out originalLength, out metadata))
+            .Returns(new byte[] { 1 }.Hash(HashType.Md5));
         mockDecryptor
             .Setup(m => m.DecryptBlock(It.IsAny<GcmEncryptedBlock>(), It.IsAny<byte[]>(), It.IsAny<byte[]>(), false))
             .Returns((GcmEncryptedBlock eb, byte[] _, byte[] _, bool _) => new byte[eb.MessageBuffer.Length]);
