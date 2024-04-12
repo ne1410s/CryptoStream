@@ -40,7 +40,7 @@ public class AesGcmEncryptorTests
         using var trgStream = new MemoryStream();
 
         // Act
-        var act = () => sut.Encrypt(srcStream, trgStream, TestRefs.TestKey);
+        var act = () => sut.Encrypt(srcStream, trgStream, TestRefs.TestKey, []);
 
         // Assert
         act.Should().Throw<ArgumentNullException>()
@@ -57,7 +57,7 @@ public class AesGcmEncryptorTests
         var trgStream = (Stream)null!;
 
         // Act
-        var act = () => sut.Encrypt(srcStream, trgStream, TestRefs.TestKey);
+        var act = () => sut.Encrypt(srcStream, trgStream, TestRefs.TestKey, []);
 
         // Assert
         act.Should().Throw<ArgumentNullException>()
@@ -76,7 +76,7 @@ public class AesGcmEncryptorTests
         using var trgStream = new MemoryStream();
 
         // Act
-        sut.Encrypt(srcStream, trgStream, TestRefs.TestKey);
+        sut.Encrypt(srcStream, trgStream, TestRefs.TestKey, []);
 
         // Assert
         mockResizer.Verify(
@@ -96,7 +96,7 @@ public class AesGcmEncryptorTests
         using var trgStream = new MemoryStream();
 
         // Act
-        sut.Encrypt(srcStream, trgStream, TestRefs.TestKey, bufferLength: 5);
+        sut.Encrypt(srcStream, trgStream, TestRefs.TestKey, [], bufferLength: 5);
 
         // Assert
         mockResizer.Verify(
@@ -117,7 +117,7 @@ public class AesGcmEncryptorTests
         using var stream = new MemoryStream([1, 2, 3]);
 
         // Act
-        _ = sut.Encrypt(stream, new MemoryStream(), key);
+        _ = sut.Encrypt(stream, new MemoryStream(), key, []);
 
         // Assert
         mockDeriver.Verify(

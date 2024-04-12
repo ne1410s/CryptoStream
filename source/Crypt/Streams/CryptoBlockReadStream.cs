@@ -14,7 +14,7 @@ using Crypt.Transform;
 /// </summary>
 public class CryptoBlockReadStream : BlockReadStream
 {
-    private readonly int pepperLength;
+    private readonly long originalLength;
     private readonly byte[] cryptoKey;
     private readonly IGcmDecryptor decryptor;
 
@@ -47,13 +47,12 @@ public class CryptoBlockReadStream : BlockReadStream
         : base(stream, bufferSize)
     {
         this.decryptor = decryptor ?? new AesGcmDecryptor();
-        var pepper = this.decryptor.ReadPepper(stream);
-        this.pepperLength = pepper.Length;
+        var pepper = this.decryptor.ReadPepper(stream, userKey, out this.originalLength, out _);
         this.cryptoKey = new DefaultKeyDeriver().DeriveCryptoKey(userKey, salt, pepper);
     }
 
     /// <inheritdoc/>
-    public override long Length => this.Inner.Length - this.pepperLength;
+    public override long Length => this.originalLength;
 
     /// <inheritdoc/>
     protected override byte[] MapBlock(byte[] sourceBuffer, long blockNo)

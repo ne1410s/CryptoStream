@@ -5,8 +5,12 @@
 namespace Crypt.Transform;
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Web;
+using Crypt.Encoding;
+using Crypt.Hashing;
 using Crypt.Keying;
 using Crypt.Streams;
 using Crypt.Utils;
@@ -21,8 +25,8 @@ public abstract class GcmDecryptorBase(
     ICryptoKeyDeriver keyDeriver,
     IArrayResizer resizer) : IGcmDecryptor
 {
-    private const int PepperLength = 32;
-    private const int SizerLength = 12;
+    private const int Padding = 4096;
+    private const string ReservedPrefix = nameof(GcmEncryptorBase) + "_";
 
     /// <inheritdoc/>
     public abstract byte[] DecryptBlock(
@@ -32,7 +36,7 @@ public abstract class GcmDecryptorBase(
         bool authenticate);
 
     /// <inheritdoc/>
-    public void Decrypt(
+    public Dictionary<string, string> Decrypt(
         Stream input,
         Stream output,
         byte[] userKey,
@@ -40,14 +44,15 @@ public abstract class GcmDecryptorBase(
         int bufferLength = 32768,
         Stream mac = null)
     {
+        input = input ?? throw new ArgumentNullException(nameof(input));
         output = output ?? throw new ArgumentNullException(nameof(output));
 
         var macBuffer = new byte[16];
         var srcBuffer = new byte[bufferLength];
-        var pepper = this.ReadPepper(input);
+        var pepper = this.ReadPepper(input, userKey, out var originalLength, out var metadata);
+
         var cryptoKey = keyDeriver.DeriveCryptoKey(userKey, salt, pepper);
-        var inputSize = this.GetOriginalSize(input, cryptoKey);
-        var totalBlocks = (long)Math.Ceiling(inputSize / (double)bufferLength);
+        var totalBlocks = (long)Math.Ceiling(originalLength / (double)bufferLength);
         mac?.Reset();
 
         output.SetLength(0);
@@ -55,7 +60,7 @@ public abstract class GcmDecryptorBase(
         {
             mac?.Read(macBuffer, 0, macBuffer.Length);
             var position = input.Position;
-            var maxReadSize = Math.Min(inputSize - position, srcBuffer.Length);
+            var maxReadSize = Math.Min(originalLength - position, srcBuffer.Length);
             var readSize = input.Read(srcBuffer, 0, (int)maxReadSize);
             var blockNumber = 1 + (long)Math.Floor((double)position / srcBuffer.Length);
             var counter = blockNumber.RaiseBits();
@@ -70,30 +75,28 @@ public abstract class GcmDecryptorBase(
         }
 
         output.Reset();
+        return metadata;
     }
 
     /// <inheritdoc/>
-    public byte[] ReadPepper(Stream input)
+    public byte[] ReadPepper(
+        Stream input, byte[] userKey, out long originalLength, out Dictionary<string, string> metadata)
     {
         input = input ?? throw new ArgumentNullException(nameof(input));
 
-        var pepper = new byte[PepperLength];
-        input.Seek(-PepperLength, SeekOrigin.End);
-        input.Read(pepper, 0, pepper.Length);
+        var metaBytes = new byte[Padding];
+        input.Seek(-Padding, SeekOrigin.End);
+        input.Read(metaBytes, 0, metaBytes.Length);
         input.Reset();
-        return pepper;
-    }
 
-    private long GetOriginalSize(Stream input, byte[] key)
-    {
-        var sizerBytes = new byte[SizerLength];
-        input.Seek(-(PepperLength + SizerLength), SeekOrigin.End);
-        input.Read(sizerBytes, 0, SizerLength);
-        input.Reset();
-        var churn = this.DecryptBlock(new(sizerBytes, []), key, 1L.RaiseBits(), false);
-        var retVal = BitConverter.ToInt64(churn, 0);
-        return retVal < 0 || retVal > 20_000_000_000
-            ? throw new InvalidOperationException("Unexpected source state.")
-            : retVal;
+        var blockKey = userKey.Hash(HashType.Sha256);
+        var churn = this.DecryptBlock(new(metaBytes, []), blockKey, 1L.RaiseBits(), false);
+        var metaString = churn.Encode(Codec.CharUtf8).Trim();
+        var collection = HttpUtility.ParseQueryString(metaString);
+        originalLength = long.Parse(collection[ReservedPrefix + "length"]);
+        metadata = collection.AllKeys
+            .Where(key => !key.StartsWith(ReservedPrefix))
+            .ToDictionary(key => key, key => collection[key]);
+        return collection[ReservedPrefix + "pepper"].Decode(Codec.ByteBase64);
     }
 }

@@ -183,7 +183,13 @@ public class DirectoryExtensionsTests
 
         // Assert
         mockEncryptor.Verify(
-            m => m.Encrypt(It.IsAny<Stream>(), It.IsAny<Stream>(), TestRefs.TestKey, 32768, null),
+            m => m.Encrypt(
+                It.IsAny<Stream>(),
+                It.IsAny<Stream>(),
+                TestRefs.TestKey,
+                It.IsAny<Dictionary<string, string>>(),
+                32768,
+                null),
             Times.Exactly(expectedCount));
     }
 
@@ -208,7 +214,7 @@ public class DirectoryExtensionsTests
         var folder = Guid.NewGuid().ToString();
         Directory.CreateDirectory(folder);
         var mockEncryptor = new Mock<IEncryptor>();
-        const string secureName = "0f5bed56f862512644ec87b7db6afc7299e2195c5bf9b27bcc631adb16785ed9.avi";
+        const string secureName = "2fbdd1cbdb5f317b7e21ebb7ae7c32d166feec3be76b64d470123bf4d2c06ae5.avi";
         File.Copy(Path.Combine("TestObjects", "pixel.png"), Path.Combine(folder, "pixel.png"));
         File.Copy(Path.Combine("TestObjects", secureName), Path.Combine(folder, secureName));
 
@@ -218,7 +224,12 @@ public class DirectoryExtensionsTests
         // Assert
         mockEncryptor.Verify(
             m => m.Encrypt(
-                It.IsAny<Stream>(), It.IsAny<Stream>(), It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<Stream>()),
+                It.IsAny<Stream>(),
+                It.IsAny<Stream>(),
+                It.IsAny<byte[]>(),
+                It.IsAny<Dictionary<string, string>>(),
+                It.IsAny<int>(),
+                It.IsAny<Stream>()),
             Times.Once());
     }
 
@@ -239,7 +250,12 @@ public class DirectoryExtensionsTests
         // Assert
         mockEncryptor.Verify(
             m => m.Encrypt(
-                It.IsAny<Stream>(), It.IsAny<Stream>(), It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<Stream>()),
+                It.IsAny<Stream>(),
+                It.IsAny<Stream>(),
+                It.IsAny<byte[]>(),
+                It.IsAny<Dictionary<string, string>>(),
+                It.IsAny<int>(),
+                It.IsAny<Stream>()),
             Times.Once());
     }
 }

@@ -29,7 +29,11 @@ public class CryptoBlockReadStreamTests
         using var str = new CryptoBlockReadStream(fi, TestRefs.TestKey, decryptor: mockDecryptor.Object);
 
         // Assert
-        mockDecryptor.Verify(m => m.ReadPepper(It.IsAny<Stream>()), Times.Once);
+        long param1;
+        Dictionary<string, string> param2;
+        mockDecryptor.Verify(
+            m => m.ReadPepper(It.IsAny<Stream>(), It.IsAny<byte[]>(), out param1, out param2),
+            Times.Once);
     }
 
     [Fact]
@@ -65,7 +69,7 @@ public class CryptoBlockReadStreamTests
 
         var authMd5Hex = authBuffer.Hash(HashType.Md5).Encode(Codec.ByteHex);
         var secureFi = new FileInfo(
-            Path.Combine("TestObjects", "0f5bed56f862512644ec87b7db6afc7299e2195c5bf9b27bcc631adb16785ed9.avi"));
+            Path.Combine("TestObjects", "2fbdd1cbdb5f317b7e21ebb7ae7c32d166feec3be76b64d470123bf4d2c06ae5.avi"));
         using var sut = new CryptoBlockReadStream(secureFi, TestRefs.TestKey);
         sut.Seek(position, SeekOrigin.Begin);
 
@@ -121,6 +125,6 @@ public class CryptoBlockReadStreamTests
 
         // Assert
         uri.Should().NotBeEmpty();
-        length.Should().Be(fi.Length - 32);
+        length.Should().Be(38);
     }
 }

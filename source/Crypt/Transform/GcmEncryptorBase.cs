@@ -5,9 +5,12 @@
 namespace Crypt.Transform;
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Web;
+using Crypt.Encoding;
 using Crypt.Hashing;
 using Crypt.Keying;
 using Crypt.Streams;
@@ -23,7 +26,8 @@ public abstract class GcmEncryptorBase(
     ICryptoKeyDeriver keyDeriver,
     IArrayResizer resizer) : IGcmEncryptor
 {
-    private const int PepperLength = 32;
+    private const int Padding = 4096;
+    private static readonly string ReservedPrefix = nameof(GcmEncryptorBase) + "_";
 
     /// <inheritdoc/>
     public abstract GcmEncryptedBlock EncryptBlock(byte[] source, byte[] cryptoKey, byte[] counter);
@@ -33,9 +37,11 @@ public abstract class GcmEncryptorBase(
         Stream input,
         Stream output,
         byte[] userKey,
+        Dictionary<string, string> metadata,
         int bufferLength = 32768,
         Stream mac = null)
     {
+        metadata ??= [];
         input = input ?? throw new ArgumentNullException(nameof(input));
         output = output ?? throw new ArgumentNullException(nameof(output));
 
@@ -44,6 +50,7 @@ public abstract class GcmEncryptorBase(
         var salt = this.GenerateSalt(input, userKey);
         var pepper = this.GeneratePepper(input);
         var cryptoKey = keyDeriver.DeriveCryptoKey(userKey, salt, pepper);
+        var metaBytes = this.GetMetaBytes(metadata, input.Length, pepper, userKey);
 
         int readSize;
         while ((readSize = input.Read(srcBuffer, 0, srcBuffer.Length)) != 0)
@@ -64,14 +71,12 @@ public abstract class GcmEncryptorBase(
             output.Write(result.MessageBuffer, 0, result.MessageBuffer.Length);
         }
 
-        var sizeBlock = this.EncryptBlock(input.Length.RaiseBits(), cryptoKey, 1L.RaiseBits()).MessageBuffer;
-        var padSize = StreamBlockUtils.GetPadSize(input.Length, sizeBlock.Length + pepper.Length);
-        var padding = new byte[padSize - (input.Length + sizeBlock.Length + pepper.Length)];
+        var padSize = StreamBlockUtils.GetPadSize(input.Length, metaBytes.Length);
+        var randomBytes = new byte[padSize - (input.Length + metaBytes.Length)];
         using var rng = RandomNumberGenerator.Create();
-        rng.GetNonZeroBytes(padding);
-        output.Write(padding, 0, padding.Length);
-        output.Write(sizeBlock, 0, sizeBlock.Length);
-        output.Write(pepper, 0, pepper.Length);
+        rng.GetNonZeroBytes(randomBytes);
+        output.Write(randomBytes, 0, randomBytes.Length);
+        output.Write(metaBytes, 0, metaBytes.Length);
         return salt;
     }
 
@@ -79,7 +84,7 @@ public abstract class GcmEncryptorBase(
     public byte[] GeneratePepper(Stream input)
     {
         using var rng = RandomNumberGenerator.Create();
-        var pepper = new byte[PepperLength];
+        var pepper = new byte[32];
         rng.GetNonZeroBytes(pepper);
         return pepper;
     }
@@ -93,5 +98,31 @@ public abstract class GcmEncryptorBase(
         Array.Reverse(salt, 5, salt.Length - 5);
         Array.Reverse(salt);
         return salt.Concat(key).ToArray().Hash(HashType.Sha256);
+    }
+
+    private byte[] GetMetaBytes(
+        Dictionary<string, string> metadata,
+        long originalLength,
+        byte[] pepper,
+        byte[] userKey)
+    {
+        var metaCollection = HttpUtility.ParseQueryString(string.Empty);
+        foreach (var kvp in metadata)
+        {
+            metaCollection[kvp.Key] = kvp.Value;
+        }
+
+        metaCollection[ReservedPrefix + "length"] = $"{originalLength}";
+        metaCollection[ReservedPrefix + "pepper"] = pepper.Encode(Codec.ByteBase64);
+        var metaString = metaCollection.ToString();
+        metaString = metaString.PadRight(Padding, ' ');
+        var metaBytes = metaString.Decode(Codec.CharUtf8);
+        if (metaBytes.Length != Padding)
+        {
+            throw new ArgumentException("Unexpected padding.");
+        }
+
+        var blockKey = userKey.Hash(HashType.Sha256);
+        return this.EncryptBlock(metaBytes, blockKey, 1L.RaiseBits()).MessageBuffer;
     }
 }

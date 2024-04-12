@@ -92,7 +92,7 @@ public class FileExtensionsTests
         var fi = new FileInfo(
             Path.Combine(
                 "TestObjects",
-                "0f5bed56f862512644ec87b7db6afc7299e2195c5bf9b27bcc631adb16785ed9.avi"));
+                "2fbdd1cbdb5f317b7e21ebb7ae7c32d166feec3be76b64d470123bf4d2c06ae5.avi"));
 
         // Act
         var act = () => fi.EncryptInSitu(TestRefs.TestKey);

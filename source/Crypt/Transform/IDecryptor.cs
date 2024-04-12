@@ -4,6 +4,7 @@
 
 namespace Crypt.Transform;
 
+using System.Collections.Generic;
 using System.IO;
 
 /// <summary>
@@ -20,7 +21,8 @@ public interface IDecryptor
     /// <param name="salt">The salt generated in encryption.</param>
     /// <param name="bufferLength">The buffer length.</param>
     /// <param name="mac">The authentication stream, if capture is needed.</param>
-    void Decrypt(
+    /// <returns>Any metadata.</returns>
+    Dictionary<string, string> Decrypt(
         Stream input,
         Stream output,
         byte[] userKey,

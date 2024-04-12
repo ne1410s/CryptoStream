@@ -57,7 +57,7 @@ public class AesGcmDecryptorTests
         var srcStream = (Stream)null!;
 
         // Act
-        var act = () => sut.ReadPepper(srcStream);
+        var act = () => sut.ReadPepper(srcStream, [], out _, out _);
 
         // Assert
         act.Should().Throw<ArgumentNullException>();
@@ -124,46 +124,22 @@ public class AesGcmDecryptorTests
         act.Should().Throw<ArgumentNullException>();
     }
 
-    [Theory]
-    [InlineData(-1)]
-    [InlineData(20_000_000_001)]
-    public void Decrypt_BadLength_ThrowsExpected(long badSize)
-    {
-        // Arrange
-        var sut = new AesGcmDecryptor();
-        var cryptoKey = Guid.NewGuid().ToByteArray();
-        var sizeBlock = sut.DecryptBlock(new(badSize.RaiseBits(), []), cryptoKey, 1L.RaiseBits(), false);
-        var bytes = sizeBlock.Concat(Enumerable.Range(0, 2).SelectMany(_ => Guid.NewGuid().ToByteArray()));
-        using var stream = new MemoryStream(bytes.ToArray());
-
-        // Act
-        var act = () => sut.Decrypt(stream, new MemoryStream(), [25], [2]);
-
-        // Assert
-        act.Should().Throw<InvalidOperationException>()
-            .WithMessage("Unexpected source state.");
-    }
-
     [Fact]
     public void Decrypt_WithKeyDeriver_CallsDerive()
     {
         // Arrange
+        var userKey = new byte[] { 1, 2, 3 };
         var mockDeriver = new Mock<ICryptoKeyDeriver>();
-        var userKey = new byte[] { 25 };
-        var cryptoKey = Guid.NewGuid().ToByteArray();
-        mockDeriver
-            .Setup(m => m.DeriveCryptoKey(userKey, It.IsAny<byte[]>(), It.IsAny<byte[]>()))
-            .Returns(cryptoKey);
         var sut = new AesGcmDecryptor(mockDeriver.Object);
-        var sizeBlock = sut.DecryptBlock(new(14L.RaiseBits(), []), cryptoKey, 1L.RaiseBits(), false);
-
-        var bytes = sizeBlock.Concat(Enumerable.Range(0, 2).SelectMany(_ => Guid.NewGuid().ToByteArray()));
-        using var stream = new MemoryStream(bytes.ToArray());
+        using var stream = new MemoryStream([1, 2, 3]);
+        using var target = new MemoryStream();
+        new AesGcmEncryptor().Encrypt(stream, target, userKey, []);
 
         // Act
-        sut.Decrypt(stream, new MemoryStream(), userKey, [2]);
+        var act = () => sut.Decrypt(target, new MemoryStream(), userKey, [2]);
 
         // Assert
+        act.Should().Throw<Exception>();
         mockDeriver.Verify(
             m => m.DeriveCryptoKey(userKey, It.IsAny<byte[]>(), It.IsAny<byte[]>()));
     }
