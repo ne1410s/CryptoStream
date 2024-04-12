@@ -12,25 +12,16 @@ using Crypt.Streams;
 using Crypt.Utils;
 
 /// <inheritdoc cref="IGcmDecryptor"/>
-public abstract class GcmDecryptorBase : IGcmDecryptor
+/// <summary>
+/// Initializes a new instance of the <see cref="GcmDecryptorBase"/> class.
+/// </summary>
+/// <param name="keyDeriver">The key deriver.</param>
+/// <param name="resizer">An array resizer.</param>
+public abstract class GcmDecryptorBase(
+    ICryptoKeyDeriver keyDeriver,
+    IArrayResizer resizer) : IGcmDecryptor
 {
     private const int PepperLength = 32;
-
-    private readonly ICryptoKeyDeriver keyDeriver;
-    private readonly IArrayResizer resizer;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="GcmDecryptorBase"/> class.
-    /// </summary>
-    /// <param name="keyDeriver">The key deriver.</param>
-    /// <param name="resizer">An array resizer.</param>
-    protected GcmDecryptorBase(
-        ICryptoKeyDeriver keyDeriver,
-        IArrayResizer resizer)
-    {
-        this.keyDeriver = keyDeriver;
-        this.resizer = resizer;
-    }
 
     /// <inheritdoc/>
     public abstract byte[] DecryptBlock(
@@ -53,7 +44,7 @@ public abstract class GcmDecryptorBase : IGcmDecryptor
         var macBuffer = new byte[16];
         var srcBuffer = new byte[bufferLength];
         var pepper = this.ReadPepper(input);
-        var cryptoKey = this.keyDeriver.DeriveCryptoKey(userKey, salt, pepper);
+        var cryptoKey = keyDeriver.DeriveCryptoKey(userKey, salt, pepper);
         var inputSize = input.Length - PepperLength;
         var totalBlocks = (long)Math.Ceiling(inputSize / (double)bufferLength);
         mac?.Reset();
@@ -69,7 +60,7 @@ public abstract class GcmDecryptorBase : IGcmDecryptor
             var counter = blockNumber.RaiseBits();
             if (readSize < srcBuffer.Length)
             {
-                this.resizer.Resize(ref srcBuffer, readSize);
+                resizer.Resize(ref srcBuffer, readSize);
             }
 
             var block = new GcmEncryptedBlock(srcBuffer, macBuffer);

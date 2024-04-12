@@ -22,8 +22,9 @@ public interface IGcmEncryptor : IEncryptor
     /// Generates a salt from a stream.
     /// </summary>
     /// <param name="input">The stream.</param>
+    /// <param name="key">The key.</param>
     /// <returns>A salt.</returns>
-    byte[] GenerateSalt(Stream input);
+    byte[] GenerateSalt(Stream input, byte[] key);
 
     /// <summary>
     /// Encrypts a block.

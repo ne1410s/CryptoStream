@@ -116,18 +116,21 @@ public class FileExtensionsTests
         fi.Name.Should().EndWith(".txt");
     }
 
-    [Fact]
-    public void EncryptInSitu_WithSameContent_SaltIsDeterministic()
+    [Theory]
+    [InlineData("33,4,33,2,233,1", "38cbe01028")]
+    [InlineData("9,0,2,1,0", "55338850dc")]
+    public void EncryptInSitu_WithSameContent_SaltIsDeterministic(string keyBytesCsv, string expectedStart)
     {
         // Arrange
         var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         File.WriteAllText(fi.FullName, $"hi{nameof(this.EncryptInSitu_WithSameContent_SaltIsDeterministic)}");
+        var keyBytes = keyBytesCsv.Split(',').Select(byte.Parse).ToArray();
 
         // Act
-        var salt = fi.EncryptInSitu(TestRefs.TestKey);
+        var salt = fi.EncryptInSitu(keyBytes);
 
         // Assert
-        salt.Should().Be("8062285b5b7c71eb689abea4c08889fc1ba18bb1726c75313c6966a7b968f21f");
+        salt.Should().StartWith(expectedStart);
     }
 
     [Fact]

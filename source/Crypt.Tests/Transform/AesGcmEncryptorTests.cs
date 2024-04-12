@@ -19,14 +19,15 @@ public class AesGcmEncryptorTests
     public void GenerateSalt_WithStream_ReturnsExpected()
     {
         // Arrange
+        var key = new byte[] { 1, 2, 3 };
         var sut = new AesGcmEncryptor();
-        using var stream = new MemoryStream(new byte[] { 1, 2, 3 });
+        using var stream = new MemoryStream(key);
 
         // Act
-        var salt = sut.GenerateSalt(stream);
+        var salt = sut.GenerateSalt(stream, key);
 
         // Assert
-        salt.Encode(Codec.ByteHex).Should().Be("5890032c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81c6f2c0cb49");
+        salt.Encode(Codec.ByteHex).Should().Be("d6cffa25a09717f8f92c8230f55d4b846cafa1e8347b775fdbc3d4f58cdef533");
     }
 
     [Fact]
