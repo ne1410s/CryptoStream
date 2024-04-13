@@ -123,4 +123,57 @@ public class AesGcmEncryptorTests
         mockDeriver.Verify(
             m => m.DeriveCryptoKey(key, It.IsAny<byte[]>(), It.IsAny<byte[]>()));
     }
+
+    [Fact]
+    public void Encrypt_ExcessiveMeta_ThrowsException()
+    {
+        // Arrange
+        var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
+        File.WriteAllText(fi.FullName, "hi!!!");
+        var sut = new AesGcmEncryptor();
+        using var srcStream = fi.OpenRead();
+        using var trgStream = new MemoryStream();
+        var meta = new Dictionary<string, string>() { ["test"] = new string('x', 5000) };
+
+        // Act
+        var act = () => sut.Encrypt(srcStream, trgStream, TestRefs.TestKey, meta);
+
+        // Assert
+        act.Should().Throw<ArgumentException>().WithMessage("Unexpected padding.");
+    }
+
+    [Fact]
+    public void Encrypt_ValidSource_NonZeroPadding()
+    {
+        // Arrange
+        var sut = new AesGcmEncryptor();
+        using var srcStream = new MemoryStream([ 1, 2, 3]);
+        using var trgStream = new MemoryStream();
+        var checkBackBuffer = new byte[300];
+
+        // Act
+        sut.Encrypt(srcStream, trgStream, TestRefs.TestKey, []);
+
+        // Assert
+        trgStream.Seek(-(4096 + checkBackBuffer.Length), SeekOrigin.End);
+        trgStream.Read(checkBackBuffer);
+        checkBackBuffer.Should().NotContain(default(byte));
+    }
+
+    [Fact]
+    public void Encrypt_NullMeta_ProcessedOk()
+    {
+        // Arrange
+        var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
+        File.WriteAllText(fi.FullName, "hi!!!");
+        var sut = new AesGcmEncryptor();
+        using var srcStream = fi.OpenRead();
+        using var trgStream = new MemoryStream();
+
+        // Act
+        var result = sut.Encrypt(srcStream, trgStream, TestRefs.TestKey, null).Encode(Codec.ByteHex);
+
+        // Assert
+        result.Should().Be("4b16d4eb3ab56591d6bc35d4a50d9cf718b79c547e84b2c2de2095378779535a");
+    }
 }
