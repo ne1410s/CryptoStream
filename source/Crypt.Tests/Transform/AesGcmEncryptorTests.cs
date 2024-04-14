@@ -31,6 +31,18 @@ public class AesGcmEncryptorTests
     }
 
     [Fact]
+    public void GeneratePepper_WhenCalled_NoZeroBytes()
+    {
+        // Arrange
+        var sut = new AesGcmEncryptor();
+
+        var pepper = sut.GeneratePepper(null);
+
+        // Assert
+        pepper.Should().NotContain(default(byte));
+    }
+
+    [Fact]
     public void Encrypt_NullInput_ThrowsException()
     {
         // Arrange
@@ -158,6 +170,21 @@ public class AesGcmEncryptorTests
         trgStream.Seek(-(4096 + checkBackBuffer.Length), SeekOrigin.End);
         trgStream.Read(checkBackBuffer);
         checkBackBuffer.Should().NotContain(default(byte));
+    }
+
+    [Fact]
+    public void Encrypt_ValidSource_TargetLengthExpected()
+    {
+        // Arrange
+        var sut = new AesGcmEncryptor();
+        using var srcStream = new MemoryStream([1, 2, 3]);
+        using var trgStream = new MemoryStream();
+
+        // Act
+        sut.Encrypt(srcStream, trgStream, TestRefs.TestKey, []);
+
+        // Assert
+        trgStream.Length.Should().Be(5000);
     }
 
     [Fact]
