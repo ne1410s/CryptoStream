@@ -8,15 +8,22 @@ using Crypt.Transform;
 
 public class TestCrypto : IEncryptor, IDecryptor
 {
-    public void Decrypt(
-        Stream input, Stream output, byte[] userKey, byte[] salt, int bufferLength = 32768, Stream? mac = null)
+    public Dictionary<string, string> Decrypt(
+        Stream source, Stream target, byte[] userKey, byte[] salt, int bufferLength = 32768, Stream? mac = null)
     {
-        output.Write(new byte[] { 1, 3, 5 });
+        target.Write([1, 3, 5]);
+        return [];
     }
 
-    public byte[] Encrypt(Stream input, Stream output, byte[] userKey, int bufferLength = 32768, Stream? mac = null)
+    public byte[] Encrypt(
+        Stream source,
+        Stream target,
+        byte[] userKey,
+        Dictionary<string, string> metadata,
+        int bufferLength = 32768,
+        Stream? mac = null)
     {
-        output.Write(new byte[] { 2, 4, 6 });
-        return new byte[] { 1, 2, 3 };
+        target.Write([2, 4, 6]);
+        return [1, 2, 3];
     }
 }

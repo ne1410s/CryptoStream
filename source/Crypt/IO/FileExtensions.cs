@@ -5,7 +5,7 @@
 namespace Crypt.IO;
 
 using System;
-using System.Globalization;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using Crypt.Encoding;
@@ -124,14 +124,15 @@ public static class FileExtensions
         }
 
         var saltHex = (string)null;
+        var metadata = new Dictionary<string, string>() { ["filename"] = fi.Name };
         using (var stream = fi.Open(FileMode.Open))
         {
-            saltHex = encryptor.Encrypt(stream, stream, userKey, bufferLength, mac)
+            saltHex = encryptor.Encrypt(stream, stream, userKey, metadata, bufferLength, mac)
                 .Encode(Codec.ByteHex)
-                .ToLower(CultureInfo.InvariantCulture);
+                .ToLowerInvariant();
         }
 
-        var target = Path.Combine(fi.DirectoryName, saltHex + fi.Extension.ToLower());
+        var target = Path.Combine(fi.DirectoryName, saltHex + fi.Extension.ToLowerInvariant());
         if (target != fi.FullName)
         {
             File.Delete(target);

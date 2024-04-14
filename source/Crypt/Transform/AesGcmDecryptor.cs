@@ -12,21 +12,17 @@ using Jose;
 /// <summary>
 /// Performs block decryption using AES-GCM.
 /// </summary>
-public class AesGcmDecryptor : GcmDecryptorBase
+/// <remarks>
+/// Initializes a new instance of the <see cref="AesGcmDecryptor"/> class.
+/// </remarks>
+/// <param name="keyDeriver">Derives the crypto key.</param>
+/// <param name="resizer">Resizes arrays.</param>
+public class AesGcmDecryptor(
+    ICryptoKeyDeriver keyDeriver = null,
+    IArrayResizer resizer = null) : GcmDecryptorBase(
+          keyDeriver ?? new DefaultKeyDeriver(),
+          resizer ?? new ArrayResizer())
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="AesGcmDecryptor"/> class.
-    /// </summary>
-    /// <param name="keyDeriver">Derives the crypto key.</param>
-    /// <param name="resizer">Resizes arrays.</param>
-    public AesGcmDecryptor(
-        ICryptoKeyDeriver keyDeriver = null,
-        IArrayResizer resizer = null)
-        : base(
-              keyDeriver ?? new DefaultKeyDeriver(),
-              resizer ?? new ArrayResizer())
-    { }
-
     /// <inheritdoc/>
     public override byte[] DecryptBlock(
         GcmEncryptedBlock block,
@@ -36,7 +32,7 @@ public class AesGcmDecryptor : GcmDecryptorBase
     {
         block = block ?? throw new ArgumentNullException(nameof(block));
         return authenticate
-            ? AesGcm.Decrypt(cryptoKey, counter, Array.Empty<byte>(), block.MessageBuffer, block.MacBuffer)
-            : AesGcm.Encrypt(cryptoKey, counter, Array.Empty<byte>(), block.MessageBuffer)[0];
+            ? AesGcm.Decrypt(cryptoKey, counter, [], block.MessageBuffer, block.MacBuffer)
+            : AesGcm.Encrypt(cryptoKey, counter, [], block.MessageBuffer)[0];
     }
 }

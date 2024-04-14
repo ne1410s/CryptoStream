@@ -44,7 +44,7 @@ public static class StringExtensions
 
         using var srcStream = new MemoryStream(str.Decode(Codec.CharUtf8));
         using var trgStream = new MemoryStream();
-        saltBase64 = encryptor.Encrypt(srcStream, trgStream, userKey, bufferLength).Encode(Codec.ByteBase64);
+        saltBase64 = encryptor.Encrypt(srcStream, trgStream, userKey, [], bufferLength).Encode(Codec.ByteBase64);
         return trgStream.ToArray().Encode(Codec.ByteBase64);
     }
 

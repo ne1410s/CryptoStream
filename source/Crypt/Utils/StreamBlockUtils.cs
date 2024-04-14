@@ -28,4 +28,18 @@ public static class StreamBlockUtils
         remainder = (int)(basePosition - blockStart);
         return blockStart;
     }
+
+    /// <summary>
+    /// Determines how much padding is required.
+    /// </summary>
+    /// <param name="current">The current length.</param>
+    /// <param name="reserve">Maximum amount of additional space needed.</param>
+    /// <returns>New pad size.</returns>
+    public static long GetPadSize(long current, long reserve = 4096)
+    {
+        var size = (double)(current + reserve);
+        var magnitude = Math.Min(6, $"{size * .1:N0}".Length);
+        var roundToNearest = Math.Pow(10, magnitude);
+        return (long)(Math.Ceiling(size / roundToNearest) * roundToNearest);
+    }
 }

@@ -2,3 +2,6 @@
 
 # buffer arrays are integral part of solution
 dotnet_diagnostic.CA1819.severity = suggestion
+
+# decorator pattern uses safe disposal internally
+dotnet_diagnostic.CA2000.severity = suggestion

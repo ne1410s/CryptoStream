@@ -12,8 +12,8 @@ using System.Linq;
 /// </summary>
 public static class ByteExtensions
 {
-    private static readonly byte[] SingleByte = new byte[] { 1 };
-    private static readonly byte[] FourZeroes = { 0, 0, 0, 0 };
+    private static readonly byte[] SingleByte = [1];
+    private static readonly byte[] FourZeroes = [0, 0, 0, 0];
 
     /// <summary>
     /// Increments a counter. Useful for > 64-bit operations.
@@ -47,7 +47,7 @@ public static class ByteExtensions
         var left = bigEndian.Value ? SingleByte : counter;
         var right = bigEndian.Value ? counter : SingleByte;
 
-        counter = left.Concat(right).ToArray();
+        counter = [.. left, .. right];
     }
 
     /// <summary>
@@ -69,12 +69,7 @@ public static class ByteExtensions
         }
 
         return bigEndian.Value
-            ? FourZeroes.Concat(eightBytes).ToArray()
-            : eightBytes.Concat(FourZeroes).ToArray();
+            ? [.. FourZeroes, .. eightBytes]
+            : [.. eightBytes, .. FourZeroes];
     }
-
-    /*
-        Hash()
-        Decode()
-    */
 }

@@ -7,26 +7,20 @@ namespace Crypt.Transform;
 /// <summary>
 /// A block encrypted for counter-mode.
 /// </summary>
-public class GcmEncryptedBlock
+/// <remarks>
+/// Initializes a new instance of the <see cref="GcmEncryptedBlock"/> class.
+/// </remarks>
+/// <param name="messageBuffer">The message buffer.</param>
+/// <param name="macBuffer">The mac buffer.</param>
+public class GcmEncryptedBlock(byte[] messageBuffer, byte[] macBuffer)
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="GcmEncryptedBlock"/> class.
-    /// </summary>
-    /// <param name="messageBuffer">The message buffer.</param>
-    /// <param name="macBuffer">The mac buffer.</param>
-    public GcmEncryptedBlock(byte[] messageBuffer, byte[] macBuffer)
-    {
-        this.MessageBuffer = messageBuffer;
-        this.MacBuffer = macBuffer;
-    }
-
     /// <summary>
     /// Gets the mac buffer.
     /// </summary>
-    public byte[] MacBuffer { get; }
+    public byte[] MacBuffer { get; } = macBuffer;
 
     /// <summary>
     /// Gets the message buffer.
     /// </summary>
-    public byte[] MessageBuffer { get; }
+    public byte[] MessageBuffer { get; } = messageBuffer;
 }

@@ -4,7 +4,7 @@
 # Restore tools
 dotnet tool restore
 
-# Run unit tests (multiple test projects, no threshold)
+# Run unit tests
 gci **/TestResults/ | ri -r; dotnet test -c Release -s .runsettings; dotnet reportgenerator -targetdir:coveragereport -reports:**/coverage.cobertura.xml -reporttypes:"html;jsonsummary"; start coveragereport/index.html;
 
 # Run mutation tests and show report
@@ -17,7 +17,7 @@ gci **/StrykerOutput/ | ri -r; dotnet stryker -o;
 dotnet --list-sdks
 
 # set dotnet version (remember to tweak pre-release, and newer versions)
-dotnet new globaljson --sdk-version 6.0.400
+dotnet new globaljson --sdk-version 8.0.200
 
 # add a tool manifest
 dotnet new tool-manifest
