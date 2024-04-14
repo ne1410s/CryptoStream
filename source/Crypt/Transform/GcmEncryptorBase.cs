@@ -27,33 +27,33 @@ public abstract class GcmEncryptorBase(
     IArrayResizer resizer) : IGcmEncryptor
 {
     private const int Padding = 4096;
-    private static readonly string ReservedPrefix = nameof(GcmEncryptorBase) + "_";
+    private const string ReservedPrefix = nameof(GcmEncryptorBase) + "_";
 
     /// <inheritdoc/>
     public abstract GcmEncryptedBlock EncryptBlock(byte[] source, byte[] cryptoKey, byte[] counter);
 
     /// <inheritdoc/>
     public byte[] Encrypt(
-        Stream input,
-        Stream output,
+        Stream source,
+        Stream target,
         byte[] userKey,
         Dictionary<string, string> metadata,
         int bufferLength = 32768,
         Stream mac = null)
     {
         metadata ??= [];
-        input = input ?? throw new ArgumentNullException(nameof(input));
-        output = output ?? throw new ArgumentNullException(nameof(output));
+        source = source ?? throw new ArgumentNullException(nameof(source));
+        target = target ?? throw new ArgumentNullException(nameof(target));
 
         var counter = new byte[12];
         var srcBuffer = new byte[bufferLength];
-        var salt = this.GenerateSalt(input, userKey);
-        var pepper = this.GeneratePepper(input);
+        var salt = this.GenerateSalt(source, userKey);
+        var pepper = this.GeneratePepper(source);
         var cryptoKey = keyDeriver.DeriveCryptoKey(userKey, salt, pepper);
-        var metaBytes = this.GetMetaBytes(metadata, input.Length, pepper, userKey);
+        var metaBytes = this.GetMetaBytes(metadata, source.Length, pepper, userKey);
 
         int readSize;
-        while ((readSize = input.Read(srcBuffer, 0, srcBuffer.Length)) != 0)
+        while ((readSize = source.Read(srcBuffer, 0, srcBuffer.Length)) != 0)
         {
             ByteExtensions.Increment(ref counter);
             if (readSize < srcBuffer.Length)
@@ -62,21 +62,21 @@ public abstract class GcmEncryptorBase(
             }
 
             var result = this.EncryptBlock(srcBuffer, cryptoKey, counter);
-            if (input == output)
+            if (source == target)
             {
-                input.Position -= readSize;
+                source.Position -= readSize;
             }
 
             mac?.Write(result.MacBuffer, 0, result.MacBuffer.Length);
-            output.Write(result.MessageBuffer, 0, result.MessageBuffer.Length);
+            target.Write(result.MessageBuffer, 0, result.MessageBuffer.Length);
         }
 
-        var padSize = StreamBlockUtils.GetPadSize(input.Length, metaBytes.Length);
-        var randomBytes = new byte[padSize - (input.Length + metaBytes.Length)];
+        var padSize = StreamBlockUtils.GetPadSize(source.Length, metaBytes.Length);
+        var randomBytes = new byte[padSize - (source.Length + metaBytes.Length)];
         using var rng = RandomNumberGenerator.Create();
         rng.GetNonZeroBytes(randomBytes);
-        output.Write(randomBytes, 0, randomBytes.Length);
-        output.Write(metaBytes, 0, metaBytes.Length);
+        target.Write(randomBytes, 0, randomBytes.Length);
+        target.Write(metaBytes, 0, metaBytes.Length);
         return salt;
     }
 

@@ -43,7 +43,7 @@ public class AesGcmEncryptorTests
     }
 
     [Fact]
-    public void Encrypt_NullInput_ThrowsException()
+    public void Encrypt_NullSource_ThrowsException()
     {
         // Arrange
         var mockResizer = new Mock<IArrayResizer>();
@@ -55,12 +55,11 @@ public class AesGcmEncryptorTests
         var act = () => sut.Encrypt(srcStream, trgStream, TestRefs.TestKey, []);
 
         // Assert
-        act.Should().Throw<ArgumentNullException>()
-            .WithParameterName("input");
+        act.Should().Throw<ArgumentNullException>().WithParameterName("source");
     }
 
     [Fact]
-    public void Encrypt_NullOutput_ThrowsException()
+    public void Encrypt_NullTarget_ThrowsException()
     {
         // Arrange
         var mockResizer = new Mock<IArrayResizer>();
@@ -73,7 +72,7 @@ public class AesGcmEncryptorTests
 
         // Assert
         act.Should().Throw<ArgumentNullException>()
-            .WithParameterName("output");
+            .WithParameterName("target");
     }
 
     [Fact]

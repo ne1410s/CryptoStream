@@ -45,7 +45,7 @@ public class AesGcmDecryptorTests
         var act = () => sut.Decrypt(srcStream, trgStream, TestRefs.TestKey, salt);
 
         // Assert
-        act.Should().Throw<ArgumentNullException>().WithParameterName("input");
+        act.Should().Throw<ArgumentNullException>().WithParameterName("source");
     }
 
     [Fact]
@@ -62,7 +62,7 @@ public class AesGcmDecryptorTests
         var act = () => sut.Decrypt(srcStream, trgStream, TestRefs.TestKey, salt);
 
         // Assert
-        act.Should().Throw<ArgumentNullException>().WithParameterName("output");
+        act.Should().Throw<ArgumentNullException>().WithParameterName("target");
     }
 
     [Fact]

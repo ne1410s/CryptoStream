@@ -15,16 +15,16 @@ public interface IDecryptor
     /// <summary>
     /// Decrypts a stream.
     /// </summary>
-    /// <param name="input">The input stream.</param>
-    /// <param name="output">The output stream.</param>
+    /// <param name="source">The input stream.</param>
+    /// <param name="target">The output stream.</param>
     /// <param name="userKey">The originally supplied key.</param>
     /// <param name="salt">The salt generated in encryption.</param>
     /// <param name="bufferLength">The buffer length.</param>
     /// <param name="mac">The authentication stream, if capture is needed.</param>
     /// <returns>Any metadata.</returns>
     Dictionary<string, string> Decrypt(
-        Stream input,
-        Stream output,
+        Stream source,
+        Stream target,
         byte[] userKey,
         byte[] salt,
         int bufferLength = 32768,

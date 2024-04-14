@@ -9,21 +9,21 @@ using Crypt.Transform;
 public class TestCrypto : IEncryptor, IDecryptor
 {
     public Dictionary<string, string> Decrypt(
-        Stream input, Stream output, byte[] userKey, byte[] salt, int bufferLength = 32768, Stream? mac = null)
+        Stream source, Stream target, byte[] userKey, byte[] salt, int bufferLength = 32768, Stream? mac = null)
     {
-        output.Write([1, 3, 5]);
-        return new();
+        target.Write([1, 3, 5]);
+        return [];
     }
 
     public byte[] Encrypt(
-        Stream input,
-        Stream output,
+        Stream source,
+        Stream target,
         byte[] userKey,
         Dictionary<string, string> metadata,
         int bufferLength = 32768,
         Stream? mac = null)
     {
-        output.Write([2, 4, 6]);
+        target.Write([2, 4, 6]);
         return [1, 2, 3];
     }
 }

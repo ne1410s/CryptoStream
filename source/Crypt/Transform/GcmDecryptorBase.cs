@@ -37,31 +37,31 @@ public abstract class GcmDecryptorBase(
 
     /// <inheritdoc/>
     public Dictionary<string, string> Decrypt(
-        Stream input,
-        Stream output,
+        Stream source,
+        Stream target,
         byte[] userKey,
         byte[] salt,
         int bufferLength = 32768,
         Stream mac = null)
     {
-        input = input ?? throw new ArgumentNullException(nameof(input));
-        output = output ?? throw new ArgumentNullException(nameof(output));
+        source = source ?? throw new ArgumentNullException(nameof(source));
+        target = target ?? throw new ArgumentNullException(nameof(target));
 
         var macBuffer = new byte[16];
         var srcBuffer = new byte[bufferLength];
-        var pepper = this.ReadPepper(input, userKey, out var originalLength, out var metadata);
+        var pepper = this.ReadPepper(source, userKey, out var originalLength, out var metadata);
 
         var cryptoKey = keyDeriver.DeriveCryptoKey(userKey, salt, pepper);
         var totalBlocks = (long)Math.Ceiling(originalLength / (double)bufferLength);
         mac?.Reset();
 
-        output.SetLength(0);
+        target.SetLength(0);
         foreach (var b in Enumerable.Range(0, (int)totalBlocks))
         {
             mac?.Read(macBuffer, 0, macBuffer.Length);
-            var position = input.Position;
+            var position = source.Position;
             var maxReadSize = Math.Min(originalLength - position, srcBuffer.Length);
-            var readSize = input.Read(srcBuffer, 0, (int)maxReadSize);
+            var readSize = source.Read(srcBuffer, 0, (int)maxReadSize);
             var blockNumber = 1 + (long)Math.Floor((double)position / srcBuffer.Length);
             var counter = blockNumber.RaiseBits();
             if (readSize < srcBuffer.Length)
@@ -71,10 +71,10 @@ public abstract class GcmDecryptorBase(
 
             var block = new GcmEncryptedBlock(srcBuffer, macBuffer);
             var trgBuffer = this.DecryptBlock(block, cryptoKey, counter, mac != null);
-            output.Write(trgBuffer, 0, trgBuffer.Length);
+            target.Write(trgBuffer, 0, trgBuffer.Length);
         }
 
-        output.Reset();
+        target.Reset();
         return metadata;
     }
 
@@ -95,7 +95,7 @@ public abstract class GcmDecryptorBase(
         var collection = HttpUtility.ParseQueryString(metaString);
         originalLength = long.Parse(collection[ReservedPrefix + "length"]);
         metadata = collection.AllKeys
-            .Where(key => !key.StartsWith(ReservedPrefix))
+            .Where(key => !key.StartsWith(ReservedPrefix, StringComparison.OrdinalIgnoreCase))
             .ToDictionary(key => key, key => collection[key]);
         return collection[ReservedPrefix + "pepper"].Decode(Codec.ByteBase64);
     }
