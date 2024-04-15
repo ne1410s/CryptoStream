@@ -171,13 +171,13 @@ public class FileExtensionsTests
     {
         // Arrange
         var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
-        File.WriteAllText(fi.FullName, $"hi{Guid.NewGuid()}");
+        File.WriteAllText(fi.FullName, "hello, world");
 
         // Act
         var salt = fi.EncryptInSitu(TestRefs.TestKey);
 
         // Assert
-        fi.Name.Should().Be(salt);
+        fi.Name.Should().Be(salt + ".20ab58c82d");
         fi.Exists.Should().BeTrue();
     }
 
@@ -336,5 +336,35 @@ public class FileExtensionsTests
 
         // Assert
         act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Theory]
+    [InlineData('a', ".4bf0265e44")]
+    [InlineData('9', ".774c75440c")]
+    public void ToSecureExtension_ValidParams_ReturnsExpected(char repeatingChar, string expected)
+    {
+        // Arrange
+        var file = new FileInfo(new string(repeatingChar, 64));
+
+        // Act
+        var result = file.ToSecureExtension(".avi");
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData('a', ".4bf0265e44")]
+    [InlineData('9', ".774c75440c")]
+    public void ToPlainExtension_ValidParams_ReturnsExpected(char repeatingChar, string extension)
+    {
+        // Arrange
+        var file = new FileInfo(new string(repeatingChar, 64) + extension);
+
+        // Act
+        var result = file.ToPlainExtension();
+
+        // Assert
+        result.Should().Be(".avi");
     }
 }

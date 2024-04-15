@@ -197,7 +197,7 @@ public class DirectoryExtensionsTests
     public void EncryptAllInSitu_NullDir_ThrowsException()
     {
         // Arrange
-        var mockEncryptor = new Mock<IEncryptor>();
+        var mockEncryptor = new Mock<IGcmEncryptor>();
         var di = (DirectoryInfo)null!;
 
         // Act
@@ -259,9 +259,10 @@ public class DirectoryExtensionsTests
             Times.Once());
     }
 
-    private static Mock<IEncryptor> GetMockEncryptor()
+    private static Mock<IGcmEncryptor> GetMockEncryptor()
     {
-        var mockEncryptor = new Mock<IEncryptor>();
+        byte[] saltLike = [.. Guid.NewGuid().ToByteArray(), .. Guid.NewGuid().ToByteArray()];
+        var mockEncryptor = new Mock<IGcmEncryptor>();
         mockEncryptor
             .Setup(m => m.Encrypt(
                 It.IsAny<Stream>(),
@@ -270,7 +271,10 @@ public class DirectoryExtensionsTests
                 It.IsAny<Dictionary<string, string>>(),
                 It.IsAny<int>(),
                 It.IsAny<Stream>()))
-            .Returns(Guid.NewGuid().ToByteArray());
+            .Returns(saltLike);
+        mockEncryptor
+            .Setup(m => m.EncryptBlock(It.IsAny<byte[]>(), It.IsAny<byte[]>(), It.IsAny<byte[]>()))
+            .Returns(new GcmEncryptedBlock([], []));
         return mockEncryptor;
     }
 }

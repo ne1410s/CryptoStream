@@ -24,6 +24,14 @@ public static class FileExtensions
         @"\b(?<hex>[a-f0-9]{64})(?<ext>\.[\w-]+){0,1}$",
         RegexOptions.Compiled);
 
+    private static readonly Regex PlainExtRegex = new(
+        @"^\.[a-zA-Z0-9]{1,5}$",
+        RegexOptions.Compiled);
+
+    private static readonly Regex SecureExtRegex = new(
+        @"^\.[a-f0-9]{10}$",
+        RegexOptions.Compiled);
+
     /// <summary>
     /// Gets whether the file appears to be secure.
     /// </summary>
@@ -142,7 +150,7 @@ public static class FileExtensions
     public static string EncryptInSitu(
         this FileInfo fi,
         byte[] userKey,
-        IEncryptor encryptor = null,
+        IGcmEncryptor encryptor = null,
         int bufferLength = 32768,
         Stream mac = null)
     {
@@ -154,7 +162,7 @@ public static class FileExtensions
             throw new ArgumentException(AlreadySecureMessage, nameof(fi));
         }
 
-        var saltHex = (string)null;
+        string saltHex;
         var metadata = new Dictionary<string, string>() { ["filename"] = fi.Name };
         using (var stream = fi.Open(FileMode.Open))
         {
@@ -163,7 +171,8 @@ public static class FileExtensions
                 .ToLowerInvariant();
         }
 
-        var target = Path.Combine(fi.DirectoryName, saltHex);
+        var secureExt = new FileInfo(saltHex).ToSecureExtension(fi.Extension, encryptor);
+        var target = Path.Combine(fi.DirectoryName, saltHex + secureExt);
         if (target != fi.FullName)
         {
             File.Delete(target);
@@ -171,5 +180,51 @@ public static class FileExtensions
         }
 
         return saltHex;
+    }
+
+    /// <summary>
+    /// Gets a secure extension.
+    /// </summary>
+    /// <param name="secure">A secure file.</param>
+    /// <param name="plainExtension">The original extension.</param>
+    /// <param name="encryptor">The encryptor.</param>
+    /// <returns>A secure extension to use.</returns>
+    /// <exception cref="ArgumentException">Bad name format.</exception>
+    public static string ToSecureExtension(this FileInfo secure, string plainExtension, IGcmEncryptor encryptor = null)
+    {
+        encryptor ??= new AesGcmEncryptor();
+        plainExtension = plainExtension ?? throw new ArgumentNullException(nameof(plainExtension));
+
+        if (!PlainExtRegex.IsMatch(plainExtension))
+        {
+            throw new ArgumentException("Unable to parse file data.");
+        }
+
+        var salt = secure.ToSalt();
+        var working = plainExtension.TrimStart('.').PadLeft(5, ' ').Decode(Codec.CharUtf8);
+        var buffer = encryptor.EncryptBlock(working, salt, 1L.RaiseBits()).MessageBuffer;
+        return '.' + buffer.Encode(Codec.ByteHex);
+    }
+
+    /// <summary>
+    /// Gets a plain extension.
+    /// </summary>
+    /// <param name="secure">A secure file.</param>
+    /// <param name="decryptor">The encryptor.</param>
+    /// <returns>A plain extension.</returns>
+    /// <exception cref="ArgumentException">File suitability.</exception>
+    public static string ToPlainExtension(this FileInfo secure, IGcmDecryptor decryptor = null)
+    {
+        decryptor ??= new AesGcmDecryptor();
+        var salt = secure.ToSalt();
+        var secureExtension = secure.Extension;
+        if (!SecureExtRegex.IsMatch(secureExtension))
+        {
+            throw new ArgumentException("Unable to parse file data.");
+        }
+
+        var buffer = secure.Extension.TrimStart('.').Decode(Codec.ByteHex);
+        var working = decryptor.DecryptBlock(new(buffer, []), salt, 1L.RaiseBits(), false);
+        return '.' + working.Encode(Codec.CharUtf8).Trim();
     }
 }

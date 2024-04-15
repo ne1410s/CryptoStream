@@ -74,7 +74,7 @@ public static class DirectoryExtensions
         byte[] userKey,
         bool recurse = false,
         Func<FileInfo, bool> where = null,
-        IEncryptor encryptor = null,
+        IGcmEncryptor encryptor = null,
         int bufferLength = 32768)
     {
         di = di ?? throw new ArgumentNullException(nameof(di));
