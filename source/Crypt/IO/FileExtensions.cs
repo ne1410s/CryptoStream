@@ -83,7 +83,8 @@ public static class FileExtensions
     /// <param name="decryptor">The decryptor.</param>
     /// <param name="bufferLength">The buffer length.</param>
     /// <param name="mac">The mac (optional).</param>
-    public static void DecryptTo(
+    /// <returns>Original metadata.</returns>
+    public static Dictionary<string, string> DecryptTo(
         this FileInfo fi,
         Stream target,
         byte[] userKey,
@@ -95,7 +96,37 @@ public static class FileExtensions
         var salt = fi.ToSalt();
 
         using var stream = fi.OpenRead();
-        decryptor.Decrypt(stream, target, userKey, salt, bufferLength, mac);
+        return decryptor.Decrypt(stream, target, userKey, salt, bufferLength, mac);
+    }
+
+    /// <summary>
+    /// Decrypts a file by making a copy under the source directory.
+    /// </summary>
+    /// <param name="fi">The file.</param>
+    /// <param name="userKey">The user key.</param>
+    /// <param name="decryptor">The decryptor.</param>
+    /// <param name="bufferLength">The buffer length.</param>
+    /// <param name="mac">The mac (optional).</param>
+    /// <returns>Newly-generated file information.</returns>
+    public static FileInfo DecryptHere(
+        this FileInfo fi,
+        byte[] userKey,
+        IDecryptor decryptor = null,
+        int bufferLength = 32768,
+        Stream mac = null)
+    {
+        var randomHex = Guid.NewGuid().ToString().Substring(0, 8);
+        var tempFile = new FileInfo($"{fi}.{randomHex}.dec");
+        string extension;
+        using (var target = tempFile.OpenWrite())
+        {
+            var metadata = fi.DecryptTo(target, userKey, decryptor, bufferLength, mac);
+            extension = new FileInfo(metadata["filename"]).Extension;
+        }
+
+        var fileName = $"{tempFile.Name.Substring(0, 12)}.{randomHex}{extension}";
+        tempFile.MoveTo(Path.Combine(tempFile.DirectoryName, fileName));
+        return tempFile;
     }
 
     /// <summary>
@@ -132,7 +163,7 @@ public static class FileExtensions
                 .ToLowerInvariant();
         }
 
-        var target = Path.Combine(fi.DirectoryName, saltHex + fi.Extension.ToLowerInvariant());
+        var target = Path.Combine(fi.DirectoryName, saltHex);
         if (target != fi.FullName)
         {
             File.Delete(target);

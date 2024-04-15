@@ -16,6 +16,40 @@ using Crypt.Transform;
 public class FileExtensionsTests
 {
     [Fact]
+    public void DecryptHere_WhenCalled_ReturnsMetadata()
+    {
+        // Arrange
+        var originalName = $"{Guid.NewGuid()}.txt";
+        var fi = new FileInfo(Path.Combine("TestObjects", originalName));
+        File.WriteAllText(fi.FullName, fi.Name);
+        fi.EncryptInSitu(TestRefs.TestKey);
+
+        // Act
+        var result = fi.DecryptHere(TestRefs.TestKey);
+
+        // Assert
+        result.Name.Should().Match($"{fi.Name[..12]}.*.txt");
+        result.Exists.Should().BeTrue();
+    }
+
+    [Fact]
+    public void DecryptTo_WhenCalled_ReturnsMetadata()
+    {
+        // Arrange
+        var originalName = $"{Guid.NewGuid()}.txt";
+        var fi = new FileInfo(Path.Combine("TestObjects", originalName));
+        File.WriteAllText(fi.FullName, fi.Name);
+        fi.EncryptInSitu(TestRefs.TestKey);
+        var trgStream = new MemoryStream();
+
+        // Act
+        var result = fi.DecryptTo(trgStream, TestRefs.TestKey);
+
+        // Assert
+        result["filename"].Should().Be(originalName);
+    }
+
+    [Fact]
     public void DecryptTo_WithDecryptor_CallsDecrypt()
     {
         // Arrange
@@ -102,20 +136,6 @@ public class FileExtensionsTests
             .WithMessage("File*already*secure*");
     }
 
-    [Fact]
-    public void EncryptInSitu_WithUpperCaseExt_SavesAsLower()
-    {
-        // Arrange
-        var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.TXT"));
-        File.WriteAllText(fi.FullName, $"hi{nameof(this.EncryptInSitu_WithUpperCaseExt_SavesAsLower)}");
-
-        // Act
-        fi.EncryptInSitu(TestRefs.TestKey);
-
-        // Assert
-        fi.Name.Should().EndWith(".txt");
-    }
-
     [Theory]
     [InlineData("33,4,33,2,233,1", "38cbe01028")]
     [InlineData("9,0,2,1,0", "55338850dc")]
@@ -157,7 +177,7 @@ public class FileExtensionsTests
         var salt = fi.EncryptInSitu(TestRefs.TestKey);
 
         // Assert
-        fi.Name.Should().Be(salt + ".txt");
+        fi.Name.Should().Be(salt);
         fi.Exists.Should().BeTrue();
     }
 

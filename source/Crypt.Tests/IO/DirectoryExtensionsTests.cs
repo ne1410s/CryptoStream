@@ -171,7 +171,7 @@ public class DirectoryExtensionsTests
     public void EncryptAllInSitu_VaryingRecurseFlag_FindsExpectedFiles(bool recurse, int expectedCount)
     {
         // Arrange
-        var mockEncryptor = new Mock<IEncryptor>();
+        var mockEncryptor = GetMockEncryptor();
         var di = new DirectoryInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}"));
         di.Create();
         File.WriteAllText(Path.Combine(di.FullName, "howdy.txt"), "howdy");
@@ -213,7 +213,7 @@ public class DirectoryExtensionsTests
         // Arrange
         var folder = Guid.NewGuid().ToString();
         Directory.CreateDirectory(folder);
-        var mockEncryptor = new Mock<IEncryptor>();
+        var mockEncryptor = GetMockEncryptor();
         const string secureName = "2fbdd1cbdb5f317b7e21ebb7ae7c32d166feec3be76b64d470123bf4d2c06ae5.avi";
         File.Copy(Path.Combine("TestObjects", "pixel.png"), Path.Combine(folder, "pixel.png"));
         File.Copy(Path.Combine("TestObjects", secureName), Path.Combine(folder, secureName));
@@ -239,7 +239,7 @@ public class DirectoryExtensionsTests
         // Arrange
         var folder = Guid.NewGuid().ToString();
         Directory.CreateDirectory(folder);
-        var mockEncryptor = new Mock<IEncryptor>();
+        var mockEncryptor = GetMockEncryptor();
         File.Copy(Path.Combine("TestObjects", "pixel.png"), Path.Combine(folder, "pixel.png"));
         File.Copy(Path.Combine("TestObjects", "pixel.png"), Path.Combine(folder, "otherfile.png"));
         static bool Filter(FileInfo fi) => fi.Name.StartsWith("pixel", StringComparison.Ordinal);
@@ -257,5 +257,20 @@ public class DirectoryExtensionsTests
                 It.IsAny<int>(),
                 It.IsAny<Stream>()),
             Times.Once());
+    }
+
+    private static Mock<IEncryptor> GetMockEncryptor()
+    {
+        var mockEncryptor = new Mock<IEncryptor>();
+        mockEncryptor
+            .Setup(m => m.Encrypt(
+                It.IsAny<Stream>(),
+                It.IsAny<Stream>(),
+                It.IsAny<byte[]>(),
+                It.IsAny<Dictionary<string, string>>(),
+                It.IsAny<int>(),
+                It.IsAny<Stream>()))
+            .Returns(Guid.NewGuid().ToByteArray());
+        return mockEncryptor;
     }
 }
