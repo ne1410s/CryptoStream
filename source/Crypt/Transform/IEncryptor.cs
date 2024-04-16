@@ -28,5 +28,5 @@ public interface IEncryptor
         byte[] userKey,
         Dictionary<string, string> metadata,
         int bufferLength = 32768,
-        Stream mac = null);
+        Stream? mac = null);
 }

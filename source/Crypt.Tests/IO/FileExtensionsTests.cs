@@ -338,6 +338,37 @@ public class FileExtensionsTests
         act.Should().Throw<ArgumentNullException>();
     }
 
+    [Fact]
+    public void ToSecureExtension_NullParam_ThrowsException()
+    {
+        // Arrange
+        var file = new FileInfo(new string('a', 64));
+
+        // Act
+        var act = () => file.ToSecureExtension(null!);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>().WithParameterName("plainExtension");
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("..")]
+    [InlineData(".length")]
+    public void ToSecureExtension_InvalidPlainExtension_ThrowsException(string badExtension)
+    {
+        // Arrange
+        var file = new FileInfo(new string('a', 64));
+
+        // Act
+        var act = () => file.ToSecureExtension(badExtension);
+
+        // Assert
+        act.Should().Throw<ArgumentException>()
+            .WithParameterName("plainExtension")
+            .WithMessage("Unable to parse file data.*");
+    }
+
     [Theory]
     [InlineData('a', ".4bf0265e44")]
     [InlineData('9', ".774c75440c")]
@@ -351,6 +382,25 @@ public class FileExtensionsTests
 
         // Assert
         result.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(".70010566666")]
+    [InlineData(".nothex")]
+    [InlineData(".700540172")]
+    public void ToPlainExtension_InvalidSecureExtension_ThrowsException(string badExtension)
+    {
+        // Arrange
+        var file = new FileInfo(new string('a', 64) + badExtension);
+
+        // Act
+        var act = () => file.ToPlainExtension();
+
+        // Assert
+        act.Should().Throw<ArgumentException>()
+            .WithParameterName("secure")
+            .WithMessage("Unable to parse file data.*");
     }
 
     [Theory]

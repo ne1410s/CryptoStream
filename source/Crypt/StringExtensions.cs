@@ -36,7 +36,7 @@ public static class StringExtensions
         this string str,
         string password,
         out string saltBase64,
-        IEncryptor encryptor = null,
+        IEncryptor? encryptor = null,
         int bufferLength = 32768)
     {
         encryptor ??= new AesGcmEncryptor();
@@ -61,7 +61,7 @@ public static class StringExtensions
         this string strBase64,
         string password,
         string saltBase64,
-        IDecryptor decryptor = null,
+        IDecryptor? decryptor = null,
         int bufferLength = 32768)
     {
         decryptor ??= new AesGcmDecryptor();

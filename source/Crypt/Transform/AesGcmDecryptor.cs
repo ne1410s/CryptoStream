@@ -18,8 +18,8 @@ using Jose;
 /// <param name="keyDeriver">Derives the crypto key.</param>
 /// <param name="resizer">Resizes arrays.</param>
 public class AesGcmDecryptor(
-    ICryptoKeyDeriver keyDeriver = null,
-    IArrayResizer resizer = null) : GcmDecryptorBase(
+    ICryptoKeyDeriver? keyDeriver = null,
+    IArrayResizer? resizer = null) : GcmDecryptorBase(
           keyDeriver ?? new DefaultKeyDeriver(),
           resizer ?? new ArrayResizer())
 {

@@ -42,7 +42,7 @@ public abstract class GcmDecryptorBase(
         byte[] userKey,
         byte[] salt,
         int bufferLength = 32768,
-        Stream mac = null)
+        Stream? mac = null)
     {
         source = source ?? throw new ArgumentNullException(nameof(source));
         target = target ?? throw new ArgumentNullException(nameof(target));

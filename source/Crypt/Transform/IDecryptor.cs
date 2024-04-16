@@ -28,5 +28,5 @@ public interface IDecryptor
         byte[] userKey,
         byte[] salt,
         int bufferLength = 32768,
-        Stream mac = null);
+        Stream? mac = null);
 }

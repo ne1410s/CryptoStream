@@ -36,7 +36,7 @@ public class AesGcmEncryptorTests
         // Arrange
         var sut = new AesGcmEncryptor();
 
-        var pepper = sut.GeneratePepper(null);
+        var pepper = sut.GeneratePepper(null!);
 
         // Assert
         pepper.Should().NotContain(default(byte));
@@ -197,7 +197,7 @@ public class AesGcmEncryptorTests
         using var trgStream = new MemoryStream();
 
         // Act
-        var result = sut.Encrypt(srcStream, trgStream, TestRefs.TestKey, null).Encode(Codec.ByteHex);
+        var result = sut.Encrypt(srcStream, trgStream, TestRefs.TestKey, null!).Encode(Codec.ByteHex);
 
         // Assert
         result.Should().Be("4b16d4eb3ab56591d6bc35d4a50d9cf718b79c547e84b2c2de2095378779535a");

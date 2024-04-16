@@ -7,6 +7,7 @@
     <PackageTags>cryptography hash codec gcm cbc</PackageTags>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <IncludeSymbols>True</IncludeSymbols>
+    <Nullable>enable</Nullable>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/ne1410s/Crypt</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>

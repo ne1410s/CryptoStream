@@ -20,7 +20,7 @@ public class SimpleFileStream : FileStream, ISimpleReadStream
     /// <param name="fi">The source file.</param>
     /// <param name="bufferLength">The buffer length.</param>
     /// <param name="resizer">An array resizer.</param>
-    public SimpleFileStream(FileInfo fi, int bufferLength = 32768, IArrayResizer resizer = null)
+    public SimpleFileStream(FileInfo fi, int bufferLength = 32768, IArrayResizer? resizer = null)
         : base(
             fi?.FullName,
             FileMode.Open,

@@ -20,7 +20,7 @@ using Crypt.Utils;
 /// <param name="stream">The source stream.</param>
 /// <param name="bufferLength">The block buffer length.</param>
 /// <param name="resizer">An array resizer.</param>
-public class BlockReadStream(Stream stream, int bufferLength = 32768, IArrayResizer resizer = null)
+public class BlockReadStream(Stream stream, int bufferLength = 32768, IArrayResizer? resizer = null)
     : ReadStream(stream), ISimpleReadStream
 {
     private readonly IArrayResizer arrayResizer = resizer ?? new ArrayResizer();
@@ -31,7 +31,7 @@ public class BlockReadStream(Stream stream, int bufferLength = 32768, IArrayResi
     /// <param name="fi">The source file.</param>
     /// <param name="bufferLength">The block buffer length.</param>
     /// <param name="resizer">An array resizer.</param>
-    public BlockReadStream(FileInfo fi, int bufferLength = 32768, IArrayResizer resizer = null)
+    public BlockReadStream(FileInfo fi, int bufferLength = 32768, IArrayResizer? resizer = null)
         : this(new FileStream(fi?.FullName, FileMode.Open, FileAccess.Read), bufferLength, resizer)
     { }
 

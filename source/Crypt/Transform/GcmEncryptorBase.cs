@@ -39,7 +39,7 @@ public abstract class GcmEncryptorBase(
         byte[] userKey,
         Dictionary<string, string> metadata,
         int bufferLength = 32768,
-        Stream mac = null)
+        Stream? mac = null)
     {
         metadata ??= [];
         source = source ?? throw new ArgumentNullException(nameof(source));

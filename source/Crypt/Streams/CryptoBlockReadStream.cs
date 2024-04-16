@@ -4,6 +4,7 @@
 
 namespace Crypt.Streams;
 
+using System;
 using System.IO;
 using Crypt.IO;
 using Crypt.Keying;
@@ -25,9 +26,9 @@ public class CryptoBlockReadStream : BlockReadStream
     /// <param name="key">The key.</param>
     /// <param name="bufferSize">The buffer size.</param>
     /// <param name="decryptor">Decryptor override (optional).</param>
-    public CryptoBlockReadStream(FileInfo fi, byte[] key, int bufferSize = 32768, IGcmDecryptor decryptor = null)
+    public CryptoBlockReadStream(FileInfo fi, byte[] key, int bufferSize = 32768, IGcmDecryptor? decryptor = null)
         : this(
-            new FileStream(fi?.FullName, FileMode.Open, FileAccess.Read),
+            new FileStream(fi.NotNull().FullName, FileMode.Open, FileAccess.Read),
             fi.ToSalt(),
             key,
             bufferSize,
@@ -43,7 +44,7 @@ public class CryptoBlockReadStream : BlockReadStream
     /// <param name="bufferSize">The buffer size.</param>
     /// <param name="decryptor">Decryptor override (optional).</param>
     public CryptoBlockReadStream(
-        Stream stream, byte[] salt, byte[] userKey, int bufferSize = 32768, IGcmDecryptor decryptor = null)
+        Stream stream, byte[] salt, byte[] userKey, int bufferSize = 32768, IGcmDecryptor? decryptor = null)
         : base(stream, bufferSize)
     {
         this.decryptor = decryptor ?? new AesGcmDecryptor();

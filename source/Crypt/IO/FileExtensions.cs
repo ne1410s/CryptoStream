@@ -96,9 +96,9 @@ public static class FileExtensions
         this FileInfo fi,
         Stream target,
         byte[] userKey,
-        IDecryptor decryptor = null,
+        IDecryptor? decryptor = null,
         int bufferLength = 32768,
-        Stream mac = null)
+        Stream? mac = null)
     {
         decryptor ??= new AesGcmDecryptor();
         var salt = fi.ToSalt();
@@ -119,9 +119,9 @@ public static class FileExtensions
     public static FileInfo DecryptHere(
         this FileInfo fi,
         byte[] userKey,
-        IDecryptor decryptor = null,
+        IDecryptor? decryptor = null,
         int bufferLength = 32768,
-        Stream mac = null)
+        Stream? mac = null)
     {
         var randomHex = Guid.NewGuid().ToString().Substring(0, 8);
         var tempFile = new FileInfo($"{fi}.{randomHex}.dec");
@@ -150,9 +150,9 @@ public static class FileExtensions
     public static string EncryptInSitu(
         this FileInfo fi,
         byte[] userKey,
-        IGcmEncryptor encryptor = null,
+        IGcmEncryptor? encryptor = null,
         int bufferLength = 32768,
-        Stream mac = null)
+        Stream? mac = null)
     {
         encryptor ??= new AesGcmEncryptor();
 
@@ -190,14 +190,14 @@ public static class FileExtensions
     /// <param name="encryptor">The encryptor.</param>
     /// <returns>A secure extension to use.</returns>
     /// <exception cref="ArgumentException">Bad name format.</exception>
-    public static string ToSecureExtension(this FileInfo secure, string plainExtension, IGcmEncryptor encryptor = null)
+    public static string ToSecureExtension(this FileInfo secure, string plainExtension, IGcmEncryptor? encryptor = null)
     {
         encryptor ??= new AesGcmEncryptor();
         plainExtension = plainExtension ?? throw new ArgumentNullException(nameof(plainExtension));
 
         if (!PlainExtRegex.IsMatch(plainExtension))
         {
-            throw new ArgumentException("Unable to parse file data.");
+            throw new ArgumentException("Unable to parse file data.", nameof(plainExtension));
         }
 
         var salt = secure.ToSalt();
@@ -213,14 +213,14 @@ public static class FileExtensions
     /// <param name="decryptor">The encryptor.</param>
     /// <returns>A plain extension.</returns>
     /// <exception cref="ArgumentException">File suitability.</exception>
-    public static string ToPlainExtension(this FileInfo secure, IGcmDecryptor decryptor = null)
+    public static string ToPlainExtension(this FileInfo secure, IGcmDecryptor? decryptor = null)
     {
         decryptor ??= new AesGcmDecryptor();
         var salt = secure.ToSalt();
         var secureExtension = secure.Extension;
         if (!SecureExtRegex.IsMatch(secureExtension))
         {
-            throw new ArgumentException("Unable to parse file data.");
+            throw new ArgumentException("Unable to parse file data.", nameof(secure));
         }
 
         var buffer = secure.Extension.TrimStart('.').Decode(Codec.ByteHex);
