@@ -384,6 +384,23 @@ public class FileExtensionsTests
         result.Should().Be(expected);
     }
 
+    [Fact]
+    public void ToSecureExtension_WithEncryptor_EncryptsBlock()
+    {
+        // Arrange
+        var mockEncryptor = new Mock<IGcmEncryptor>();
+        mockEncryptor
+            .Setup(m => m.EncryptBlock(It.IsAny<byte[]>(), It.IsAny<byte[]>(), It.IsAny<byte[]>()))
+            .Returns(new GcmEncryptedBlock([], []));
+        var file = new FileInfo(new string('a', 64));
+
+        // Act
+        file.ToSecureExtension(".avi", mockEncryptor.Object);
+
+        // Assert
+        mockEncryptor.Verify(m => m.EncryptBlock(It.IsAny<byte[]>(), It.IsAny<byte[]>(), It.IsAny<byte[]>()));
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData(".70010566666")]
@@ -416,5 +433,27 @@ public class FileExtensionsTests
 
         // Assert
         result.Should().Be(".avi");
+    }
+
+    [Fact]
+    public void ToPlainExtension_WithDecryptor_DecryptsBlock()
+    {
+        // Arrange
+        var mockDecryptor = new Mock<IGcmDecryptor>();
+        mockDecryptor
+            .Setup(m => m.DecryptBlock(It.IsAny<GcmEncryptedBlock>(), It.IsAny<byte[]>(), It.IsAny<byte[]>(), false))
+            .Returns([]);
+        var file = new FileInfo(new string('a', 64) + ".4bf0265e44");
+
+        // Act
+        file.ToPlainExtension(mockDecryptor.Object);
+
+        // Assert
+        mockDecryptor.Verify(
+            m => m.DecryptBlock(
+                It.IsAny<GcmEncryptedBlock>(),
+                It.IsAny<byte[]>(),
+                It.IsAny<byte[]>(),
+                false));
     }
 }

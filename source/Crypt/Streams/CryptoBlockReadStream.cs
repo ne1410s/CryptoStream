@@ -4,7 +4,6 @@
 
 namespace Crypt.Streams;
 
-using System;
 using System.IO;
 using Crypt.IO;
 using Crypt.Keying;
