@@ -69,7 +69,7 @@ public class CryptoBlockReadStreamTests
 
         var authMd5Hex = authBuffer.Hash(HashType.Md5).Encode(Codec.ByteHex);
         var secureFi = new FileInfo(
-            Path.Combine("TestObjects", "2fbdd1cbdb5f317b7e21ebb7ae7c32d166feec3be76b64d470123bf4d2c06ae5.avi"));
+            Path.Combine("TestObjects", "2fbdd1cbdb5f317b7e21ebb7ae7c32d166feec3be76b64d470123bf4d2c06ae5.03470a9848"));
         using var sut = new CryptoBlockReadStream(secureFi, TestRefs.TestKey);
         sut.Seek(position, SeekOrigin.Begin);
 

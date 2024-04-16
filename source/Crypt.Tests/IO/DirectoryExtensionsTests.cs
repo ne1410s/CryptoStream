@@ -214,7 +214,7 @@ public class DirectoryExtensionsTests
         var folder = Guid.NewGuid().ToString();
         Directory.CreateDirectory(folder);
         var mockEncryptor = GetMockEncryptor();
-        const string secureName = "2fbdd1cbdb5f317b7e21ebb7ae7c32d166feec3be76b64d470123bf4d2c06ae5.avi";
+        const string secureName = "2fbdd1cbdb5f317b7e21ebb7ae7c32d166feec3be76b64d470123bf4d2c06ae5.03470a9848";
         File.Copy(Path.Combine("TestObjects", "pixel.png"), Path.Combine(folder, "pixel.png"));
         File.Copy(Path.Combine("TestObjects", secureName), Path.Combine(folder, secureName));
 

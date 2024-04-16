@@ -37,7 +37,8 @@ public static class FileExtensions
     /// </summary>
     /// <param name="fi">The file info.</param>
     /// <returns>Whether the file appears secure.</returns>
-    public static bool IsSecure(this FileInfo fi) => SaltRegex.IsMatch(fi?.Name);
+    public static bool IsSecure(this FileInfo fi)
+        => SaltRegex.IsMatch(fi.NotNull().Name) && SecureExtRegex.IsMatch(fi.Extension);
 
     /// <summary>
     /// Gets a salt.

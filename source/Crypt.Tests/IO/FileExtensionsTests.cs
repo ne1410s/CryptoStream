@@ -126,7 +126,7 @@ public class FileExtensionsTests
         var fi = new FileInfo(
             Path.Combine(
                 "TestObjects",
-                "2fbdd1cbdb5f317b7e21ebb7ae7c32d166feec3be76b64d470123bf4d2c06ae5.avi"));
+                "2fbdd1cbdb5f317b7e21ebb7ae7c32d166feec3be76b64d470123bf4d2c06ae5.03470a9848"));
 
         // Act
         var act = () => fi.EncryptInSitu(TestRefs.TestKey);
@@ -197,10 +197,11 @@ public class FileExtensionsTests
     }
 
     [Theory]
-    [InlineData(TestRefs.CryptoFileName, true)]
-    [InlineData(TestRefs.CryptoFileName + ".txt", true)]
-    [InlineData("other-junk." + TestRefs.CryptoFileName + ".txt", true)]
+    [InlineData(TestRefs.CryptoFileName + TestRefs.CryptoFileExt, true)]
+    [InlineData(TestRefs.CryptoFileName + ".txt", false)]
+    [InlineData("other-junk." + TestRefs.CryptoFileName + TestRefs.CryptoFileExt, true)]
     [InlineData(TestRefs.CryptoFileName + "e", false)]
+    [InlineData(TestRefs.CryptoFileName + TestRefs.CryptoFileExt + "e", false)]
     public void IsSecure_VaryingFormat_ReturnsExpected(string name, bool expected)
     {
         // Arrange
