@@ -4,6 +4,7 @@
 
 namespace Crypt.Streams;
 
+using System.Collections.ObjectModel;
 using System.IO;
 using Crypt.IO;
 using Crypt.Keying;
@@ -47,12 +48,18 @@ public class CryptoBlockReadStream : BlockReadStream
         : base(stream, bufferSize)
     {
         this.decryptor = decryptor ?? new AesGcmDecryptor();
-        var pepper = this.decryptor.ReadPepper(stream, userKey, out this.originalLength, out _);
+        var pepper = this.decryptor.ReadPepper(stream, userKey, out this.originalLength, out var metadata);
         this.cryptoKey = new DefaultKeyDeriver().DeriveCryptoKey(userKey, salt, pepper);
+        this.Metadata = new(metadata ?? []);
     }
 
     /// <inheritdoc/>
     public override long Length => this.originalLength;
+
+    /// <summary>
+    /// Gets metadata.
+    /// </summary>
+    public ReadOnlyDictionary<string, string> Metadata { get; }
 
     /// <inheritdoc/>
     protected override byte[] MapBlock(byte[] sourceBuffer, long blockNo)

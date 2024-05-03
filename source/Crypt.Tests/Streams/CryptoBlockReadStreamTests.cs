@@ -117,18 +117,21 @@ public class CryptoBlockReadStreamTests
     public void Props_WhenPopulated_ShouldBeExpected()
     {
         // Arrange
-        var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
+        var ogName = $"{Guid.NewGuid()}.txt";
+        var fi = new FileInfo(Path.Combine("TestObjects", ogName));
         File.WriteAllText(fi.FullName, $"hi{Guid.NewGuid()}");
         fi.EncryptInSitu(TestRefs.TestKey);
         var salt = fi.ToSalt();
         using var stream = fi.OpenRead();
         using var sut = new CryptoBlockReadStream(stream, salt, TestRefs.TestKey);
+        var expectedMeta = new Dictionary<string, string> { ["filename"] = ogName };
 
         // Act
         var uri = sut.Uri;
         var length = sut.Length;
 
         // Assert
+        sut.Metadata.Should().BeEquivalentTo(expectedMeta);
         uri.Should().NotBeEmpty();
         length.Should().Be(38);
     }
