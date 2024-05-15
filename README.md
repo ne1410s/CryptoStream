@@ -1,6 +1,7 @@
-# Crypt
+# CryptoStream
 ## Overview
-Crypt is a library of some crytographic functions and stream support.
+CryptoStream is a library that features some cryptographic functions and stream support.
+This includes base implementation of a "BlockStream" and a "CryptoBlockStream" implemented with gcm.
 
 ## Notes
 ### Commands
