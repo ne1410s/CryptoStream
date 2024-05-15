@@ -9,6 +9,9 @@ StrykerOutput/
 # Coverlet generated reports
 coveragereport/
 
+# Local nuget packages
+nu/
+
 # User-specific files
 *.rsuser
 *.suo
