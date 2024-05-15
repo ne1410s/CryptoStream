@@ -4,7 +4,6 @@
     <Authors>Paul Jones</Authors>
     <Company>ne1410s</Company>
     <Description>A library designed to simplify common cryptographic processes</Description>
-    <PackageTags>cryptography hash codec gcm cbc</PackageTags>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <IncludeSymbols>True</IncludeSymbols>
     <Nullable>enable</Nullable>
@@ -13,6 +12,7 @@
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/ne1410s/Crypt</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>cryptography crypto crypt hash codec gcm cbc</PackageTags>
     <RepositoryUrl>https://github.com/ne1410s/Crypt</RepositoryUrl>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Analyse" Version="1.0.1" />
+    <PackageReference Include="Analyse" Version="1.0.0" />
     <PackageReference Include="jose-jwt" Version="5.0.0" />
   </ItemGroup>
 
