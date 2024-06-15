@@ -24,10 +24,17 @@ jobs:
     - name: Build for release
       run: dotnet build -c Release
     - name: Generate raw coverage data
-      run: dotnet test -c Release -s .runsettings; dotnet reportgenerator -targetdir:coveragereport -reports:**/coverage.cobertura.xml -reporttypes:"html;jsonsummary"
+      run: dotnet test -c Release -s .runsettings; dotnet reportgenerator -targetdir:'${{ github.workspace }}/coverage' -reports:**/coverage.cobertura.xml -reporttypes:"html;jsonsummary;cobertura"
+    - name: Send to coveralls
+      continue-on-error: true
+      uses: coverallsapp/github-action@v2
+      with:
+        file: ${{ github.workspace }}/coverage/Cobertura.xml
+        format: cobertura
+        git-branch: main
     - name: Get coverage json
       id: getjson
-      run: echo COVERAGE_JSON=$(tr '\r\n' ' ' <coveragereport/Summary.json) >> $GITHUB_ENV
+      run: echo COVERAGE_JSON=$(tr '\r\n' ' ' <${{ github.workspace }}/coverage/Summary.json) >> $GITHUB_ENV
     - name: Check coverage values
       id: check_coverage
       run: |
@@ -45,13 +52,26 @@ jobs:
     - name: Get mutation data
       id: gen_mutation
       if: success() || steps.check_coverage.outcome == 'failure'
-      run: dotnet stryker -O ${{ github.workspace }}/drop
+      run: dotnet stryker -O ${{ github.workspace }}/drop -r json -r html
     - name: Drop artifact - reports
       if: success() || steps.check_coverage.outcome == 'failure' || steps.gen_mutation.outcome == 'failure'
       uses: actions/upload-artifact@v4
       with:
         name: reports
         path: ${{ github.workspace }}/drop/reports
+    - name: Send to Stryker Dashboard
+      if: steps.gen_mutation.outcome == 'success'
+      continue-on-error: true
+      env:
+        STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
+        PROJECT: ${{ secrets.STRYKER_DASHBOARD_PROJECT }}
+      run: |
+        curl -X PUT https://dashboard.stryker-mutator.io/api/reports/${{ env.PROJECT }}/main \
+          -H 'Content-Type: application/json' \
+          -H 'Host: dashboard.stryker-mutator.io' \
+          -H 'X-Api-Key: ${{ env.STRYKER_DASHBOARD_API_KEY }}' \
+          -d @${{ github.workspace }}/drop/reports/mutation-report.json
+      
     - name: Fail build warnings
       run: dotnet build -c Release --no-incremental /warnaserror
 
