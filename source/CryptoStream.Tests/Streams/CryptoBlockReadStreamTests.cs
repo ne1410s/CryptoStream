@@ -32,7 +32,7 @@ public class CryptoBlockReadStreamTests
         long param1;
         Dictionary<string, string> param2;
         mockDecryptor.Verify(
-            m => m.ReadPepper(It.IsAny<Stream>(), It.IsAny<byte[]>(), out param1, out param2),
+            m => m.ReadPepper(It.IsAny<Stream>(), It.IsAny<byte[]>(), true, out param1, out param2),
             Times.Once);
     }
 
@@ -95,13 +95,15 @@ public class CryptoBlockReadStreamTests
         var originalLength = 5000L;
         Dictionary<string, string> metadata;
         mockDecryptor
-            .Setup(m => m.ReadPepper(It.IsAny<Stream>(), It.IsAny<byte[]>(), out originalLength, out metadata))
+            .Setup(m => m.ReadPepper(
+                It.IsAny<Stream>(), It.IsAny<byte[]>(), It.IsAny<bool?>(), out originalLength, out metadata))
             .Returns(new byte[] { 1 }.Hash(HashType.Md5));
         mockDecryptor
             .Setup(m => m.DecryptBlock(It.IsAny<GcmEncryptedBlock>(), It.IsAny<byte[]>(), It.IsAny<byte[]>(), false))
             .Returns((GcmEncryptedBlock eb, byte[] _, byte[] _, bool _) => new byte[eb.MessageBuffer.Length]);
         using var stream = fi.OpenRead();
-        using var sut = new CryptoBlockReadStream(stream, salt, TestRefs.TestKey, bufferLength, mockDecryptor.Object);
+        using var sut = new CryptoBlockReadStream(
+            stream, salt, TestRefs.TestKey, true, bufferLength, mockDecryptor.Object);
         sut.Seek(12);
 
         // Act
@@ -123,7 +125,7 @@ public class CryptoBlockReadStreamTests
         fi.EncryptInSitu(TestRefs.TestKey);
         var salt = fi.ToSalt();
         using var stream = fi.OpenRead();
-        using var sut = new CryptoBlockReadStream(stream, salt, TestRefs.TestKey);
+        using var sut = new CryptoBlockReadStream(stream, salt, TestRefs.TestKey, true);
         var expectedMeta = new Dictionary<string, string> { ["filename"] = ogName };
 
         // Act

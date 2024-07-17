@@ -105,7 +105,7 @@ public static class FileExtensions
         var salt = fi.ToSalt();
 
         using var stream = fi.OpenRead();
-        return decryptor.Decrypt(stream, target, userKey, salt, bufferLength, mac);
+        return decryptor.Decrypt(stream, target, userKey, salt, true, bufferLength, mac);
     }
 
     /// <summary>

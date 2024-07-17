@@ -19,6 +19,7 @@ public interface IDecryptor
     /// <param name="target">The output stream.</param>
     /// <param name="userKey">The originally supplied key.</param>
     /// <param name="salt">The salt generated in encryption.</param>
+    /// <param name="expectMetadata">Whether metadata was originally included.</param>
     /// <param name="bufferLength">The buffer length.</param>
     /// <param name="mac">The authentication stream, if capture is needed.</param>
     /// <returns>Any metadata.</returns>
@@ -27,6 +28,7 @@ public interface IDecryptor
         Stream target,
         byte[] userKey,
         byte[] salt,
+        bool? expectMetadata,
         int bufferLength = 32768,
         Stream? mac = null);
 }

@@ -41,6 +41,7 @@ public abstract class GcmDecryptorBase(
         Stream target,
         byte[] userKey,
         byte[] salt,
+        bool? expectMetadata,
         int bufferLength = 32768,
         Stream? mac = null)
     {
@@ -49,7 +50,7 @@ public abstract class GcmDecryptorBase(
 
         var macBuffer = new byte[16];
         var srcBuffer = new byte[bufferLength];
-        var pepper = this.ReadPepper(source, userKey, out var originalLength, out var metadata);
+        var pepper = this.ReadPepper(source, userKey, expectMetadata, out var originalLength, out var metadata);
 
         var cryptoKey = keyDeriver.DeriveCryptoKey(userKey, salt, pepper);
         var totalBlocks = (long)Math.Ceiling(originalLength / (double)bufferLength);
@@ -80,7 +81,11 @@ public abstract class GcmDecryptorBase(
 
     /// <inheritdoc/>
     public byte[] ReadPepper(
-        Stream input, byte[] userKey, out long originalLength, out Dictionary<string, string> metadata)
+        Stream input,
+        byte[] userKey,
+        bool? expectMetadata,
+        out long originalLength,
+        out Dictionary<string, string> metadata)
     {
         input = input ?? throw new ArgumentNullException(nameof(input));
 
@@ -93,7 +98,8 @@ public abstract class GcmDecryptorBase(
         var churn = this.DecryptBlock(new(metaBytes, []), blockKey, 1L.RaiseBits(), false);
         var metaString = churn.Encode(Codec.CharUtf8).Trim();
         var collection = HttpUtility.ParseQueryString(metaString);
-        originalLength = long.Parse(collection[ReservedPrefix + "length"]);
+        var lengthText = collection[ReservedPrefix + "length"] ?? throw new InvalidDataException();
+        originalLength = long.Parse(lengthText);
         metadata = collection.AllKeys
             .Where(key => !key.StartsWith(ReservedPrefix, StringComparison.OrdinalIgnoreCase))
             .ToDictionary(key => key, key => collection[key]);

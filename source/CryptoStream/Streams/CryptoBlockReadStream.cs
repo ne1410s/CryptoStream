@@ -31,6 +31,7 @@ public class CryptoBlockReadStream : BlockReadStream
             new FileStream(fi.NotNull().FullName, FileMode.Open, FileAccess.Read),
             fi.ToSalt(),
             key,
+            true,
             bufferSize,
             decryptor)
     { }
@@ -41,14 +42,21 @@ public class CryptoBlockReadStream : BlockReadStream
     /// <param name="stream">The source stream.</param>
     /// <param name="salt">The salt.</param>
     /// <param name="userKey">The key.</param>
+    /// <param name="expectMetadata">Whether metadata was originally included.</param>
     /// <param name="bufferSize">The buffer size.</param>
     /// <param name="decryptor">Decryptor override (optional).</param>
     public CryptoBlockReadStream(
-        Stream stream, byte[] salt, byte[] userKey, int bufferSize = 32768, IGcmDecryptor? decryptor = null)
+        Stream stream,
+        byte[] salt,
+        byte[] userKey,
+        bool? expectMetadata,
+        int bufferSize = 32768,
+        IGcmDecryptor? decryptor = null)
         : base(stream, bufferSize)
     {
         this.decryptor = decryptor ?? new AesGcmDecryptor();
-        var pepper = this.decryptor.ReadPepper(stream, userKey, out this.originalLength, out var metadata);
+        var pepper = this.decryptor.ReadPepper(
+            stream, userKey, expectMetadata, out this.originalLength, out var metadata);
         this.cryptoKey = new DefaultKeyDeriver().DeriveCryptoKey(userKey, salt, pepper);
         this.Metadata = new(metadata ?? []);
     }

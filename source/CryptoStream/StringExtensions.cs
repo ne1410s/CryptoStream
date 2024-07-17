@@ -70,7 +70,7 @@ public static class StringExtensions
 
         using var srcStream = new MemoryStream(strBase64.Decode(Codec.ByteBase64));
         using var trgStream = new MemoryStream();
-        decryptor.Decrypt(srcStream, trgStream, userKey, salt, bufferLength);
+        decryptor.Decrypt(srcStream, trgStream, userKey, salt, false, bufferLength);
         return trgStream.ToArray().Encode(Codec.CharUtf8);
     }
 }

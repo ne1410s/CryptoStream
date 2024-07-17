@@ -42,7 +42,7 @@ public class AesGcmDecryptorTests
         using var trgStream = new MemoryStream();
 
         // Act
-        var act = () => sut.Decrypt(srcStream, trgStream, TestRefs.TestKey, salt);
+        var act = () => sut.Decrypt(srcStream, trgStream, TestRefs.TestKey, salt, null);
 
         // Assert
         act.Should().Throw<ArgumentNullException>().WithParameterName("source");
@@ -59,7 +59,7 @@ public class AesGcmDecryptorTests
         var trgStream = (Stream)null!;
 
         // Act
-        var act = () => sut.Decrypt(srcStream, trgStream, TestRefs.TestKey, salt);
+        var act = () => sut.Decrypt(srcStream, trgStream, TestRefs.TestKey, salt, null);
 
         // Assert
         act.Should().Throw<ArgumentNullException>().WithParameterName("target");
@@ -74,10 +74,27 @@ public class AesGcmDecryptorTests
         var srcStream = (Stream)null!;
 
         // Act
-        var act = () => sut.ReadPepper(srcStream, [], out _, out _);
+        var act = () => sut.ReadPepper(srcStream, [], null, out _, out _);
 
         // Assert
         act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public void ReadPepper_BadKey_ThrowsException()
+    {
+        // Arrange
+        var sut = new AesGcmDecryptor();
+        var srcStream = new MemoryStream([1, 2, 3]);
+        var trgStream = new MemoryStream();
+        new AesGcmEncryptor().Encrypt(srcStream, trgStream, TestRefs.TestKey, new());
+        var badKey = new byte[] { 9, 9, 0 };
+
+        // Act
+        var act = () => sut.ReadPepper(trgStream, badKey, null, out _, out _);
+
+        // Assert
+        act.Should().Throw<InvalidDataException>();
     }
 
     [Fact]
@@ -94,7 +111,7 @@ public class AesGcmDecryptorTests
         using var trgStream = new MemoryStream();
 
         // Act
-        sut.Decrypt(srcStream, trgStream, TestRefs.TestKey, salt);
+        sut.Decrypt(srcStream, trgStream, TestRefs.TestKey, salt, true);
 
         // Assert
         trgStream.Position.Should().Be(0);
@@ -117,7 +134,7 @@ public class AesGcmDecryptorTests
         using var trgStream = new MemoryStream();
 
         // Act
-        var result = sut.Decrypt(srcStream, trgStream, TestRefs.TestKey, salt);
+        var result = sut.Decrypt(srcStream, trgStream, TestRefs.TestKey, salt, true);
 
         // Assert
         result.Should().BeEquivalentTo(expected);
@@ -138,7 +155,7 @@ public class AesGcmDecryptorTests
         using var trgStream = new MemoryStream();
 
         // Act
-        sut.Decrypt(srcStream, trgStream, TestRefs.TestKey, salt, bufferLength);
+        sut.Decrypt(srcStream, trgStream, TestRefs.TestKey, salt, true, bufferLength);
 
         // Assert
         mockResizer.Verify(
@@ -173,7 +190,7 @@ public class AesGcmDecryptorTests
         new AesGcmEncryptor().Encrypt(stream, target, userKey, []);
 
         // Act
-        var act = () => sut.Decrypt(target, new MemoryStream(), userKey, [2]);
+        var act = () => sut.Decrypt(target, new MemoryStream(), userKey, [2], false);
 
         // Assert
         act.Should().Throw<Exception>();

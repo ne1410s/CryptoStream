@@ -17,10 +17,16 @@ public interface IGcmDecryptor : IDecryptor
     /// </summary>
     /// <param name="input">The stream.</param>
     /// <param name="userKey">The user key.</param>
+    /// <param name="expectMetadata">Whether metadata was originally included.</param>
     /// <param name="originalLength">The original length.</param>
     /// <param name="metadata">The metadata.</param>
     /// <returns>The pepper.</returns>
-    byte[] ReadPepper(Stream input, byte[] userKey, out long originalLength, out Dictionary<string, string> metadata);
+    byte[] ReadPepper(
+        Stream input,
+        byte[] userKey,
+        bool? expectMetadata,
+        out long originalLength,
+        out Dictionary<string, string> metadata);
 
     /// <summary>
     /// Decrypts a block.

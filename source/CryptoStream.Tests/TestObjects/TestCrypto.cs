@@ -9,7 +9,13 @@ using CryptoStream.Transform;
 public class TestCrypto : IEncryptor, IDecryptor
 {
     public Dictionary<string, string> Decrypt(
-        Stream source, Stream target, byte[] userKey, byte[] salt, int bufferLength = 32768, Stream? mac = null)
+        Stream source,
+        Stream target,
+        byte[] userKey,
+        byte[] salt,
+        bool? expectMetadata,
+        int bufferLength = 32768,
+        Stream? mac = null)
     {
         target.Write([1, 3, 5]);
         return [];

@@ -63,7 +63,7 @@ public class FileExtensionsTests
 
         // Assert
         mockDecryptor.Verify(
-            m => m.Decrypt(It.IsAny<Stream>(), trgStream, TestRefs.TestKey, It.IsAny<byte[]>(), 32768, null),
+            m => m.Decrypt(It.IsAny<Stream>(), trgStream, TestRefs.TestKey, It.IsAny<byte[]>(), true, 32768, null),
             Times.Once());
     }
 
