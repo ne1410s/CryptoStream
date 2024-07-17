@@ -4,6 +4,7 @@
 
 namespace CryptoStream.Tests.Transform;
 
+using System.Security.Cryptography;
 using CryptoStream.IO;
 using CryptoStream.Keying;
 using CryptoStream.Tests.TestObjects;
@@ -98,6 +99,44 @@ public class AesGcmDecryptorTests
     }
 
     [Fact]
+    public void ReadPepper_AtMetadataBufferThreshold_DoesNotThrow()
+    {
+        // Arrange
+        var sut = new AesGcmDecryptor();
+        var buf = new byte[4096];
+        Array.Fill(buf, (byte)4);
+        var srcStream = new MemoryStream(buf);
+        var trgStream = new MemoryStream();
+        new AesGcmEncryptor().Encrypt(srcStream, trgStream, TestRefs.TestKey, new());
+        var encrypted = trgStream.ToArray();
+        var x = new Span<byte>(encrypted, encrypted.Length - 128, 128);
+        var sutBuf = new byte[4096 - 128].Concat(x.ToArray()).ToArray();
+        trgStream = new MemoryStream(sutBuf);
+
+        // Act
+        var act = () => sut.ReadPepper(trgStream, TestRefs.TestKey, null, out _, out _);
+
+        // Assert
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void ReadPepper_BadMetadataIndicator_ThrowsIOException()
+    {
+        // Arrange
+        var sut = new AesGcmDecryptor();
+        var srcStream = new MemoryStream([1, 2, 3]);
+        var trgStream = new MemoryStream();
+        new AesGcmEncryptor().Encrypt(srcStream, trgStream, TestRefs.TestKey, new());
+
+        // Act
+        var act = () => sut.ReadPepper(trgStream, TestRefs.TestKey, true, out _, out _);
+
+        // Assert
+        act.Should().Throw<IOException>();
+    }
+
+    [Fact]
     public void Decrypt_OversizedTarget_CallsResize()
     {
         // Arrange
@@ -169,13 +208,28 @@ public class AesGcmDecryptorTests
         // Arrange
         var mockResizer = new Mock<IArrayResizer>();
         var sut = new AesGcmDecryptor(resizer: mockResizer.Object);
-        var block = (GcmEncryptedBlock)null!;
 
         // Act
-        var act = () => sut.DecryptBlock(block, [], [], true);
+        var act = () => sut.DecryptBlock(null!, [], [], default);
 
         // Assert
         act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public void DecryptBlock_AuthenticateBadMacBuffer_ReturnsExpected()
+    {
+        // Arrange
+        var sut = new AesGcmDecryptor();
+        var key = new byte[32];
+        var tag = new byte[16];
+        var block = new GcmEncryptedBlock([71, 120, 194, 33], tag);
+
+        // Act
+        var act = () => sut.DecryptBlock(block, key, 1L.RaiseBits(), true);
+
+        // Assert
+        act.Should().Throw<AuthenticationTagMismatchException>();
     }
 
     [Fact]
