@@ -25,7 +25,8 @@ public abstract class GcmDecryptorBase(
     ICryptoKeyDeriver keyDeriver,
     IArrayResizer resizer) : IGcmDecryptor
 {
-    private const int Padding = 4096;
+    private const int MetaPadding = 4096;
+    private const int NoMetaPadding = 128;
     private const string ReservedPrefix = nameof(GcmEncryptorBase) + "_";
 
     /// <inheritdoc/>
@@ -89,8 +90,10 @@ public abstract class GcmDecryptorBase(
     {
         input = input ?? throw new ArgumentNullException(nameof(input));
 
-        var metaBytes = new byte[Padding];
-        input.Seek(-Padding, SeekOrigin.End);
+        var useMetaPadding = expectMetadata ?? input.Length > MetaPadding;
+        var paddingToUse = useMetaPadding ? MetaPadding : NoMetaPadding;
+        var metaBytes = new byte[paddingToUse];
+        input.Seek(-paddingToUse, SeekOrigin.End);
         input.Read(metaBytes, 0, metaBytes.Length);
         input.Reset();
 

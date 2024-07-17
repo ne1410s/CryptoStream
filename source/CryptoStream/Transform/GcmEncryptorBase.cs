@@ -26,7 +26,8 @@ public abstract class GcmEncryptorBase(
     ICryptoKeyDeriver keyDeriver,
     IArrayResizer resizer) : IGcmEncryptor
 {
-    private const int Padding = 4096;
+    private const int MetaPadding = 4096;
+    private const int NoMetaPadding = 128;
     private const string ReservedPrefix = nameof(GcmEncryptorBase) + "_";
 
     /// <inheritdoc/>
@@ -106,6 +107,7 @@ public abstract class GcmEncryptorBase(
         byte[] pepper,
         byte[] userKey)
     {
+        var paddingToUse = metadata.Count == 0 ? NoMetaPadding : MetaPadding;
         var metaCollection = HttpUtility.ParseQueryString(string.Empty);
         foreach (var kvp in metadata)
         {
@@ -115,9 +117,9 @@ public abstract class GcmEncryptorBase(
         metaCollection[ReservedPrefix + "length"] = $"{originalLength}";
         metaCollection[ReservedPrefix + "pepper"] = pepper.Encode(Codec.ByteBase64);
         var metaString = metaCollection.ToString();
-        metaString = metaString.PadRight(Padding, ' ');
+        metaString = metaString.PadRight(paddingToUse, ' ');
         var metaBytes = metaString.Decode(Codec.CharUtf8);
-        if (metaBytes.Length != Padding)
+        if (metaBytes.Length != paddingToUse)
         {
             throw new ArgumentException("Unexpected padding.");
         }

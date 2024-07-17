@@ -160,13 +160,13 @@ public class AesGcmEncryptorTests
         var sut = new AesGcmEncryptor();
         using var srcStream = new MemoryStream([ 1, 2, 3]);
         using var trgStream = new MemoryStream();
-        var checkBackBuffer = new byte[300];
+        var checkBackBuffer = new byte[30];
 
         // Act
         sut.Encrypt(srcStream, trgStream, TestRefs.TestKey, []);
 
         // Assert
-        trgStream.Seek(-(4096 + checkBackBuffer.Length), SeekOrigin.End);
+        trgStream.Seek(-(128 + checkBackBuffer.Length), SeekOrigin.End);
         trgStream.Read(checkBackBuffer);
         checkBackBuffer.Should().NotContain(default(byte));
     }
@@ -183,7 +183,7 @@ public class AesGcmEncryptorTests
         sut.Encrypt(srcStream, trgStream, TestRefs.TestKey, []);
 
         // Assert
-        trgStream.Length.Should().Be(5000);
+        trgStream.Length.Should().Be(200);
     }
 
     [Fact]
