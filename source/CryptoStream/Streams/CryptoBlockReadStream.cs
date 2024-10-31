@@ -70,10 +70,10 @@ public class CryptoBlockReadStream : BlockReadStream
     public ReadOnlyDictionary<string, string> Metadata { get; }
 
     /// <inheritdoc/>
-    protected override byte[] MapBlock(byte[] sourceBuffer, long blockNo)
+    protected override byte[] MapBlock(byte[] inputBuffer, long blockNo)
     {
         var counter = blockNo.RaiseBits();
-        var encryptedBlock = new GcmEncryptedBlock(sourceBuffer, []);
+        var encryptedBlock = new GcmEncryptedBlock(inputBuffer, []);
         return this.decryptor.DecryptBlock(encryptedBlock, this.cryptoKey, counter, false);
     }
 }

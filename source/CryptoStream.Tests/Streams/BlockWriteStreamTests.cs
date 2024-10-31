@@ -18,17 +18,34 @@ public class BlockWriteStreamTests
     [InlineData(3)]
     [InlineData(5)]
     [InlineData(1024)]
-    public void Write_VaryingBuffer_WritesSameLength(int bufferLength)
+    public void Write_VaryingBufferLength_GivesSameResult(int bufferLength)
     {
         // Arrange
-        var source = new MemoryStream();
+        const string expectedMd5 = "165f43c3ac341e4defb924b38c9fceb5";
+        var sink = new MemoryStream();
         var content = new byte[] { 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 };
-        using var sut = new BlockWriteStream(source, bufferLength);
+        using var sut = new BlockWriteStream(sink, bufferLength);
 
         // Act
         var written = sut.Write(content);
 
         // Assert
         written.Should().Be(content.Length);
+        content.Hash(HashType.Md5).Encode(Codec.ByteHex).Should().Be(expectedMd5);
+    }
+
+    [Fact]
+    public void Write_SplinchedPosition_ThrowsExpected()
+    {
+        // Arrange
+        var sink = new MemoryStream();
+        using var sut = new BlockWriteStream(sink, bufferLength: 2);
+        sut.Write([1]);
+
+        // Act
+        var act = () => sut.Write([1]);
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>().WithMessage("Unexpected sink position.");
     }
 }

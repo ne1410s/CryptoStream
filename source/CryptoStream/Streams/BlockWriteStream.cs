@@ -37,32 +37,29 @@ public class BlockWriteStream(Stream stream, int bufferLength = 32768)
     /// <inheritdoc/>
     public override void Write(byte[] buffer, int offset, int count)
     {
-        if (buffer?.Length != bufferLength)
+        var neededPos = StreamBlockUtils.BlockPosition(this.Position, bufferLength, out var block1, out _);
+        if (this.Position != neededPos)
         {
-            throw new InvalidOperationException("Invalid buffer length.");
-        }
-
-        var requiredPos = StreamBlockUtils.BlockPosition(this.Position, bufferLength, out var block1, out _);
-        if (this.Position != requiredPos)
-        {
-            throw new InvalidOperationException("Unexpected position.");
+            throw new InvalidOperationException("Unexpected sink position.");
         }
 
         var blockSpan = (int)Math.Ceiling((double)count / bufferLength);
         foreach (var blockIndex in Enumerable.Range(0, blockSpan))
         {
-            Array.Copy(buffer, blockIndex * bufferLength, this.BlockBuffer, 0, bufferLength);
-
+            var sz = blockIndex == blockSpan - 1 ? count % bufferLength : bufferLength;
+            Array.Copy(buffer, blockIndex * bufferLength, this.BlockBuffer, 0, sz);
             var mappedBlock = this.MapBlock(this.BlockBuffer, block1 + blockIndex);
-            this.Inner.Write(mappedBlock, 0, mappedBlock.Length);
+            this.Inner.Write(mappedBlock, 0, sz);
         }
+
+        Array.Clear(this.BlockBuffer, 0, bufferLength);
     }
 
     /// <inheritdoc/>
     public int Write(byte[] bytes)
     {
         bytes = bytes ?? throw new ArgumentNullException(nameof(bytes));
-        this.Write(bytes, 0, bufferLength);
+        this.Write(bytes, 0, bytes.Length);
         return bytes.Length;
     }
 
