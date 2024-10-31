@@ -21,7 +21,7 @@ using CryptoStream.Utils;
 /// <param name="bufferLength">The block buffer length.</param>
 /// <param name="resizer">An array resizer.</param>
 public class BlockReadStream(Stream stream, int bufferLength = 32768, IArrayResizer? resizer = null)
-    : ReadStream(stream), ISimpleReadStream
+    : SimpleStream(stream), ISimpleReadStream
 {
     private readonly IArrayResizer arrayResizer = resizer ?? new ArrayResizer();
 
@@ -91,14 +91,14 @@ public class BlockReadStream(Stream stream, int bufferLength = 32768, IArrayResi
     /// <summary>
     /// Obtains a mapped block.
     /// </summary>
-    /// <param name="sourceBuffer">The source buffer.</param>
+    /// <param name="inputBuffer">The input buffer.</param>
     /// <param name="blockNo">The discrete block number.</param>
-    /// <returns>Mapped bytes.</returns>
-    protected virtual byte[] MapBlock(byte[] sourceBuffer, long blockNo)
+    /// <returns>The output buffer.</returns>
+    protected virtual byte[] MapBlock(byte[] inputBuffer, long blockNo)
     {
-        sourceBuffer = sourceBuffer ?? throw new ArgumentNullException(nameof(sourceBuffer));
-        var retVal = new byte[sourceBuffer.Length];
-        Array.Copy(sourceBuffer, retVal, sourceBuffer.Length);
+        inputBuffer = inputBuffer ?? throw new ArgumentNullException(nameof(inputBuffer));
+        var retVal = new byte[inputBuffer.Length];
+        Array.Copy(inputBuffer, retVal, inputBuffer.Length);
         return retVal;
     }
 }

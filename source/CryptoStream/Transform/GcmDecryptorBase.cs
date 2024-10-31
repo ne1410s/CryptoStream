@@ -60,7 +60,7 @@ public abstract class GcmDecryptorBase(
         target.SetLength(0);
         foreach (var b in Enumerable.Range(0, (int)totalBlocks))
         {
-            mac?.Read(macBuffer, 0, macBuffer.Length);
+            _ = mac?.Read(macBuffer, 0, macBuffer.Length);
             var position = source.Position;
             var maxReadSize = Math.Min(originalLength - position, srcBuffer.Length);
             var readSize = source.Read(srcBuffer, 0, (int)maxReadSize);
@@ -94,7 +94,7 @@ public abstract class GcmDecryptorBase(
         var paddingToUse = useMetaPadding ? MetaPadding : NoMetaPadding;
         var metaBytes = new byte[paddingToUse];
         input.Seek(-paddingToUse, SeekOrigin.End);
-        input.Read(metaBytes, 0, metaBytes.Length);
+        _ = input.Read(metaBytes, 0, metaBytes.Length);
         input.Reset();
 
         var blockKey = userKey.Hash(HashType.Sha256);

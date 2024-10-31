@@ -25,4 +25,28 @@ public static class StreamExtensions
             stream.Seek(0, SeekOrigin.Begin);
         }
     }
+
+    /// <summary>
+    /// Opens a simple stream for reading.
+    /// </summary>
+    /// <param name="fi">The file info.</param>
+    /// <returns>A stream.</returns>
+    /// <exception cref="ArgumentNullException">If null input.</exception>
+    public static SimpleStream OpenSimpleRead(this FileInfo fi)
+    {
+        fi = fi ?? throw new ArgumentNullException(nameof(fi));
+        return new(fi.OpenRead());
+    }
+
+    /// <summary>
+    /// Opens a simple stream for writing.
+    /// </summary>
+    /// <param name="fi">The file info.</param>
+    /// <returns>A stream.</returns>
+    /// <exception cref="ArgumentNullException">If null input.</exception>
+    public static SimpleStream OpenSimpleWrite(this FileInfo fi)
+    {
+        fi = fi ?? throw new ArgumentNullException(nameof(fi));
+        return new(fi.OpenWrite());
+    }
 }

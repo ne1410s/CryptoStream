@@ -7,7 +7,7 @@ namespace CryptoStream.Tests.Streams;
 using CryptoStream.Streams;
 
 /// <summary>
-/// Tests for the <see cref="ReadStream"/>.
+/// Tests for the <see cref="SimpleStream"/>.
 /// </summary>
 public class ReadStreamTests
 {
@@ -17,7 +17,7 @@ public class ReadStreamTests
         // Arrange
         var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         File.WriteAllText(fi.FullName, $"hi{Guid.NewGuid()}");
-        using var sut = new ReadStream(fi);
+        using var sut = fi.OpenSimpleRead();
         var buffer = new byte[32];
 
         // Act
@@ -37,7 +37,7 @@ public class ReadStreamTests
         var fi = (FileInfo)null!;
 
         // Act
-        var act = () => new ReadStream(fi);
+        var act = () => fi.OpenSimpleRead();
 
         // Assert
         act.Should().ThrowExactly<ArgumentNullException>();
@@ -49,7 +49,7 @@ public class ReadStreamTests
         // Arrange
         var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         File.WriteAllText(fi.FullName, $"hi{Guid.NewGuid()}");
-        using var sut = new ReadStream(fi);
+        using var sut = fi.OpenSimpleRead();
 
         // Act
         var act = () => sut.Flush();
@@ -65,7 +65,7 @@ public class ReadStreamTests
         // Arrange
         var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         File.WriteAllText(fi.FullName, $"hi{Guid.NewGuid()}");
-        using var sut = new ReadStream(fi);
+        using var sut = fi.OpenSimpleRead();
 
         // Act
         var act = () => sut.SetLength(fi.Length);
@@ -81,7 +81,7 @@ public class ReadStreamTests
         // Arrange
         var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         File.WriteAllText(fi.FullName, $"hi{Guid.NewGuid()}");
-        using var sut = new ReadStream(fi);
+        using var sut = fi.OpenSimpleRead();
         var buffer = new byte[] { 2 };
 
         // Act
@@ -98,7 +98,7 @@ public class ReadStreamTests
         // Arrange
         var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         File.WriteAllText(fi.FullName, $"hi{Guid.NewGuid()}");
-        var sut = new ReadStream(fi);
+        var sut = fi.OpenSimpleRead();
 
         // Act
         sut.Dispose();
