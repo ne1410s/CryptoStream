@@ -4,6 +4,7 @@
 
 namespace CryptoStream.Tests.Streams;
 
+using System.Linq;
 using CryptoStream.Encoding;
 using CryptoStream.Hashing;
 using CryptoStream.IO;
@@ -17,7 +18,45 @@ using CryptoStream.Transform;
 public class CryptoBlockWriteStreamTests
 {
     [Fact]
-    public void SmallFileE2E_ProducesExpected()
+    public void Ctor_WithEncryptor_GeneratesPepper()
+    {
+        // Arrange
+        var mockGcm = new Mock<IGcmEncryptor>();
+        var ms = new MemoryStream();
+        var meta = new Dictionary<string, string> { ["filename"] = "1.test" };
+        var salt = "hi".Hash(HashType.Sha256);
+        mockGcm.Setup(
+            m => m.EncryptBlock(It.IsAny<byte[]>(), It.IsAny<byte[]>(), It.IsAny<byte[]>()))
+                .Returns(new GcmEncryptedBlock([], []));
+
+        // Act
+        using var sut = new CryptoBlockWriteStream(ms, meta, salt, TestRefs.TestKey, 1, mockGcm.Object);
+
+        // Assert
+        mockGcm.Verify(m => m.GeneratePepper(null!));
+    }
+
+    [Fact]
+    public void WriteFinal_WhenCalled_PadsExpected()
+    {
+        // Arrange
+        var ms = new MemoryStream();
+        var meta = new Dictionary<string, string> { ["filename"] = "1.test" };
+        var salt = "hi".Hash(HashType.Sha256);
+        using var sut = new CryptoBlockWriteStream(ms, meta, salt, TestRefs.TestKey);
+        sut.Write("hello, world".Decode(Codec.CharUtf8));
+
+        // Act
+        sut.WriteFinal();
+
+        // Assert
+        sut.Length.Should().Be(5000);
+        var sample = ms.ToArray().AsSpan(100, 800).ToArray().ToList();
+        sample.Exists(b => b == 0).Should().BeFalse();
+    }
+
+    [Fact]
+    public void E2E_SmallFile_ProducesExpected()
     {
         // Arrange
         var fi1 = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
@@ -41,7 +80,7 @@ public class CryptoBlockWriteStreamTests
     }
 
     [Fact]
-    public void MediumFileE2E_ProducesExpected()
+    public void E2E_MediumFile_ProducesExpected()
     {
         // Arrange
         var folder = Guid.NewGuid().ToString();

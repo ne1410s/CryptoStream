@@ -48,7 +48,7 @@ public static class FileExtensions
     /// <exception cref="ArgumentException">File suitability.</exception>
     public static byte[] ToSalt(this FileInfo fi)
     {
-        var match = SaltRegex.Match((fi ?? throw new ArgumentNullException(nameof(fi))).Name);
+        var match = SaltRegex.Match(fi.NotNull().Name);
         return match.Success
             ? match.Groups["hex"].Value.Decode(Codec.ByteHex)
             : throw new ArgumentException(
@@ -104,7 +104,7 @@ public static class FileExtensions
         decryptor ??= new AesGcmDecryptor();
         var salt = fi.ToSalt();
 
-        using var stream = fi.OpenRead();
+        using var stream = fi.NotNull().OpenRead();
         return decryptor.Decrypt(stream, target, userKey, salt, true, bufferLength, mac);
     }
 
@@ -218,7 +218,7 @@ public static class FileExtensions
     {
         decryptor ??= new AesGcmDecryptor();
         var salt = secure.ToSalt();
-        var secureExtension = secure.Extension;
+        var secureExtension = secure.NotNull().Extension;
         if (!SecureExtRegex.IsMatch(secureExtension))
         {
             throw new ArgumentException("Unable to parse file data.", nameof(secure));
