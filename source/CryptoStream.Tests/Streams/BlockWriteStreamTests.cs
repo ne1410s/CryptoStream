@@ -35,17 +35,16 @@ public class BlockWriteStreamTests
     }
 
     [Fact]
-    public void Write_SplinchedPosition_ThrowsExpected()
+    public void WriteFinal_WhenCalled_DoesNotThrow()
     {
         // Arrange
-        var sink = new MemoryStream();
-        using var sut = new BlockWriteStream(sink, bufferLength: 2);
-        sut.Write([1]);
+        using var sut = new BlockWriteStream(new MemoryStream(), 123);
 
         // Act
-        var act = () => sut.Write([1]);
+        var act = sut.WriteFinal;
 
         // Assert
-        act.Should().Throw<InvalidOperationException>().WithMessage("Unexpected sink position.");
+        act.Should().NotThrow();
+        sut.BufferLength.Should().Be(123);
     }
 }

@@ -46,7 +46,6 @@ public static class StreamExtensions
     /// <exception cref="ArgumentNullException">If null input.</exception>
     public static SimpleStream OpenSimpleWrite(this FileInfo fi)
     {
-        fi = fi ?? throw new ArgumentNullException(nameof(fi));
-        return new(fi.OpenWrite());
+        return new(fi.NotNull().OpenWrite());
     }
 }

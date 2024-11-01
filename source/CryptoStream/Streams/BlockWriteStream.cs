@@ -17,15 +17,6 @@ using CryptoStream.Utils;
 public class BlockWriteStream(Stream stream, int bufferLength = 32768)
     : SimpleStream(stream), ISimpleWriteStream
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="BlockWriteStream"/> class.
-    /// </summary>
-    /// <param name="fi">The target file.</param>
-    /// <param name="bufferLength">The block buffer length.</param>
-    public BlockWriteStream(FileInfo fi, int bufferLength = 32768)
-        : this(new FileStream(fi?.FullName, FileMode.Create, FileAccess.Write), bufferLength)
-    { }
-
     /// <inheritdoc/>
     public int BufferLength => this.BlockBuffer.Length;
 
@@ -42,6 +33,7 @@ public class BlockWriteStream(Stream stream, int bufferLength = 32768)
         foreach (var blockIndex in Enumerable.Range(0, blockSpan))
         {
             var sz = (count < bufferLength && blockIndex == blockSpan - 1) ? count % bufferLength : bufferLength;
+            sz = Math.Min(count - (blockIndex * bufferLength), sz);
             Array.Copy(buffer, blockIndex * bufferLength, this.BlockBuffer, 0, sz);
             var mappedBlock = this.MapBlock(this.BlockBuffer, block1 + blockIndex);
             this.Inner.Write(mappedBlock, 0, sz);
@@ -53,8 +45,7 @@ public class BlockWriteStream(Stream stream, int bufferLength = 32768)
     /// <inheritdoc/>
     public int Write(byte[] bytes)
     {
-        bytes = bytes ?? throw new ArgumentNullException(nameof(bytes));
-        this.Write(bytes, 0, bytes.Length);
+        this.Write(bytes, 0, bytes.NotNull().Length);
         return bytes.Length;
     }
 
@@ -70,8 +61,7 @@ public class BlockWriteStream(Stream stream, int bufferLength = 32768)
     /// <returns>The output buffer.</returns>
     protected virtual byte[] MapBlock(byte[] inputBuffer, long blockNo)
     {
-        inputBuffer = inputBuffer ?? throw new ArgumentNullException(nameof(inputBuffer));
-        var retVal = new byte[inputBuffer.Length];
+        var retVal = new byte[inputBuffer.NotNull().Length];
         Array.Copy(inputBuffer, retVal, inputBuffer.Length);
         return retVal;
     }

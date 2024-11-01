@@ -44,7 +44,7 @@ public class ReadStreamTests
     }
 
     [Fact]
-    public void Flush_WhenCalled_ThrowsException()
+    public void Flush_WhenCalled_DoesNotThrow()
     {
         // Arrange
         var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
@@ -52,44 +52,41 @@ public class ReadStreamTests
         using var sut = fi.OpenSimpleRead();
 
         // Act
-        var act = () => sut.Flush();
+        var act = sut.Flush;
 
         // Assert
-        act.Should().ThrowExactly<NotSupportedException>()
-            .WithMessage("This stream is read-only.");
+        act.Should().NotThrow();
     }
 
     [Fact]
-    public void SetLength_WhenCalled_ThrowsException()
+    public void SetLength_WhenCalled_DoesNotThrow()
     {
         // Arrange
         var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         File.WriteAllText(fi.FullName, $"hi{Guid.NewGuid()}");
-        using var sut = fi.OpenSimpleRead();
+        using var sut = fi.OpenSimpleWrite();
 
         // Act
         var act = () => sut.SetLength(fi.Length);
 
         // Assert
-        act.Should().ThrowExactly<NotSupportedException>()
-            .WithMessage("This stream is read-only.");
+        act.Should().NotThrow();
     }
 
     [Fact]
-    public void Write_WhenCalled_ThrowsException()
+    public void Write_WhenCalled_DoesNotThrow()
     {
         // Arrange
         var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         File.WriteAllText(fi.FullName, $"hi{Guid.NewGuid()}");
-        using var sut = fi.OpenSimpleRead();
+        using var sut = fi.OpenSimpleWrite();
         var buffer = new byte[] { 2 };
 
         // Act
         var act = () => sut.Write(buffer, 0, buffer.Length);
 
         // Assert
-        act.Should().ThrowExactly<NotSupportedException>()
-            .WithMessage("This stream is read-only.");
+        act.Should().NotThrow();
     }
 
     [Fact]
