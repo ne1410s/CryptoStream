@@ -4,6 +4,7 @@
 
 namespace CryptoStream.Transform;
 
+using System.Collections.Generic;
 using System.IO;
 
 /// <summary>
@@ -34,4 +35,18 @@ public interface IGcmEncryptor : IEncryptor
     /// <param name="counter">The counter.</param>
     /// <returns>An encrypted block.</returns>
     GcmEncryptedBlock EncryptBlock(byte[] source, byte[] cryptoKey, byte[] counter);
+
+    /// <summary>
+    /// Obtains suitable byte representation of metadata.
+    /// </summary>
+    /// <param name="metadata">The input data.</param>
+    /// <param name="originalLength">The original length.</param>
+    /// <param name="pepper">The pepper.</param>
+    /// <param name="userKey">The user key.</param>
+    /// <returns>The metadata bytes.</returns>
+    byte[] GetMetaBytes(
+        Dictionary<string, string> metadata,
+        long originalLength,
+        byte[] pepper,
+        byte[] userKey);
 }

@@ -37,16 +37,11 @@ public class BlockWriteStream(Stream stream, int bufferLength = 32768)
     /// <inheritdoc/>
     public override void Write(byte[] buffer, int offset, int count)
     {
-        var neededPos = StreamBlockUtils.BlockPosition(this.Position, bufferLength, out var block1, out _);
-        if (this.Position != neededPos)
-        {
-            throw new InvalidOperationException("Unexpected sink position.");
-        }
-
+        StreamBlockUtils.BlockPosition(this.Position, bufferLength, out var block1, out _);
         var blockSpan = (int)Math.Ceiling((double)count / bufferLength);
         foreach (var blockIndex in Enumerable.Range(0, blockSpan))
         {
-            var sz = blockIndex == blockSpan - 1 ? count % bufferLength : bufferLength;
+            var sz = (count < bufferLength && blockIndex == blockSpan - 1) ? count % bufferLength : bufferLength;
             Array.Copy(buffer, blockIndex * bufferLength, this.BlockBuffer, 0, sz);
             var mappedBlock = this.MapBlock(this.BlockBuffer, block1 + blockIndex);
             this.Inner.Write(mappedBlock, 0, sz);
@@ -62,6 +57,10 @@ public class BlockWriteStream(Stream stream, int bufferLength = 32768)
         this.Write(bytes, 0, bytes.Length);
         return bytes.Length;
     }
+
+    /// <inheritdoc/>
+    public virtual void WriteFinal()
+    { }
 
     /// <summary>
     /// Obtains a mapped block.

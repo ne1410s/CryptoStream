@@ -28,4 +28,9 @@ public interface ISimpleWriteStream : IDisposable
     /// <param name="bytes">The bytes to write.</param>
     /// <returns>The number of bytes written.</returns>
     int Write(byte[] bytes);
+
+    /// <summary>
+    /// Finalises the stream.
+    /// </summary>
+    void WriteFinal();
 }

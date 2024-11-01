@@ -101,13 +101,14 @@ public abstract class GcmEncryptorBase(
         return salt.Concat(key).ToArray().Hash(HashType.Sha256);
     }
 
-    private byte[] GetMetaBytes(
+    /// <inheritdoc/>
+    public byte[] GetMetaBytes(
         Dictionary<string, string> metadata,
         long originalLength,
         byte[] pepper,
         byte[] userKey)
     {
-        var paddingToUse = metadata.Count == 0 ? NoMetaPadding : MetaPadding;
+        var paddingToUse = metadata.NotNull().Count == 0 ? NoMetaPadding : MetaPadding;
         var metaCollection = HttpUtility.ParseQueryString(string.Empty);
         foreach (var kvp in metadata)
         {
