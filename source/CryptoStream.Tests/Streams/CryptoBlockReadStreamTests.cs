@@ -57,7 +57,13 @@ public class CryptoBlockReadStreamTests
     public void Read_VaryingStartPosition_MimicsNonBlockingAuthority(long position, int bufferLength = 32768)
     {
         // Arrange
-        var fi = new FileInfo(Path.Combine("TestObjects", "sample.avi"));
+        var folder = Directory.CreateDirectory($"{Guid.NewGuid()}");
+        var fi = new FileInfo(Path.Combine(folder.FullName, "sample.avi"));
+        File.Copy(Path.Combine("TestObjects", "sample.avi"), fi.FullName);
+        const string secName = "2fbdd1cbdb5f317b7e21ebb7ae7c32d166feec3be76b64d470123bf4d2c06ae5.03470a9848";
+        var secureFi = new FileInfo(Path.Combine(folder.FullName, secName));
+        File.Copy(Path.Combine("TestObjects", secName), secureFi.FullName);
+
         using var authority = new SimpleFileStream(fi, bufferLength);
         authority.Seek(position, SeekOrigin.Begin);
         var authBuffer = new byte[bufferLength];
@@ -68,8 +74,6 @@ public class CryptoBlockReadStreamTests
         }
 
         var authMd5Hex = authBuffer.Hash(HashType.Md5).Encode(Codec.ByteHex);
-        var secureFi = new FileInfo(
-            Path.Combine("TestObjects", "2fbdd1cbdb5f317b7e21ebb7ae7c32d166feec3be76b64d470123bf4d2c06ae5.03470a9848"));
         using var sut = new CryptoBlockReadStream(secureFi, TestRefs.TestKey);
         sut.Seek(position, SeekOrigin.Begin);
 
@@ -80,6 +84,11 @@ public class CryptoBlockReadStreamTests
         // Assert
         resultMd5Hex.Should().Be(authMd5Hex);
         sut.Position.Should().Be(authority.Position);
+
+        // Clean up
+        authority.Close();
+        sut.Close();
+        folder.Delete(true);
     }
 
     [Fact]

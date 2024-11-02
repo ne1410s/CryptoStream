@@ -56,17 +56,18 @@ public class CryptoBlockWriteStreamTests
     }
 
     [Fact]
-    public void E2E_SmallFile_ProducesExpected()
+    public void E2E_SmallFileAndBuffer_ProducesExpected()
     {
         // Arrange
+        const int bufferSize = 5;
         var fi1 = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         File.WriteAllText(fi1.FullName, "hello here is a string");
         var clearBytes = File.ReadAllBytes(fi1.FullName);
-        var saltHex = fi1.EncryptInSitu(TestRefs.TestKey);
+        var saltHex = fi1.EncryptInSitu(TestRefs.TestKey, bufferLength: bufferSize);
         var salt = saltHex.Decode(Codec.ByteHex);
         var msEnc = new MemoryStream();
         var metadata = new Dictionary<string, string> { ["filename"] = "test.xyz" };
-        using var cbws = new CryptoBlockWriteStream(msEnc, metadata, salt, TestRefs.TestKey);
+        using var cbws = new CryptoBlockWriteStream(msEnc, metadata, salt, TestRefs.TestKey, bufferSize);
 
         // Act
         cbws.Write(clearBytes);
@@ -74,7 +75,7 @@ public class CryptoBlockWriteStreamTests
 
         // Assert
         var msDec = new MemoryStream();
-        var md = new AesGcmDecryptor().Decrypt(msEnc, msDec, TestRefs.TestKey, salt, metadata.Count > 0);
+        var md = new AesGcmDecryptor().Decrypt(msEnc, msDec, TestRefs.TestKey, salt, true, bufferSize);
         msDec.ToArray().Should().BeEquivalentTo(clearBytes);
         md.Should().BeEquivalentTo(metadata);
     }

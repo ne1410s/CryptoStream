@@ -32,14 +32,12 @@ public class BlockWriteStream(Stream stream, int bufferLength = 32768)
         var blockSpan = (int)Math.Ceiling((double)count / bufferLength);
         foreach (var blockIndex in Enumerable.Range(0, blockSpan))
         {
-            var sz = (count < bufferLength && blockIndex == blockSpan - 1) ? count % bufferLength : bufferLength;
-            sz = Math.Min(count - (blockIndex * bufferLength), sz);
-            Array.Copy(buffer, blockIndex * bufferLength, this.BlockBuffer, 0, sz);
+            var done = blockIndex * bufferLength;
+            var todo = blockIndex == blockSpan - 1 ? count - done : bufferLength;
+            Array.Copy(buffer, done, this.BlockBuffer, 0, todo);
             var mappedBlock = this.MapBlock(this.BlockBuffer, block1 + blockIndex);
-            this.Inner.Write(mappedBlock, 0, sz);
+            this.Inner.Write(mappedBlock, 0, todo);
         }
-
-        Array.Clear(this.BlockBuffer, 0, bufferLength);
     }
 
     /// <inheritdoc/>

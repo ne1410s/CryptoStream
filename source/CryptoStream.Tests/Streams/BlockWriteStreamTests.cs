@@ -6,6 +6,7 @@ namespace CryptoStream.Tests.Streams;
 
 using CryptoStream.Encoding;
 using CryptoStream.Hashing;
+using CryptoStream.IO;
 using CryptoStream.Streams;
 
 /// <summary>
@@ -32,6 +33,35 @@ public class BlockWriteStreamTests
         // Assert
         written.Should().Be(content.Length);
         content.Hash(HashType.Md5).Encode(Codec.ByteHex).Should().Be(expectedMd5);
+    }
+
+    [Fact]
+    public void Write_MediumFile_HashesExpected()
+    {
+        // Arrange
+        var folder = Guid.NewGuid().ToString();
+        Directory.CreateDirectory(folder);
+        var sourceInfo = new FileInfo(Path.Combine(folder, "sample.avi"));
+        File.Copy(Path.Combine("TestObjects", "sample.avi"), sourceInfo.FullName);
+        using var fs = File.OpenWrite(Path.Combine(folder, "sample2.avi"));
+        using var sut = new BlockWriteStream(fs);
+
+        // Act
+        var buffer = new byte[32768];
+        int bytesRead;
+        using var fsClear = sourceInfo.OpenRead();
+        while ((bytesRead = fsClear.Read(buffer, 0, buffer.Length)) > 0)
+        {
+            sut.Write(buffer, 0, bytesRead);
+        }
+
+        fsClear.Close();
+        fs.Close();
+
+        // Assert
+        var sourceInfo2 = new FileInfo(Path.Combine(folder, "sample2.avi"));
+        var md5Hex = sourceInfo2.Hash(HashType.Md5).Encode(Codec.ByteHex);
+        md5Hex.Should().Be("91d326694fdff83d0df74c357f3feb84");
     }
 
     [Fact]
