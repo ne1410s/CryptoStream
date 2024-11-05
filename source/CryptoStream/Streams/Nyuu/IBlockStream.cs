@@ -4,12 +4,10 @@
 
 namespace CryptoStream.Streams.Nyuu;
 
-using System;
-
 /// <summary>
 /// A stream that translates arbitrary reads and writes to a sequence of discrete blocks.
 /// </summary>
-public interface IBlockStream : IDisposable
+public interface IBlockStream
 {
     /// <summary>
     /// Gets a pseudo URI (to identify the input stream).
