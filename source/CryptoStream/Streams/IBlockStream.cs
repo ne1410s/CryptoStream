@@ -2,7 +2,7 @@
 // Copyright (c) ne1410s. All rights reserved.
 // </copyright>
 
-namespace CryptoStream.Streams.Nyuu;
+namespace CryptoStream.Streams;
 
 /// <summary>
 /// A stream that translates arbitrary reads and writes to a sequence of discrete blocks.

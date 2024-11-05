@@ -5,13 +5,52 @@
 namespace CryptoStream.Streams;
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using CryptoStream.IO;
 
 /// <summary>
-/// Extensions for <see cref="Stream"/> class.
+/// Stream extensions.
 /// </summary>
 public static class StreamExtensions
 {
+    /// <summary>
+    /// Opens a simple block stream from a file. This can be used to read or write.
+    /// </summary>
+    /// <param name="fi">The source file.</param>
+    /// <param name="bufferLength">The buffer length.</param>
+    /// <returns>The stream.</returns>
+    public static BlockStream OpenSimple(this FileInfo fi, int bufferLength = 32768)
+        => new(fi.NotNull().OpenRead(), bufferLength);
+
+    /// <summary>
+    /// Opens a crypto read stream from a file.
+    /// </summary>
+    /// <param name="fi">The source file.</param>
+    /// <param name="key">The cryptographic key.</param>
+    /// <param name="bufferLength">The buffer length.</param>
+    /// <returns>The stream.</returns>
+    public static GcmCryptoStream OpenRead(this FileInfo fi, byte[] key, int bufferLength = 32768)
+    {
+        var salt = fi.ToSalt();
+        return new GcmCryptoStream(fi.NotNull().OpenRead(), salt, key, bufferLength);
+    }
+
+    /// <summary>
+    /// Opens a crypto write stream from a file.
+    /// </summary>
+    /// <param name="fi">The source file.</param>
+    /// <param name="key">The cryptographic key.</param>
+    /// <param name="metadata">The source metadata.</param>
+    /// <param name="bufferLength">The buffer length.</param>
+    /// <returns>The stream.</returns>
+    public static GcmCryptoStream OpenWrite(
+        this FileInfo fi, byte[] key, Dictionary<string, string> metadata, int bufferLength = 32768)
+    {
+        var salt = fi.ToSalt();
+        return new GcmCryptoStream(fi.NotNull().OpenRead(), salt, key, metadata, bufferLength);
+    }
+
     /// <summary>
     /// Resets the stream position to the beginning.
     /// </summary>
@@ -24,28 +63,5 @@ public static class StreamExtensions
         {
             stream.Seek(0, SeekOrigin.Begin);
         }
-    }
-
-    /// <summary>
-    /// Opens a simple stream for reading.
-    /// </summary>
-    /// <param name="fi">The file info.</param>
-    /// <returns>A stream.</returns>
-    /// <exception cref="ArgumentNullException">If null input.</exception>
-    public static SimpleStream OpenSimpleRead(this FileInfo fi)
-    {
-        fi = fi ?? throw new ArgumentNullException(nameof(fi));
-        return new(fi.OpenRead());
-    }
-
-    /// <summary>
-    /// Opens a simple stream for writing.
-    /// </summary>
-    /// <param name="fi">The file info.</param>
-    /// <returns>A stream.</returns>
-    /// <exception cref="ArgumentNullException">If null input.</exception>
-    public static SimpleStream OpenSimpleWrite(this FileInfo fi)
-    {
-        return new(fi.NotNull().OpenWrite());
     }
 }

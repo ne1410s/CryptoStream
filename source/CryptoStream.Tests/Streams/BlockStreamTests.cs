@@ -2,12 +2,12 @@
 // Copyright (c) ne1410s. All rights reserved.
 // </copyright>
 
-namespace CryptoStream.Tests.Streams.Nyuu;
+namespace CryptoStream.Tests.Streams;
 
 using CryptoStream.Encoding;
 using CryptoStream.Hashing;
 using CryptoStream.IO;
-using CryptoStream.Streams.Nyuu;
+using CryptoStream.Streams;
 
 /// <summary>
 /// Tests for the <see cref="BlockStream"/> class.
@@ -53,7 +53,7 @@ public class BlockStreamTests
     public void Write_WithFinalise_MatchesDirect()
     {
         // Arrange
-        const int bufLen = 333;
+        const int bufLen = 32768;
         var testRef = Guid.NewGuid();
         var referenceFi = new FileInfo($"{testRef}_reference-file.avi");
         File.Copy("TestObjects/sample.avi", referenceFi.FullName);

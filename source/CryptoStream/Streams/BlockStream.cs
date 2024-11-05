@@ -2,7 +2,7 @@
 // Copyright (c) ne1410s. All rights reserved.
 // </copyright>
 
-namespace CryptoStream.Streams.Nyuu;
+namespace CryptoStream.Streams;
 
 using System;
 using System.IO;
@@ -17,7 +17,7 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
     private readonly MemoryStream writeCache = new(bufferLength);
 
     /// <inheritdoc/>
-    public string Id { get; } = $"{Guid.NewGuid()}";
+    public string Id { get; protected set; } = $"{Guid.NewGuid()}";
 
     /// <inheritdoc/>
     public int BufferLength => bufferLength;
@@ -41,6 +41,11 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
     /// Gets the internal block buffer.
     /// </summary>
     protected byte[] BlockBuffer { get; } = new byte[bufferLength];
+
+    /// <summary>
+    /// Gets the inner stream.
+    /// </summary>
+    protected Stream Inner => stream;
 
     /// <inheritdoc/>
     public override int Read(byte[] buffer, int offset, int count)
