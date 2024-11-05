@@ -12,8 +12,10 @@ using CryptoStream.Utils;
 /// <inheritdoc cref="IBlockStream"/>
 /// <param name="stream">The input stream.</param>
 /// <param name="bufferLength">The buffer length.</param>
-public class BlockStream(Stream stream, int bufferLength = 32768) : IBlockStream
+public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlockStream
 {
+    private readonly MemoryStream writeCache = new(bufferLength);
+
     /// <inheritdoc/>
     public string Id { get; } = $"{Guid.NewGuid()}";
 
@@ -21,16 +23,19 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : IBlockStream
     public int BufferLength => bufferLength;
 
     /// <inheritdoc/>
-    public long Length => stream.Length;
+    public override bool CanRead => stream.CanRead;
 
     /// <inheritdoc/>
-    public bool CanRead => stream.CanRead;
+    public override bool CanSeek => stream.CanSeek;
 
     /// <inheritdoc/>
-    public bool CanWrite => stream.CanWrite;
+    public override bool CanWrite => stream.CanWrite;
 
     /// <inheritdoc/>
-    public bool CanSeek => stream.CanSeek;
+    public override long Length => stream.Length;
+
+    /// <inheritdoc/>
+    public override long Position { get => stream.Position; set => stream.Position = value; }
 
     /// <summary>
     /// Gets the internal block buffer.
@@ -38,23 +43,22 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : IBlockStream
     protected byte[] BlockBuffer { get; } = new byte[bufferLength];
 
     /// <inheritdoc/>
-    public int Read(byte[] buffer)
+    public override int Read(byte[] buffer, int offset, int count)
     {
-        var count = bufferLength;
         var originalPosition = stream.Position;
         stream.Position = StreamBlockUtils.BlockPosition(
-            stream.Position, this.BufferLength, out var block1, out var remainder);
-        var blockSpan = (int)Math.Ceiling((double)(remainder + count) / this.BufferLength);
+            stream.Position, bufferLength, out var block1, out var remainder);
+        var blockSpan = (int)Math.Ceiling((double)(remainder + count) / bufferLength);
         var totalBytesRead = 0;
 
         foreach (var blockIndex in Enumerable.Range(0, blockSpan))
         {
-            var blockRead = stream.Read(this.BlockBuffer, 0, this.BufferLength);
+            var blockRead = stream.Read(this.BlockBuffer, 0, bufferLength);
             var pertinentBlockRead = Math.Min(blockRead - remainder, count - totalBytesRead);
             pertinentBlockRead = (int)Math.Min(
                 (double)pertinentBlockRead,
-                this.Length - (originalPosition + totalBytesRead));
-            this.MapReadBlock(block1 + blockIndex);
+                stream.Length - (originalPosition + totalBytesRead));
+            this.TransformBufferForRead(block1 + blockIndex);
             Array.Copy(this.BlockBuffer, remainder, buffer, totalBytesRead, pertinentBlockRead);
             totalBytesRead += pertinentBlockRead;
             remainder = 0;
@@ -65,32 +69,50 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : IBlockStream
     }
 
     /// <inheritdoc/>
-    public int Write(byte[] bytes)
+    public override void Write(byte[] buffer, int offset, int count)
     {
-        // 
+        var cacheRoom = bufferLength - (int)this.writeCache.Length;
+        var cacheable = Math.Min(cacheRoom, count);
+        this.writeCache.Write(buffer, 0, cacheable);
+
+        if (count >= cacheRoom)
+        {
+            this.FlushCache();
+            this.writeCache.Write(buffer, cacheable, count - cacheable);
+        }
     }
 
     /// <inheritdoc/>
-    public long Seek(long position) => stream.Seek(position, SeekOrigin.Begin);
+    public virtual void FinaliseWrite() => this.FlushCache();
 
     /// <inheritdoc/>
-    public void Dispose()
-    {
-        GC.SuppressFinalize(this);
-        stream.Dispose();
-    }
+    public override long Seek(long offset, SeekOrigin origin) => stream.Seek(offset, SeekOrigin.Begin);
+
+    /// <inheritdoc/>
+    public override void Flush() => stream.Flush();
+
+    /// <inheritdoc/>
+    public override void SetLength(long value) => stream.SetLength(value);
 
     /// <summary>
     /// Maps the block buffer for read.
     /// </summary>
     /// <param name="blockNo">The discrete block number.</param>
-    protected virtual void MapReadBlock(long blockNo)
+    protected virtual void TransformBufferForRead(long blockNo)
     { }
 
     /// <summary>
     /// Maps the block buffer for write.
     /// </summary>
     /// <param name="blockNo">The discrete block number.</param>
-    protected virtual void MapWriteBlock(long blockNo)
+    protected virtual void TransformBufferForWrite(long blockNo)
     { }
+
+    private void FlushCache()
+    {
+        StreamBlockUtils.BlockPosition(stream.Position, bufferLength, out var block1, out _);
+        this.TransformBufferForWrite(block1);
+        stream.Write(this.BlockBuffer, 0, (int)this.writeCache.Length);
+        this.writeCache.SetLength(0);
+    }
 }
