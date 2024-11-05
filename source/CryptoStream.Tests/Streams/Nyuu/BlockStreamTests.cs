@@ -64,15 +64,18 @@ public class BlockStreamTests
 
         // Act
         using var refFs = referenceFi.OpenRead();
-        refFs.CopyTo(sutStream);
-        sutStream.Close();
+        refFs.CopyTo(sutStream, bufLen);
+        sutStream.FinaliseWrite();
+
         refFs.Close();
+        blocksFs.Close();
+        sutStream.Close();
         var newMd5 = blocksFi.Hash(HashType.Md5).Encode(Codec.ByteHex);
-        referenceFi.Delete();
-        blocksFi.Delete();
 
         // Assert
         newMd5.Should().Be(referenceMd5);
+        referenceFi.Delete();
+        blocksFi.Delete();
     }
 
     private static string Md5Hex(Stream stream, byte[] buffer, long position, int count)
