@@ -102,6 +102,13 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
     /// <inheritdoc/>
     public override void SetLength(long value) => stream.SetLength(value);
 
+    /// <inheritdoc/>
+    protected override void Dispose(bool disposing)
+    {
+        base.Dispose(disposing);
+        this.Inner.Dispose();
+    }
+
     /// <summary>
     /// Maps the block buffer for read.
     /// </summary>

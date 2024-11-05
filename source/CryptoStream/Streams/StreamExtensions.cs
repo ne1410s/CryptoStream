@@ -39,16 +39,16 @@ public static class StreamExtensions
     /// <summary>
     /// Opens a crypto write stream from a file.
     /// </summary>
-    /// <param name="fi">The source file.</param>
+    /// <param name="fi">The target file to write. The extension should match the original.</param>
+    /// <param name="salt">The salt.</param>
     /// <param name="key">The cryptographic key.</param>
-    /// <param name="metadata">The source metadata.</param>
     /// <param name="bufferLength">The buffer length.</param>
     /// <returns>The stream.</returns>
     public static GcmCryptoStream OpenWrite(
-        this FileInfo fi, byte[] key, Dictionary<string, string> metadata, int bufferLength = 32768)
+        this FileInfo fi, byte[] salt, byte[] key, int bufferLength = 32768)
     {
-        var salt = fi.ToSalt();
-        return new GcmCryptoStream(fi.NotNull().OpenRead(), salt, key, metadata, bufferLength);
+        var meta = new Dictionary<string, string> { ["filename"] = "_" + fi.NotNull().Extension };
+        return new GcmCryptoStream(fi.OpenWrite(), salt, key, meta, bufferLength);
     }
 
     /// <summary>
