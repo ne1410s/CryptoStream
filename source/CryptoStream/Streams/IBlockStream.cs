@@ -20,6 +20,11 @@ public interface IBlockStream
     public int BufferLength { get; }
 
     /// <summary>
+    /// Flushes any local cache to the underlying device.
+    /// </summary>
+    public void FlushCache();
+
+    /// <summary>
     /// Finalises the write operation.
     /// </summary>
     public void FinaliseWrite();

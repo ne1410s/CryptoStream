@@ -74,6 +74,16 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
     }
 
     /// <inheritdoc/>
+    public void FlushCache()
+    {
+        StreamBlockUtils.BlockPosition(stream.Position, bufferLength, out var block1, out _);
+        Array.Copy(this.writeCache.ToArray(), this.BlockBuffer, (int)this.writeCache.Length);
+        this.TransformBufferForWrite(block1);
+        stream.Write(this.BlockBuffer, 0, (int)this.writeCache.Length);
+        this.writeCache.SetLength(0);
+    }
+
+    /// <inheritdoc/>
     public override void Write(byte[] buffer, int offset, int count)
     {
         while (count > 0)
@@ -122,13 +132,4 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
     /// <param name="blockNo">The discrete block number.</param>
     protected virtual void TransformBufferForWrite(long blockNo)
     { }
-
-    private void FlushCache()
-    {
-        StreamBlockUtils.BlockPosition(stream.Position, bufferLength, out var block1, out _);
-        Array.Copy(this.writeCache.ToArray(), this.BlockBuffer, (int)this.writeCache.Length);
-        this.TransformBufferForWrite(block1);
-        stream.Write(this.BlockBuffer, 0, (int)this.writeCache.Length);
-        this.writeCache.SetLength(0);
-    }
 }
