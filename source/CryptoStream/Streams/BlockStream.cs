@@ -15,6 +15,7 @@ using CryptoStream.Utils;
 public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlockStream
 {
     private readonly MemoryStream writeCache = new(bufferLength);
+    private readonly byte[] zeroBuffer = new byte[bufferLength];
 
     /// <inheritdoc/>
     public string Id { get; protected set; } = $"{Guid.NewGuid()}";
@@ -76,9 +77,12 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
     /// <inheritdoc/>
     public void FlushCache()
     {
-        StreamBlockUtils.BlockPosition(stream.Position, bufferLength, out var block1, out _);
+        // We've been writing zeros, so rewind to overwrite them
+        stream.Position -= this.writeCache.Length;
+
+        StreamBlockUtils.BlockPosition(stream.Position, bufferLength, out var blockNo, out _);
         Array.Copy(this.writeCache.ToArray(), this.BlockBuffer, (int)this.writeCache.Length);
-        this.TransformBufferForWrite(block1);
+        this.TransformBufferForWrite(blockNo);
         stream.Write(this.BlockBuffer, 0, (int)this.writeCache.Length);
         this.writeCache.SetLength(0);
     }
@@ -91,6 +95,9 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
             var cacheRoom = bufferLength - (int)this.writeCache.Length;
             var cacheable = Math.Min(cacheRoom, count);
             this.writeCache.Write(buffer, 0, cacheable);
+
+            // Write zeros so that length and position still track ;)
+            this.Inner.Write(this.zeroBuffer, 0, cacheable);
             if (this.writeCache.Length == bufferLength)
             {
                 this.FlushCache();
