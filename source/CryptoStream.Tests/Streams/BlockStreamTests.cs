@@ -15,6 +15,24 @@ using CryptoStream.Streams;
 public class BlockStreamTests
 {
     [Fact]
+    public void Ctor_WhenCalled_MatchesUnderlyingStream()
+    {
+        // Arrange
+        var ms = new MemoryStream([1, 2, 3]);
+
+        // Act
+        var sut = new BlockStream(ms);
+        sut.Position = 3;
+        sut.SetLength(2);
+        sut.Flush();
+
+        // Assert
+        sut.Position.Should().Be(2);
+        sut.CanSeek.Should().Be(ms.CanSeek);
+        sut.CanRead.Should().Be(ms.CanRead);
+    }
+
+    [Fact]
     public void Read_VariousPoints_MatchesDirect()
     {
         // Arrange
@@ -24,9 +42,8 @@ public class BlockStreamTests
         var blocksFi = new FileInfo($"{testRef}_read-blocks-sample.avi");
         File.Copy("TestObjects/sample.avi", directFi.FullName);
         File.Copy("TestObjects/sample.avi", blocksFi.FullName);
-        using var directFs = directFi.OpenRead();
-        using var blocksFs = blocksFi.OpenRead();
-        using var sutStream = new BlockStream(blocksFs, bufLen);
+        var directFs = directFi.OpenRead();
+        var sutStream = blocksFi.OpenSimple();
         var buffer = new byte[bufLen];
 
         // Act
@@ -43,8 +60,8 @@ public class BlockStreamTests
         directHash3.Should().Be(blocksHash3);
 
         // Clean up
-        directFs.Close();
-        blocksFs.Close();
+        sutStream.Dispose();
+        directFs.Dispose();
         directFi.Delete();
         blocksFi.Delete();
     }

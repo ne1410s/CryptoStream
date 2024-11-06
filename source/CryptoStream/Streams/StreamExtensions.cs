@@ -5,7 +5,6 @@
 namespace CryptoStream.Streams;
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using CryptoStream.IO;
 
@@ -42,13 +41,13 @@ public static class StreamExtensions
     /// <param name="fi">The target file to write. The extension should match the original.</param>
     /// <param name="salt">The salt.</param>
     /// <param name="key">The cryptographic key.</param>
+    /// <param name="ext">The target extension.</param>
     /// <param name="bufferLength">The buffer length.</param>
     /// <returns>The stream.</returns>
     public static GcmCryptoStream OpenWrite(
-        this FileInfo fi, byte[] salt, byte[] key, int bufferLength = 32768)
+        this FileInfo fi, byte[] salt, byte[] key, string ext, int bufferLength = 32768)
     {
-        var meta = new Dictionary<string, string> { ["filename"] = "_" + fi.NotNull().Extension };
-        return new GcmCryptoStream(fi.OpenWrite(), salt, key, meta, bufferLength);
+        return new GcmCryptoStream(fi.NotNull().OpenWrite(), salt, key, ext, bufferLength);
     }
 
     /// <summary>

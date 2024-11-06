@@ -19,7 +19,7 @@ using CryptoStream.Utils;
 /// </summary>
 public class GcmCryptoStream : BlockStream
 {
-    private readonly long length;
+    private readonly long? length;
     private readonly AesGcmDecryptor decryptor = new();
     private readonly AesGcmEncryptor encryptor = new();
     private readonly byte[] userKey;
@@ -38,9 +38,10 @@ public class GcmCryptoStream : BlockStream
         : base(stream, bufferLength)
     {
         this.userKey = key;
-        this.pepper = this.decryptor.ReadPepper(stream, key, true, out this.length, out var metadata);
+        this.pepper = this.decryptor.ReadPepper(stream, key, true, out var originalLength, out var metadata);
+        this.length = originalLength;
         this.cryptoKey = new DefaultKeyDeriver().DeriveCryptoKey(key, salt, this.pepper);
-        this.Metadata = metadata ?? [];
+        this.Metadata = metadata;
         this.Id = salt.Encode(Codec.ByteHex);
     }
 
@@ -51,18 +52,16 @@ public class GcmCryptoStream : BlockStream
     /// <param name="stream">The underlying stream.</param>
     /// <param name="salt">The salt.</param>
     /// <param name="key">The key.</param>
-    /// <param name="metadata">The metadata.</param>
+    /// <param name="ext">The target extension.</param>
     /// <param name="bufferLength">The buffer length.</param>
     public GcmCryptoStream(
-        Stream stream, byte[] salt, byte[] key, Dictionary<string, string> metadata, int bufferLength = 32768)
+        Stream stream, byte[] salt, byte[] key, string ext, int bufferLength = 32768)
             : base(stream, bufferLength)
     {
         this.userKey = key;
         this.pepper = this.encryptor.GeneratePepper(null!);
         this.cryptoKey = new DefaultKeyDeriver().DeriveCryptoKey(key, salt, this.pepper);
-        this.Metadata = metadata ?? [];
-
-        var ext = Path.GetExtension(this.Metadata["filename"]);
+        this.Metadata = new() { ["filename"] = "_" + ext };
         var saltHex = salt.Encode(Codec.ByteHex);
         var secureExt = new FileInfo(saltHex).ToSecureExtension(ext, this.encryptor);
         this.Id = saltHex + secureExt;
@@ -74,7 +73,7 @@ public class GcmCryptoStream : BlockStream
     public Dictionary<string, string> Metadata { get; }
 
     /// <inheritdoc/>
-    public override long Length => this.length;
+    public override long Length => this.length ?? this.Inner.Length;
 
     /// <inheritdoc/>
     public override void FinaliseWrite()
