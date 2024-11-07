@@ -33,6 +33,29 @@ public class BlockStreamTests
     }
 
     [Fact]
+    public void Read_UnusualBufferLength_DoesOk()
+    {
+        // Arrange
+        const int oddBufferLength = 333;
+        var testRef = Guid.NewGuid();
+        var sourceFi = new FileInfo($"{testRef}_read-oddbuffersrc-sample.avi");
+        var targetFi = new FileInfo($"{testRef}_read-oddbuffertrg-sample.avi");
+        File.Copy("TestObjects/sample.avi", sourceFi.FullName);
+        var sourceFs = sourceFi.OpenBlockRead(oddBufferLength);
+        var targetFs = targetFi.OpenWrite();
+
+        // Act
+        sourceFs.CopyTo(targetFs, oddBufferLength);
+        targetFs.Dispose();
+        sourceFs.Dispose();
+        var controlHash = sourceFi.Hash(HashType.Md5).Encode(Codec.ByteHex);
+        var testHash = targetFi.Hash(HashType.Md5).Encode(Codec.ByteHex);
+
+        // Assert
+        testHash.Should().Be(controlHash);
+    }
+
+    [Fact]
     public void Read_VariousPoints_MatchesDirect()
     {
         // Arrange
@@ -43,7 +66,7 @@ public class BlockStreamTests
         File.Copy("TestObjects/sample.avi", directFi.FullName);
         File.Copy("TestObjects/sample.avi", blocksFi.FullName);
         var directFs = directFi.OpenRead();
-        var sutStream = blocksFi.OpenSimple();
+        var sutStream = blocksFi.OpenBlockRead();
         var buffer = new byte[bufLen];
 
         // Act
@@ -64,6 +87,30 @@ public class BlockStreamTests
         directFs.Dispose();
         directFi.Delete();
         blocksFi.Delete();
+    }
+
+    [Fact]
+    public void Write_UnusualBufferLength_DoesOk()
+    {
+        // Arrange
+        const int oddBufferLength = 333;
+        var testRef = Guid.NewGuid();
+        var sourceFi = new FileInfo($"{testRef}_write-oddbuffersrc.pdf");
+        var targetFi = new FileInfo($"{testRef}_write-oddbuffertrg.pdf");
+        File.Copy("TestObjects/midsize.pdf", sourceFi.FullName);
+        var sourceFs = sourceFi.OpenRead();
+        var targetFs = targetFi.OpenBlockWrite(oddBufferLength);
+
+        // Act
+        sourceFs.CopyTo(targetFs, oddBufferLength);
+        targetFs.FinaliseWrite();
+        targetFs.Dispose();
+        sourceFs.Dispose();
+        var controlHash = sourceFi.Hash(HashType.Md5).Encode(Codec.ByteHex);
+        var testHash = targetFi.Hash(HashType.Md5).Encode(Codec.ByteHex);
+
+        // Assert
+        testHash.Should().Be(controlHash);
     }
 
     [Fact]

@@ -14,13 +14,22 @@ using CryptoStream.IO;
 public static class StreamExtensions
 {
     /// <summary>
-    /// Opens a simple block stream from a file. This can be used to read or write.
+    /// Opens a simple block read stream from a file.
     /// </summary>
     /// <param name="fi">The source file.</param>
     /// <param name="bufferLength">The buffer length.</param>
     /// <returns>The stream.</returns>
-    public static BlockStream OpenSimple(this FileInfo fi, int bufferLength = 32768)
+    public static BlockStream OpenBlockRead(this FileInfo fi, int bufferLength = 32768)
         => new(fi.NotNull().OpenRead(), bufferLength);
+
+    /// <summary>
+    /// Opens a simple block write stream from a file.
+    /// </summary>
+    /// <param name="fi">The target file.</param>
+    /// <param name="bufferLength">The buffer length.</param>
+    /// <returns>The stream.</returns>
+    public static BlockStream OpenBlockWrite(this FileInfo fi, int bufferLength = 32768)
+        => new(fi.NotNull().OpenWrite(), bufferLength);
 
     /// <summary>
     /// Opens a crypto read stream from a file.
@@ -29,7 +38,7 @@ public static class StreamExtensions
     /// <param name="key">The cryptographic key.</param>
     /// <param name="bufferLength">The buffer length.</param>
     /// <returns>The stream.</returns>
-    public static GcmCryptoStream OpenRead(this FileInfo fi, byte[] key, int bufferLength = 32768)
+    public static GcmCryptoStream OpenCryptoRead(this FileInfo fi, byte[] key, int bufferLength = 32768)
     {
         var salt = fi.ToSalt();
         return new GcmCryptoStream(fi.NotNull().OpenRead(), salt, key, bufferLength);
@@ -44,7 +53,7 @@ public static class StreamExtensions
     /// <param name="ext">The target extension.</param>
     /// <param name="bufferLength">The buffer length.</param>
     /// <returns>The stream.</returns>
-    public static GcmCryptoStream OpenWrite(
+    public static GcmCryptoStream OpenCryptoWrite(
         this FileInfo fi, byte[] salt, byte[] key, string ext, int bufferLength = 32768)
     {
         return new GcmCryptoStream(fi.NotNull().OpenWrite(), salt, key, ext, bufferLength);

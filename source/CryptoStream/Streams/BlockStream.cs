@@ -90,11 +90,12 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
     /// <inheritdoc/>
     public override void Write(byte[] buffer, int offset, int count)
     {
+        var relativeOffset = 0;
         while (count > 0)
         {
             var cacheRoom = bufferLength - (int)this.writeCache.Length;
             var cacheable = Math.Min(cacheRoom, count);
-            this.writeCache.Write(buffer, 0, cacheable);
+            this.writeCache.Write(buffer, relativeOffset, cacheable);
 
             // Write zeros so that length and position still track ;)
             this.Inner.Write(this.zeroBuffer, 0, cacheable);
@@ -103,6 +104,7 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
                 this.FlushCache();
             }
 
+            relativeOffset += cacheable;
             count -= cacheable;
         }
     }

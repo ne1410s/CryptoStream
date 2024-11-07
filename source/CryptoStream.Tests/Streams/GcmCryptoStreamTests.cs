@@ -29,7 +29,7 @@ public class GcmCryptoStreamTests
         var controlMd5 = controlFi.Hash(HashType.Md5).Encode(Codec.ByteHex);
         var salt = controlFi.EncryptInSitu(TestRefs.TestKey).Decode(Codec.ByteHex);
         controlFi.Delete();
-        var sut = testFiTrg.OpenWrite(salt, TestRefs.TestKey, testFiSrc.Extension);
+        var sut = testFiTrg.OpenCryptoWrite(salt, TestRefs.TestKey, testFiSrc.Extension);
         var testSrc = testFiSrc.OpenRead();
 
         // Act
@@ -60,7 +60,7 @@ public class GcmCryptoStreamTests
         File.Copy("TestObjects/sample.avi", originalFi.FullName);
         var salt = RandomNumberGenerator.GetBytes(32);
         var originalFs = originalFi.OpenRead();
-        var writer = testingFi.OpenWrite(salt, TestRefs.TestKey, originalFi.Extension);
+        var writer = testingFi.OpenCryptoWrite(salt, TestRefs.TestKey, originalFi.Extension);
         originalFs.CopyTo(writer);
         writer.FinaliseWrite();
         var writerLen = writer.Length;
@@ -69,7 +69,7 @@ public class GcmCryptoStreamTests
         var finalFi = testingFi.CopyTo(writer.Id);
 
         // Act
-        var sut = finalFi.OpenRead(TestRefs.TestKey);
+        var sut = finalFi.OpenCryptoRead(TestRefs.TestKey);
         var readerLen = sut.Length;
         var ctl = originalFi.OpenRead();
         var buffer = new byte[32768];
