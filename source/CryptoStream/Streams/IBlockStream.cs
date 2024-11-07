@@ -20,6 +20,11 @@ public interface IBlockStream
     public int BufferLength { get; }
 
     /// <summary>
+    /// Gets the block number.
+    /// </summary>
+    public long BlockNumber { get; }
+
+    /// <summary>
     /// Flushes any local cache to the underlying device.
     /// </summary>
     public void FlushCache();

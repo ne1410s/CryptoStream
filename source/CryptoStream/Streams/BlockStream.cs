@@ -5,6 +5,7 @@
 namespace CryptoStream.Streams;
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using CryptoStream.Utils;
@@ -14,14 +15,20 @@ using CryptoStream.Utils;
 /// <param name="bufferLength">The buffer length.</param>
 public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlockStream
 {
-    private readonly MemoryStream writeCache = new(bufferLength);
+    private readonly List<long> dirtyWriteBlocks = [];
+    private readonly List<long> abandonedBlocks = [];
+
     private readonly byte[] zeroBuffer = new byte[bufferLength];
+    private readonly MemoryStream writeCache = new();
 
     /// <inheritdoc/>
     public string Id { get; protected set; } = $"{Guid.NewGuid()}";
 
     /// <inheritdoc/>
     public int BufferLength => bufferLength;
+
+    /// <inheritdoc/>
+    public long BlockNumber => 1 + (long)Math.Floor((double)this.Position / bufferLength);
 
     /// <inheritdoc/>
     public override bool CanRead => stream.CanRead;
@@ -77,12 +84,11 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
     /// <inheritdoc/>
     public void FlushCache()
     {
-        // We've been writing zeros, so rewind to overwrite them
+        // Rewind the zeros to overwrite them
         stream.Position -= this.writeCache.Length;
 
-        StreamBlockUtils.BlockPosition(stream.Position, bufferLength, out var blockNo, out _);
         Array.Copy(this.writeCache.ToArray(), this.BlockBuffer, (int)this.writeCache.Length);
-        this.TransformBufferForWrite(blockNo);
+        this.TransformBufferForWrite(this.BlockNumber);
         stream.Write(this.BlockBuffer, 0, (int)this.writeCache.Length);
         this.writeCache.SetLength(0);
     }
@@ -90,6 +96,12 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
     /// <inheritdoc/>
     public override void Write(byte[] buffer, int offset, int count)
     {
+        var dirty = this.Position < this.Length;
+        if (dirty)
+        {
+            this.dirtyWriteBlocks.Add(this.BlockNumber);
+        }
+
         var relativeOffset = 0;
         while (count > 0)
         {
@@ -98,7 +110,7 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
             this.writeCache.Write(buffer, relativeOffset, cacheable);
 
             // Write zeros so that length and position still track ;)
-            this.Inner.Write(this.zeroBuffer, 0, cacheable);
+            stream.Write(this.zeroBuffer, 0, cacheable);
             if (this.writeCache.Length == bufferLength)
             {
                 this.FlushCache();
@@ -110,10 +122,26 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
     }
 
     /// <inheritdoc/>
-    public virtual void FinaliseWrite() => this.FlushCache();
+    public virtual void FinaliseWrite()
+    {
+        var dirties = this.dirtyWriteBlocks.Distinct().OrderBy(n => n).ToList();
+        var orphans = this.abandonedBlocks.Distinct().OrderBy(n => n).ToList();
+
+        this.FlushCache();
+
+        // re-write dirty blocks
+    }
 
     /// <inheritdoc/>
-    public override long Seek(long offset, SeekOrigin origin) => stream.Seek(offset, SeekOrigin.Begin);
+    public override long Seek(long offset, SeekOrigin origin)
+    {
+        if (this.writeCache.Length > 0)
+        {
+            this.abandonedBlocks.Add(this.BlockNumber);
+        }
+
+        return stream.Seek(offset, SeekOrigin.Begin);
+    }
 
     /// <inheritdoc/>
     public override void Flush() => stream.Flush();
