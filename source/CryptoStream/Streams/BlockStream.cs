@@ -137,6 +137,7 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
     {
         if (this.writeCache.Length > 0)
         {
+            this.FlushCache();
             this.abandonedBlocks.Add(this.BlockNumber);
         }
 
