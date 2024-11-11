@@ -103,23 +103,24 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
         // Rewind the zeros to overwrite them
         stream.Position -= this.writeCache.Length;
 
+        var ahead = stream.Position % bufferLength;
         var bytes = this.writeCache.ToArray();
-        Array.Copy(bytes, this.BlockBuffer, bytes.Length);
+        Array.Copy(bytes, 0, this.BlockBuffer, ahead, bytes.Length);
         if (this.BlockNumber == 1)
         {
-            Array.Copy(bytes, this.headerBuffer, bytes.Length);
+            Array.Copy(bytes, 0, this.headerBuffer, ahead, bytes.Length);
         }
 
+        var trailerStartPosition = this.CacheTrailer ? (this.trailerStartBlock - 1) * bufferLength : 0;
+        var trailerRelativeSeek = this.Position - trailerStartPosition;
         var dirtyPostHeader = this.Position + bytes.Length > bufferLength && this.Position < this.Length;
-        if (dirtyPostHeader)
+        if (dirtyPostHeader && trailerRelativeSeek < 0)
         {
-            var trailerStartPosition = this.CacheTrailer ? (this.trailerStartBlock - 1) * bufferLength : 0;
-            var trailerRelativeSeek = this.Position - trailerStartPosition;
-            if (trailerRelativeSeek < 0)
-            {
-                throw new InvalidOperationException($"Unable to write dirty block {this.BlockNumber}.");
-            }
+            throw new InvalidOperationException($"Unable to write dirty block {this.BlockNumber}.");
+        }
 
+        if (this.CacheTrailer && trailerRelativeSeek >= 0)
+        {
             this.trailerCache.Seek(trailerRelativeSeek, SeekOrigin.Begin);
             this.trailerCache.Write(bytes, 0, bytes.Length);
         }
@@ -160,10 +161,29 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
         stream.Seek(0, SeekOrigin.Begin);
         Array.Copy(this.headerBuffer, this.BlockBuffer, bufferLength);
         this.TransformBufferForWrite(this.BlockNumber);
-        stream.Write(this.BlockBuffer, 0, (int)this.writeCache.Length);
+        stream.Write(this.BlockBuffer, 0, bufferLength);
 
-        // todo: re-write trailer
-        stream.Seek(stream.Length, SeekOrigin.Begin);
+        // re-write trailer
+        if (this.CacheTrailer)
+        {
+            var trailerStartPosition = (this.trailerStartBlock - 1) * bufferLength;
+            var excess = stream.Length - trailerStartPosition;
+            if (excess != this.trailerCache.Length)
+            {
+                throw new InvalidOperationException("Unexpected trailer cache size.");
+            }
+
+            ////// Experimental / diagnosis
+            ////var danglingBytes = new byte[excess];
+            ////stream.Seek(trailerStartPosition, SeekOrigin.Begin);
+            ////_ = stream.Read(danglingBytes, 0, (int)excess);
+            ////var aboutToWrite = this.trailerCache.ToArray();
+
+            stream.SetLength(trailerStartPosition);
+            stream.Seek(trailerStartPosition, SeekOrigin.Begin);
+            this.trailerCache.Seek(0, SeekOrigin.Begin);
+            this.trailerCache.CopyTo(stream, bufferLength);
+        }
     }
 
     /// <inheritdoc/>
