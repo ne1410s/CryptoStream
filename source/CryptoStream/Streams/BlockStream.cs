@@ -5,7 +5,6 @@
 namespace CryptoStream.Streams;
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using CryptoStream.Utils;
@@ -15,11 +14,11 @@ using CryptoStream.Utils;
 /// <param name="bufferLength">The buffer length.</param>
 public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlockStream
 {
-    private readonly List<long> dirtyWriteBlocks = [];
-    private readonly List<long> abandonedBlocks = [];
-
+    private readonly byte[] headerBuffer = new byte[bufferLength];
     private readonly byte[] zeroBuffer = new byte[bufferLength];
     private readonly MemoryStream writeCache = new();
+    private readonly MemoryStream trailerCache = new();
+    private long trailerStartBlock;
 
     /// <inheritdoc/>
     public string Id { get; protected set; } = $"{Guid.NewGuid()}";
@@ -44,6 +43,23 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
 
     /// <inheritdoc/>
     public override long Position { get => stream.Position; set => stream.Position = value; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether writes are being cached. This is
+    /// designed to capture arbitrary writes to the trailer.
+    /// </summary>
+    public bool CacheTrailer
+    {
+        get => this.trailerStartBlock > 0;
+        set
+        {
+            if (value)
+            {
+                this.trailerStartBlock = this.BlockNumber;
+                this.FlushCache();
+            }
+        }
+    }
 
     /// <summary>
     /// Gets the internal block buffer.
@@ -87,7 +103,27 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
         // Rewind the zeros to overwrite them
         stream.Position -= this.writeCache.Length;
 
-        Array.Copy(this.writeCache.ToArray(), this.BlockBuffer, (int)this.writeCache.Length);
+        var bytes = this.writeCache.ToArray();
+        Array.Copy(bytes, this.BlockBuffer, bytes.Length);
+        if (this.BlockNumber == 1)
+        {
+            Array.Copy(bytes, this.headerBuffer, bytes.Length);
+        }
+
+        var dirtyPostHeader = this.Position + bytes.Length > bufferLength && this.Position < this.Length;
+        if (dirtyPostHeader)
+        {
+            var trailerStartPosition = this.CacheTrailer ? (this.trailerStartBlock - 1) * bufferLength : 0;
+            var trailerRelativeSeek = this.Position - trailerStartPosition;
+            if (trailerRelativeSeek < 0)
+            {
+                throw new InvalidOperationException($"Unable to write dirty block {this.BlockNumber}.");
+            }
+
+            this.trailerCache.Seek(trailerRelativeSeek, SeekOrigin.Begin);
+            this.trailerCache.Write(bytes, 0, bytes.Length);
+        }
+
         this.TransformBufferForWrite(this.BlockNumber);
         stream.Write(this.BlockBuffer, 0, (int)this.writeCache.Length);
         this.writeCache.SetLength(0);
@@ -96,12 +132,6 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
     /// <inheritdoc/>
     public override void Write(byte[] buffer, int offset, int count)
     {
-        var dirty = this.Position < this.Length;
-        if (dirty)
-        {
-            this.dirtyWriteBlocks.Add(this.BlockNumber);
-        }
-
         var relativeOffset = 0;
         while (count > 0)
         {
@@ -124,12 +154,16 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
     /// <inheritdoc/>
     public virtual void FinaliseWrite()
     {
-        var dirties = this.dirtyWriteBlocks.Distinct().OrderBy(n => n).ToList();
-        var orphans = this.abandonedBlocks.Distinct().OrderBy(n => n).ToList();
-
         this.FlushCache();
 
-        // re-write dirty blocks
+        // re-write header
+        stream.Seek(0, SeekOrigin.Begin);
+        Array.Copy(this.headerBuffer, this.BlockBuffer, bufferLength);
+        this.TransformBufferForWrite(this.BlockNumber);
+        stream.Write(this.BlockBuffer, 0, (int)this.writeCache.Length);
+
+        // todo: re-write trailer
+        stream.Seek(stream.Length, SeekOrigin.Begin);
     }
 
     /// <inheritdoc/>
@@ -137,8 +171,12 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
     {
         if (this.writeCache.Length > 0)
         {
+            if (this.BlockNumber > 1 && !this.CacheTrailer && this.Position < this.trailerStartBlock)
+            {
+                throw new InvalidOperationException($"Unable to abandon block {this.BlockNumber}.");
+            }
+
             this.FlushCache();
-            this.abandonedBlocks.Add(this.BlockNumber);
         }
 
         return stream.Seek(offset, SeekOrigin.Begin);
