@@ -21,7 +21,7 @@ public class BlockStreamTests
         var ms = new MemoryStream([1, 2, 3]);
 
         // Act
-        var sut = new BlockStream(ms);
+        using var sut = new BlockStream(ms);
         sut.Position = 3;
         sut.SetLength(2);
         sut.Flush();
@@ -87,6 +87,136 @@ public class BlockStreamTests
         directFs.Dispose();
         directFi.Delete();
         blocksFi.Delete();
+    }
+
+    [Fact]
+    public void FlushCache_DirtyBlock_ThrowsExpected()
+    {
+        // Arrange
+        var ms = new MemoryStream([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        using var sut = new BlockStream(ms, bufferLength: 2);
+
+        // Act
+        sut.Seek(8, SeekOrigin.Begin);
+        sut.CacheTrailer = true;
+        sut.Seek(6, SeekOrigin.Begin);
+        var act = () => sut.Write([1, 3]);
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>().WithMessage("Unable to write dirty*");
+    }
+
+    [Fact]
+    public void FinaliseWrite_MessedWithTrailer_ThrowsExpected()
+    {
+        // Arrange
+        var ms = new MemoryStream([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        using var sut = new BlockStream(ms, bufferLength: 2);
+
+        // Act
+        sut.Seek(6, SeekOrigin.Begin);
+        sut.CacheTrailer = true;
+        sut.Write([99, 22]);
+        var act = sut.FinaliseWrite;
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>().WithMessage("Unexpected trailer*");
+    }
+
+    [Fact]
+    public void Seek_WithWriteCache_DoesNotThrow()
+    {
+        // Arrange
+        var ms = new MemoryStream([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        using var sut = new BlockStream(ms, bufferLength: 2);
+
+        // Act
+        sut.Seek(6, SeekOrigin.Begin);
+        sut.Write([99, 22]);
+
+        var act = () => sut.Seek(4, SeekOrigin.Begin);
+
+        // Assert
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void Seek_AbandoningMidBlock_ThrowsExpected()
+    {
+        // Arrange
+        var ms = new MemoryStream([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+        using var sut = new BlockStream(ms, bufferLength: 4);
+
+        // Act
+        sut.Seek(8, SeekOrigin.Begin);
+        sut.Write([99]);
+        sut.CacheTrailer = true;
+        sut.Seek(3, SeekOrigin.Begin);
+        sut.Write([1, 2]);
+
+        var act = () => sut.Seek(4, SeekOrigin.Begin);
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>().WithMessage("Unable to abandon block*");
+    }
+
+    [Fact]
+    public void Seek_AbandoningFirstBlock_DoesNotThrow()
+    {
+        // Arrange
+        var ms = new MemoryStream([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+        using var sut = new BlockStream(ms, bufferLength: 4);
+
+        // Act
+        sut.Seek(8, SeekOrigin.Begin);
+        sut.Write([99]);
+        sut.CacheTrailer = true;
+        sut.Seek(1, SeekOrigin.Begin);
+        sut.Write([1]);
+
+        var act = () => sut.Seek(4, SeekOrigin.Begin);
+
+        // Assert
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void Seek_AbandoningInTrailer_DoesNotThrow()
+    {
+        // Arrange
+        var ms = new MemoryStream([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+        using var sut = new BlockStream(ms, bufferLength: 4);
+
+        // Act
+        sut.Seek(8, SeekOrigin.Begin);
+        sut.Write([99]);
+        sut.CacheTrailer = true;
+        sut.Seek(8, SeekOrigin.Begin);
+        sut.Write([1]);
+
+        var act = () => sut.Seek(4, SeekOrigin.Begin);
+
+        // Assert
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void Seek_AbandoningNoTrailer_DoesNotThrow()
+    {
+        // Arrange
+        var ms = new MemoryStream([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+        using var sut = new BlockStream(ms, bufferLength: 4);
+
+        // Act
+        sut.Seek(8, SeekOrigin.Begin);
+        sut.Write([99]);
+        sut.Seek(8, SeekOrigin.Begin);
+        sut.Write([1]);
+
+        var act = () => sut.Seek(4, SeekOrigin.Begin);
+
+        // Assert
+        act.Should().NotThrow();
     }
 
     [Fact]

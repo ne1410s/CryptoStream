@@ -196,12 +196,6 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
                 throw new InvalidOperationException("Unexpected trailer cache size.");
             }
 
-            ////// Experimental / diagnosis
-            ////var danglingBytes = new byte[excess];
-            ////stream.Seek(trailerStartPosition, SeekOrigin.Begin);
-            ////_ = stream.Read(danglingBytes, 0, (int)excess);
-            ////var aboutToWrite = this.trailerCache.ToArray();
-
             stream.SetLength(trailerStartPosition);
             stream.Seek(trailerStartPosition, SeekOrigin.Begin);
             this.CacheTrailer = false;
@@ -217,7 +211,8 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
         if (this.writeCache.Length > 0)
         {
             var containedToFirstBlock = this.Position + this.writeCache.Length <= bufferLength;
-            if (!containedToFirstBlock && !this.CacheTrailer && this.Position < this.trailerStartBlock)
+            var trailerStart = this.CacheTrailer ? (this.trailerStartBlock - 1) * bufferLength : 0;
+            if (!containedToFirstBlock && this.Position < trailerStart)
             {
                 throw new InvalidOperationException($"Unable to abandon block {this.BlockNumber}.");
             }
