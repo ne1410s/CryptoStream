@@ -105,10 +105,11 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
 
         var ahead = stream.Position % bufferLength;
         var bytes = this.writeCache.ToArray();
-        Array.Copy(bytes, 0, this.BlockBuffer, ahead, bytes.Length);
+        var writable = Math.Min(bufferLength - ahead, bytes.Length);
+        Array.Copy(bytes, 0, this.BlockBuffer, ahead, writable);
         if (this.BlockNumber == 1)
         {
-            Array.Copy(bytes, 0, this.headerBuffer, ahead, bytes.Length);
+            Array.Copy(bytes, 0, this.headerBuffer, ahead, writable);
         }
 
         var trailerStartPosition = this.CacheTrailer ? (this.trailerStartBlock - 1) * bufferLength : 0;
@@ -191,7 +192,8 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
     {
         if (this.writeCache.Length > 0)
         {
-            if (this.BlockNumber > 1 && !this.CacheTrailer && this.Position < this.trailerStartBlock)
+            var containedToFirstBlock = this.Position + this.writeCache.Length <= bufferLength;
+            if (!containedToFirstBlock && !this.CacheTrailer && this.Position < this.trailerStartBlock)
             {
                 throw new InvalidOperationException($"Unable to abandon block {this.BlockNumber}.");
             }
