@@ -124,7 +124,7 @@ public class BlockStreamTests
     }
 
     [Fact]
-    public void Seek_WithWriteCache_DoesNotThrow()
+    public void Seek_WithWriteCache_HashesExpected()
     {
         // Arrange
         var ms = new MemoryStream([1, 2, 3, 4, 5, 6, 7, 8, 9]);
@@ -133,11 +133,10 @@ public class BlockStreamTests
         // Act
         sut.Seek(6, SeekOrigin.Begin);
         sut.Write([99, 22]);
-
-        var act = () => sut.Seek(4, SeekOrigin.Begin);
+        sut.Seek(4, SeekOrigin.Begin);
 
         // Assert
-        act.Should().NotThrow();
+        ms.ToArray().Hash(HashType.Md5).Encode(Codec.ByteHex).Should().Be("b1ba563dbce34007ca202aac966e4a32");
     }
 
     [Fact]
@@ -161,7 +160,7 @@ public class BlockStreamTests
     }
 
     [Fact]
-    public void Seek_AbandoningFirstBlock_DoesNotThrow()
+    public void Seek_AbandoningFirstBlock_HashesExpected()
     {
         // Arrange
         var ms = new MemoryStream([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
@@ -173,15 +172,14 @@ public class BlockStreamTests
         sut.CacheTrailer = true;
         sut.Seek(1, SeekOrigin.Begin);
         sut.Write([1]);
-
-        var act = () => sut.Seek(4, SeekOrigin.Begin);
+        sut.Seek(4, SeekOrigin.Begin);
 
         // Assert
-        act.Should().NotThrow();
+        ms.ToArray().Hash(HashType.Md5).Encode(Codec.ByteHex).Should().Be("5c320e0fe97322a2cf80b60cc718b993");
     }
 
     [Fact]
-    public void Seek_AbandoningInTrailer_DoesNotThrow()
+    public void Seek_AbandoningInTrailer_HashesExpected()
     {
         // Arrange
         var ms = new MemoryStream([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
@@ -193,15 +191,14 @@ public class BlockStreamTests
         sut.CacheTrailer = true;
         sut.Seek(8, SeekOrigin.Begin);
         sut.Write([1]);
-
-        var act = () => sut.Seek(4, SeekOrigin.Begin);
+        sut.Seek(4, SeekOrigin.Begin);
 
         // Assert
-        act.Should().NotThrow();
+        ms.ToArray().Hash(HashType.Md5).Encode(Codec.ByteHex).Should().Be("7dd0fd106ae0f94f162113a63c93d2fe");
     }
 
     [Fact]
-    public void Seek_AbandoningNoTrailer_DoesNotThrow()
+    public void Seek_AbandoningNoTrailer_HashesExpected()
     {
         // Arrange
         var ms = new MemoryStream([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
@@ -212,11 +209,10 @@ public class BlockStreamTests
         sut.Write([99]);
         sut.Seek(8, SeekOrigin.Begin);
         sut.Write([1]);
-
-        var act = () => sut.Seek(4, SeekOrigin.Begin);
+        sut.Seek(4, SeekOrigin.Begin);
 
         // Assert
-        act.Should().NotThrow();
+        ms.ToArray().Hash(HashType.Md5).Encode(Codec.ByteHex).Should().Be("47ddbd444989967f6f17e3f1f7369975");
     }
 
     [Fact]
