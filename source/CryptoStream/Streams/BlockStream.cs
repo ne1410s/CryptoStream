@@ -118,7 +118,6 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
 
         var ahead = stream.Position % bufferLength;
         var bytes = this.writeCache.ToArray();
-        //var writable = Math.Min(bufferLength - ahead, bytes.Length);
         Array.Copy(bytes, 0, this.BlockBuffer, ahead, bytes.Length);
         if (this.BlockNumber == 1)
         {

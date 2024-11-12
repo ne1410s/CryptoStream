@@ -34,8 +34,8 @@ public class GcmCryptoStreamTests
 
         // Act
         testSrc.CopyTo(sut, sut.BufferLength);
+        sut.CacheTrailer = true;
         sut.FinaliseWrite();
-        sut.Close();
         sut.Dispose();
         testSrc.Dispose();
         var finalFi = testFiTrg.CopyTo(sut.Id);
@@ -62,6 +62,7 @@ public class GcmCryptoStreamTests
         var originalFs = originalFi.OpenRead();
         var writer = testingFi.OpenCryptoWrite(salt, TestRefs.TestKey, originalFi.Extension);
         originalFs.CopyTo(writer);
+        writer.CacheTrailer = true;
         writer.FinaliseWrite();
         var writerLen = writer.Length;
         writer.Dispose();
