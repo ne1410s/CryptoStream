@@ -56,7 +56,20 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
             if (value)
             {
                 this.trailerStartBlock = this.BlockNumber;
+                var trailerStart = (this.BlockNumber - 1) * bufferLength;
+                var partial = this.Position - trailerStart;
+                if (partial > 0 && this.writeCache.Length > 0)
+                {
+                    this.writeCache.Seek(-partial, SeekOrigin.End);
+                    this.writeCache.CopyTo(this.trailerCache);
+                    this.writeCache.SetLength(this.writeCache.Length - partial);
+                }
+
                 this.FlushCache();
+            }
+            else
+            {
+                this.trailerStartBlock = 0;
             }
         }
     }
@@ -105,11 +118,11 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
 
         var ahead = stream.Position % bufferLength;
         var bytes = this.writeCache.ToArray();
-        var writable = Math.Min(bufferLength - ahead, bytes.Length);
-        Array.Copy(bytes, 0, this.BlockBuffer, ahead, writable);
+        //var writable = Math.Min(bufferLength - ahead, bytes.Length);
+        Array.Copy(bytes, 0, this.BlockBuffer, ahead, bytes.Length);
         if (this.BlockNumber == 1)
         {
-            Array.Copy(bytes, 0, this.headerBuffer, ahead, writable);
+            Array.Copy(bytes, 0, this.headerBuffer, ahead, bytes.Length);
         }
 
         var trailerStartPosition = this.CacheTrailer ? (this.trailerStartBlock - 1) * bufferLength : 0;
@@ -120,12 +133,6 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
             throw new InvalidOperationException($"Unable to write dirty block {this.BlockNumber}.");
         }
 
-        if (this.CacheTrailer && trailerRelativeSeek >= 0)
-        {
-            this.trailerCache.Seek(trailerRelativeSeek, SeekOrigin.Begin);
-            this.trailerCache.Write(bytes, 0, bytes.Length);
-        }
-
         this.TransformBufferForWrite(this.BlockNumber);
         stream.Write(this.BlockBuffer, 0, (int)this.writeCache.Length);
         this.writeCache.SetLength(0);
@@ -134,22 +141,38 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
     /// <inheritdoc/>
     public override void Write(byte[] buffer, int offset, int count)
     {
-        var relativeOffset = 0;
-        while (count > 0)
+        var trailerStart = (this.trailerStartBlock - 1) * bufferLength;
+        var trailer = this.CacheTrailer && stream.Position >= trailerStart;
+        if (trailer)
         {
-            var cacheRoom = bufferLength - (int)this.writeCache.Length;
-            var cacheable = Math.Min(cacheRoom, count);
-            this.writeCache.Write(buffer, relativeOffset, cacheable);
+            var trailerSeek = stream.Position - trailerStart;
 
             // Write zeros so that length and position still track ;)
-            stream.Write(this.zeroBuffer, 0, cacheable);
-            if (this.writeCache.Length == bufferLength)
-            {
-                this.FlushCache();
-            }
+            stream.Write(this.zeroBuffer, 0, count);
 
-            relativeOffset += cacheable;
-            count -= cacheable;
+            this.trailerCache.Seek(trailerSeek, SeekOrigin.Begin);
+            this.trailerCache.Write(buffer, 0, count);
+        }
+        else
+        {
+            var relativeOffset = 0;
+            while (count > 0)
+            {
+                var cacheRoom = bufferLength - (int)this.writeCache.Length;
+                var cacheable = Math.Min(cacheRoom, count);
+
+                // Write zeros so that length and position still track ;)
+                stream.Write(this.zeroBuffer, 0, cacheable);
+
+                this.writeCache.Write(buffer, relativeOffset, cacheable);
+                if (this.writeCache.Length == bufferLength)
+                {
+                    this.FlushCache();
+                }
+
+                relativeOffset += cacheable;
+                count -= cacheable;
+            }
         }
     }
 
@@ -182,8 +205,10 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
 
             stream.SetLength(trailerStartPosition);
             stream.Seek(trailerStartPosition, SeekOrigin.Begin);
+            this.CacheTrailer = false;
             this.trailerCache.Seek(0, SeekOrigin.Begin);
-            this.trailerCache.CopyTo(stream, bufferLength);
+            this.trailerCache.CopyTo(this, bufferLength);
+            this.FlushCache();
         }
     }
 
