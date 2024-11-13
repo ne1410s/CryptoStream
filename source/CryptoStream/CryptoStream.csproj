@@ -29,7 +29,7 @@
 
   <ItemGroup>
     <PackageReference Include="Analyse" Version="1.0.*" />
-    <PackageReference Include="jose-jwt" Version="5.0.*" />
+    <PackageReference Include="jose-jwt" Version="5.1.0" />
   </ItemGroup>
 
 </Project>
