@@ -216,6 +216,24 @@ public class BlockStreamTests
     }
 
     [Fact]
+    public void Write_WithTrailer_ExtendsStream()
+    {
+        // Arrange
+        var fi = new FileInfo($"{Guid.NewGuid()}.txt");
+        var sut = fi.OpenBlockWrite();
+
+        // Act
+        sut.Write([1, 2, 3, 4, 5, 6, 7]);
+        sut.CacheTrailer = true;
+        sut.Write([4, 4, 4]);
+        sut.Dispose();
+
+        // Assert
+        var bytes = File.ReadAllBytes(fi.FullName);
+        bytes.Hash(HashType.Md5).Encode(Codec.ByteHex).Should().Be("a63c90cc3684ad8b0a2176a6a8fe9005");
+    }
+
+    [Fact]
     public void Write_UnusualBufferLength_DoesOk()
     {
         // Arrange

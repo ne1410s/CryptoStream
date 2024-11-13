@@ -17,6 +17,24 @@ using CryptoStream.Tests.TestObjects;
 public class GcmCryptoStreamTests
 {
     [Fact]
+    public void FinaliseWrite_WhenCalled_WritesNonZeros()
+    {
+        // Arrange
+        var salt = Guid.NewGuid().ToByteArray().Hash(HashType.Sha256);
+        var fi = new FileInfo($"{salt.Encode(Codec.ByteHex)}.txt");
+        var sut = fi.OpenCryptoWrite(salt, [], ".xyz");
+        sut.Write([1, 2, 3, 6, 8, 99, 201]);
+
+        // Act
+        sut.FinaliseWrite();
+        sut.Dispose();
+
+        // Assert
+        var span = File.ReadAllBytes(fi.FullName).AsSpan(32768, 2000).ToArray();
+        span.Count(b => b == 0).Should().Be(0);
+    }
+
+    [Fact]
     public void Write_WhenFinalised_ProducesExpected()
     {
         // Arrange
@@ -43,6 +61,7 @@ public class GcmCryptoStreamTests
         var testMd5 = clearFi.Hash(HashType.Md5).Encode(Codec.ByteHex);
 
         // Assert
+        sut.Metadata["filename"].Should().StartWith("_");
         testMd5.Should().Be(controlMd5);
         testFiSrc.Delete();
         testFiTrg.Delete();
