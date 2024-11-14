@@ -312,17 +312,18 @@ public class BlockStreamTests
     {
         // Arrange
         var fi = new FileInfo($"{Guid.NewGuid()}.txt");
-        var sut = fi.OpenBlockWrite();
+        var sut = fi.OpenBlockWrite(4);
 
         // Act
         sut.Write([1, 2, 3, 4, 5, 6, 7]);
         sut.CacheTrailer = true;
         sut.Write([4, 4, 4]);
+        sut.FinaliseWrite();
         sut.Dispose();
 
         // Assert
         var bytes = File.ReadAllBytes(fi.FullName);
-        bytes.Hash(HashType.Md5).Encode(Codec.ByteHex).Should().Be("a63c90cc3684ad8b0a2176a6a8fe9005");
+        bytes.Hash(HashType.Md5).Encode(Codec.ByteHex).Should().Be("5d924de0db8f710fbd9fec0e4064eb47");
     }
 
     [Fact]
