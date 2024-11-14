@@ -211,6 +211,26 @@ public class BlockStreamTests
     }
 
     [Fact]
+    public void Seek_AbandoningMidBlockButIsFirst_DoesNotThrow()
+    {
+        // Arrange
+        var ms = new MemoryStream([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+        using var sut = new BlockStream(ms, bufferLength: 4);
+
+        // Act
+        sut.Seek(8, SeekOrigin.Begin);
+        sut.Write([99]);
+        sut.CacheTrailer = true;
+        sut.Seek(0, SeekOrigin.Begin);
+        sut.Write([1, 2]);
+
+        var act = () => sut.Seek(4, SeekOrigin.Begin);
+
+        // Assert
+        act.Should().NotThrow();
+    }
+
+    [Fact]
     public void Seek_AbandoningPositionMatchesTrailerStart_ThrowsDifferentError()
     {
         // Arrange

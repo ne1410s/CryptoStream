@@ -210,7 +210,7 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
         if (this.writeCache.Length > 0)
         {
             var containedToFirstBlock = this.Position + this.writeCache.Length <= bufferLength;
-            var trailerStart = this.CacheTrailer ? (this.trailerStartBlock - 1) * bufferLength : 0;
+            var trailerStart = (this.trailerStartBlock - 1) * bufferLength;
             if (!containedToFirstBlock && this.Position < trailerStart)
             {
                 throw new InvalidOperationException($"Unable to abandon block {this.BlockNumber}.");
