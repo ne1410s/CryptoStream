@@ -196,7 +196,6 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
                 throw new InvalidOperationException("Unexpected trailer cache size.");
             }
 
-            stream.SetLength(trailerStartPosition);
             stream.Seek(trailerStartPosition, SeekOrigin.Begin);
             this.CacheTrailer = false;
             this.trailerCache.Seek(0, SeekOrigin.Begin);

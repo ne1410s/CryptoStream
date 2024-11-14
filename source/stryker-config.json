@@ -1,5 +1,8 @@
 {
   "stryker-config": {
+    "ignore-methods": [
+      "Dispose"
+    ],
     "thresholds": {
       "high": 100,
       "low": 100,

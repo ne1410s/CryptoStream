@@ -27,9 +27,41 @@ public class BlockStreamTests
         sut.Flush();
 
         // Assert
+        sut.Id.Should().NotBeEmpty();
         sut.Position.Should().Be(2);
         sut.CanSeek.Should().Be(ms.CanSeek);
         sut.CanRead.Should().Be(ms.CanRead);
+    }
+
+    [Fact]
+    public void SetCacheTrailer_WithWriteCache_FlushesCache()
+    {
+        // Arrange
+        var fi = new FileInfo($"{Guid.NewGuid()}.txt");
+        var bs = fi.OpenBlockWrite();
+        bs.Write([9, 2, 4, 6, 7]);
+
+        // Act
+        bs.CacheTrailer = true;
+        bs.Dispose();
+        var md5Hex = File.ReadAllBytes(fi.FullName).Hash(HashType.Md5).Encode(Codec.ByteHex);
+
+        // Assert
+        md5Hex.Should().Be("ca9c491ac66b2c62500882e93f3719a8");
+    }
+
+    [Fact]
+    public void Dispose_WhenCalled_DisposesStream()
+    {
+        // Arrange
+        var sut = new BlockStream(new MemoryStream([]));
+
+        // Act
+        sut.Dispose();
+        var act = () => sut.Length;
+
+        // Assert
+        act.Should().Throw<Exception>();
     }
 
     [Fact]
@@ -124,6 +156,25 @@ public class BlockStreamTests
     }
 
     [Fact]
+    public void FinaliseWrite_WithTrailer_DoesNotChangeLength()
+    {
+        // Arrange
+        var fi = new FileInfo($"{Guid.NewGuid()}.txt");
+        using var sut = fi.OpenBlockWrite(10);
+
+        // Act
+        sut.Write([6, 5, 4, 5, 6, 7, 3, 1]);
+        sut.CacheTrailer = true;
+        sut.Write([99, 22], 0, 2);
+        var preLength = sut.Length;
+        sut.FinaliseWrite();
+        var postLength = sut.Length;
+
+        // Assert
+        preLength.Should().Be(postLength);
+    }
+
+    [Fact]
     public void Seek_WithWriteCache_HashesExpected()
     {
         // Arrange
@@ -157,6 +208,27 @@ public class BlockStreamTests
 
         // Assert
         act.Should().Throw<InvalidOperationException>().WithMessage("Unable to abandon block*");
+    }
+
+    [Fact]
+    public void Seek_AbandoningPositionMatchesTrailerStart_ThrowsDifferentError()
+    {
+        // Arrange
+        var ms = new MemoryStream([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+        using var sut = new BlockStream(ms, bufferLength: 4);
+
+        // Act
+        sut.Seek(8, SeekOrigin.Begin);
+        sut.Write([99]);
+        sut.CacheTrailer = true;
+        sut.Seek(5, SeekOrigin.Begin);
+        sut.Write([1, 2]);
+        sut.Write([1]);
+
+        var act = () => sut.Seek(4, SeekOrigin.Begin);
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>().WithMessage("Unable to write dirty*");
     }
 
     [Fact]
