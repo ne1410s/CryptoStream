@@ -327,6 +327,27 @@ public class BlockStreamTests
     }
 
     [Fact]
+    public void Write_RewriteTrailer_HashesExpected()
+    {
+        // Arrange
+        var fi = new FileInfo($"{Guid.NewGuid()}.txt");
+        var sut = fi.OpenBlockWrite(4);
+
+        // Act
+        sut.Write([1, 2, 3, 4, 5, 6, 7]);
+        sut.CacheTrailer = true;
+        sut.Write([4, 4, 4]);
+        sut.Seek(4, SeekOrigin.Begin);
+        sut.Write([5, 5, 5]);
+        sut.FinaliseWrite();
+        sut.Dispose();
+
+        // Assert
+        var bytes = File.ReadAllBytes(fi.FullName);
+        bytes.Hash(HashType.Md5).Encode(Codec.ByteHex).Should().Be("aa215cd0501a79d649596385acca7450");
+    }
+
+    [Fact]
     public void Write_UnusualBufferLength_DoesOk()
     {
         // Arrange
