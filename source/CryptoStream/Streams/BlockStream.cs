@@ -111,7 +111,7 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
     }
 
     /// <inheritdoc/>
-    public void FlushCache()
+    public virtual void FlushCache()
     {
         // Rewind the zeros to overwrite them
         stream.Position -= this.writeCache.Length;

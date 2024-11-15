@@ -108,6 +108,52 @@ public class GcmCryptoStreamTests
         finalFi.Delete();
     }
 
+    [Fact]
+    public void Read_StraddlingBlock_HashesExpected()
+    {
+        // Arrange
+        const string name = "e092d33a6b0fa2abc987cba27f2da80fd07a1c6e3b7fe56a4ac53c486626c941.3faaccce33";
+        var testRef = Guid.NewGuid().ToString();
+        Directory.CreateDirectory(testRef);
+        var cryptFi = new FileInfo($"{testRef}/{name}");
+        File.Copy($"TestObjects/{name}", cryptFi.FullName);
+        var sutStream = cryptFi.OpenCryptoRead(TestRefs.TestKey);
+        var buffer = new byte[sutStream.BufferLength];
+
+        // Act
+        var blocksHash1 = Md5Hex(sutStream, buffer, 64000, 2000);
+
+        // Assert
+        blocksHash1.Should().Be("324bc76bf1a21919941427f82a401f58");
+
+        // Clean up
+        sutStream.Dispose();
+        cryptFi.Delete();
+    }
+
+    [Fact]
+    public void Read_FinalBlock_HashesExpected()
+    {
+        // Arrange
+        const string name = "e092d33a6b0fa2abc987cba27f2da80fd07a1c6e3b7fe56a4ac53c486626c941.3faaccce33";
+        var testRef = Guid.NewGuid().ToString();
+        Directory.CreateDirectory(testRef);
+        var cryptFi = new FileInfo($"{testRef}/{name}");
+        File.Copy($"TestObjects/{name}", cryptFi.FullName);
+        var sutStream = cryptFi.OpenCryptoRead(TestRefs.TestKey);
+        var buffer = new byte[sutStream.BufferLength];
+
+        // Act
+        var blocksHash1 = Md5Hex(sutStream, buffer, 8000, 733);
+
+        // Assert
+        blocksHash1.Should().Be("6dd3eeddd0bd6d9d5751cfc98b7da306");
+
+        // Clean up
+        sutStream.Dispose();
+        cryptFi.Delete();
+    }
+
     private static string Md5Hex(Stream stream, byte[] buffer, long position, int count)
     {
         Array.Clear(buffer, 0, buffer.Length);

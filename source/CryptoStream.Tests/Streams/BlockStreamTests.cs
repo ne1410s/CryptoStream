@@ -8,6 +8,7 @@ using CryptoStream.Encoding;
 using CryptoStream.Hashing;
 using CryptoStream.IO;
 using CryptoStream.Streams;
+using CryptoStream.Tests.TestObjects;
 
 /// <summary>
 /// Tests for the <see cref="BlockStream"/> class.
@@ -31,6 +32,19 @@ public class BlockStreamTests
         sut.Position.Should().Be(2);
         sut.CanSeek.Should().Be(ms.CanSeek);
         sut.CanRead.Should().Be(ms.CanRead);
+    }
+
+    [Fact]
+    public void SetCacheTrailer_WhenCalled_CallsFlushCache()
+    {
+        // Arrange
+        using var sut = new TestBlockStream();
+
+        // Act
+        var act = () => sut.CacheTrailer = true;
+
+        // Assert
+        act.Should().Throw<NotSupportedException>();
     }
 
     [Fact]
@@ -212,20 +226,17 @@ public class BlockStreamTests
     }
 
     [Fact]
-    public void FlushCache_ImmediateTrailerStart_DoesNotThrow()
+    public void FlushCache_TrailerExactStart_DoesNotThrow()
     {
         // Arrange
         var fi = new FileInfo($"{Guid.NewGuid()}.txt");
-        using var sut = fi.OpenBlockWrite(8);
+        using var sut = fi.OpenBlockWrite(2);
 
         // Act
-        sut.Write([1, 1, 1, 1, 1, 1, 1, 1]);
+        sut.Write([8, 4, 3, 2, 1, 5, 6, 9]);
         sut.CacheTrailer = true;
-        sut.Seek(7, SeekOrigin.Begin);
-        sut.Write([2, 2]);
-        sut.Write([3, 3]);
-        sut.Seek(9, SeekOrigin.Begin);
-        var act = sut.FlushCache;
+        sut.Seek(2, SeekOrigin.Begin);
+        var act = sut.FinaliseWrite;
 
         // Assert
         act.Should().NotThrow();
