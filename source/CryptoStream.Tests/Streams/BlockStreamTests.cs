@@ -243,6 +243,25 @@ public class BlockStreamTests
     }
 
     [Fact]
+    public void FlushCache_TrailerExactEnd_DoesNotThrow()
+    {
+        // Arrange
+        var fi = new FileInfo($"{Guid.NewGuid()}.txt");
+        using var sut = fi.OpenBlockWrite(2);
+
+        // Act
+        sut.Write([8, 4, 3, 2, 1, 5]);
+        sut.CacheTrailer = true;
+        sut.Write([99, 88]);
+        sut.Seek(6, SeekOrigin.Begin);
+        var act = sut.FinaliseWrite;
+
+        // Assert
+        act.Should().NotThrow();
+    }
+
+
+    [Fact]
     public void FlushCache_BodySeek_DoesNotThrow()
     {
         // Arrange
