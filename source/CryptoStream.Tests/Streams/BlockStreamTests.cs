@@ -38,8 +38,51 @@ public class BlockStreamTests
     {
         // Arrange
         var fi = new FileInfo($"{Guid.NewGuid()}.txt");
+        var bs = fi.OpenBlockWrite(5);
+        bs.Write([9, 2, 4, 6, 7]);
+
+        // Act
+        bs.CacheTrailer = true;
+        bs.Write([9, 3, 4, 1, 1]);
+        bs.FinaliseWrite();
+        bs.Dispose();
+        var md5Hex = File.ReadAllBytes(fi.FullName).Hash(HashType.Md5).Encode(Codec.ByteHex);
+
+        // Assert
+        md5Hex.Should().Be("4b5b8d20818fc108366ff1662ba819cc");
+    }
+
+
+    [Fact]
+    public void SetCacheTrailer_WithWriteCacheAndSeek_FlushesCache()
+    {
+        // Arrange
+        var fi = new FileInfo($"{Guid.NewGuid()}.txt");
+        var bs = fi.OpenBlockWrite(5);
+        bs.Write([9, 2, 4, 6, 7]);
+        bs.Seek(5, SeekOrigin.Begin);
+
+        // Act
+        bs.CacheTrailer = true;
+        bs.Write([9, 3, 4, 1, 1]);
+        bs.FinaliseWrite();
+        bs.Dispose();
+        var md5Hex = File.ReadAllBytes(fi.FullName).Hash(HashType.Md5).Encode(Codec.ByteHex);
+
+        // Assert
+        md5Hex.Should().Be("4b5b8d20818fc108366ff1662ba819cc");
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    public void SetCacheTrailer_SeeksOnly_DoesNotWriteBytes(long position)
+    {
+        // Arrange
+        var fi = new FileInfo($"{Guid.NewGuid()}.txt");
         var bs = fi.OpenBlockWrite();
         bs.Write([9, 2, 4, 6, 7]);
+        bs.Seek(position, SeekOrigin.Begin);
 
         // Act
         bs.CacheTrailer = true;
@@ -47,7 +90,7 @@ public class BlockStreamTests
         var md5Hex = File.ReadAllBytes(fi.FullName).Hash(HashType.Md5).Encode(Codec.ByteHex);
 
         // Assert
-        md5Hex.Should().Be("ca9c491ac66b2c62500882e93f3719a8");
+        md5Hex.Should().Be("db8c4ba99d15ab9463659798b1b9a385");
     }
 
     [Fact]
@@ -108,11 +151,42 @@ public class BlockStreamTests
         var blocksHash2 = Md5Hex(sutStream, buffer, bufLen * 11, bufLen);
         var blocksHash3 = Md5Hex(directFs, buffer, sutStream.Length - 1000, bufLen);
         var directHash3 = Md5Hex(sutStream, buffer, sutStream.Length - 1000, bufLen);
+        var blocksHash4 = Md5Hex(directFs, buffer, 32000, 2000);
+        var directHash4 = Md5Hex(sutStream, buffer, 32000, 2000);
 
         // Assert
         directHash1.Should().Be(blocksHash1);
         directHash2.Should().Be(blocksHash2);
         directHash3.Should().Be(blocksHash3);
+        directHash4.Should().Be(blocksHash4);
+
+        // Clean up
+        sutStream.Dispose();
+        directFs.Dispose();
+        directFi.Delete();
+        blocksFi.Delete();
+    }
+
+    [Fact]
+    public void Read_StraddlingBlock_HashesExpected()
+    {
+        // Arrange
+        const int bufLen = 4096;
+        var testRef = Guid.NewGuid();
+        var directFi = new FileInfo($"{testRef}_read-direct-sample.avi");
+        var blocksFi = new FileInfo($"{testRef}_read-blocks-sample.avi");
+        File.Copy("TestObjects/sample.avi", directFi.FullName);
+        File.Copy("TestObjects/sample.avi", blocksFi.FullName);
+        var directFs = directFi.OpenRead();
+        var sutStream = blocksFi.OpenBlockRead();
+        var buffer = new byte[bufLen];
+
+        // Act
+        var directHash1 = Md5Hex(directFs, buffer, 4000, 200);
+        var blocksHash1 = Md5Hex(sutStream, buffer, 4000, 200);
+
+        // Assert
+        directHash1.Should().Be(blocksHash1);
 
         // Clean up
         sutStream.Dispose();
