@@ -52,7 +52,6 @@ public class BlockStreamTests
         md5Hex.Should().Be("4b5b8d20818fc108366ff1662ba819cc");
     }
 
-
     [Fact]
     public void SetCacheTrailer_WithWriteCacheAndSeek_FlushesCache()
     {
@@ -210,6 +209,80 @@ public class BlockStreamTests
 
         // Assert
         act.Should().Throw<InvalidOperationException>().WithMessage("Unable to write dirty*");
+    }
+
+    [Fact]
+    public void FlushCache_ImmediateTrailerStart_DoesNotThrow()
+    {
+        // Arrange
+        var fi = new FileInfo($"{Guid.NewGuid()}.txt");
+        using var sut = fi.OpenBlockWrite(8);
+
+        // Act
+        sut.Write([1, 1, 1, 1, 1, 1, 1, 1]);
+        sut.CacheTrailer = true;
+        sut.Seek(7, SeekOrigin.Begin);
+        sut.Write([2, 2]);
+        sut.Write([3, 3]);
+        sut.Seek(9, SeekOrigin.Begin);
+        var act = sut.FlushCache;
+
+        // Assert
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void FlushCache_BodySeek_DoesNotThrow()
+    {
+        // Arrange
+        var fi = new FileInfo($"{Guid.NewGuid()}.txt");
+        using var sut = fi.OpenBlockWrite(2);
+
+        // Act
+        sut.Write([8, 4, 3, 2, 1, 5, 6, 9]);
+        sut.CacheTrailer = true;
+        sut.Seek(4, SeekOrigin.Begin);
+        var act = sut.FinaliseWrite;
+
+        // Assert
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void FlushCache_DirtyHeaderWrite_DoesNotThrow()
+    {
+        // Arrange
+        var fi = new FileInfo($"{Guid.NewGuid()}.txt");
+        using var sut = fi.OpenBlockWrite(2);
+
+        // Act
+        sut.Write([1, 2, 3, 4, 5, 6]);
+        sut.CacheTrailer = true;
+        sut.Write([7, 7]);
+        sut.Seek(0, SeekOrigin.Begin);
+        var act = () => sut.Write([8, 8]);
+
+        // Assert
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void FlushCache_DirtyTrailerWrite_DoesNotThrow()
+    {
+        // Arrange
+        var fi = new FileInfo($"{Guid.NewGuid()}.txt");
+        using var sut = fi.OpenBlockWrite(2);
+
+        // Act
+        sut.Write([1, 2, 3, 4, 5, 6]);
+        sut.CacheTrailer = true;
+        sut.Write([7, 7]);
+        sut.Seek(6, SeekOrigin.Begin);
+        sut.Write([8, 8]);
+        var act = sut.FlushCache;
+
+        // Assert
+        act.Should().NotThrow();
     }
 
     [Fact]

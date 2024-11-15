@@ -124,10 +124,10 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
             Array.Copy(bytes, 0, this.headerBuffer, ahead, bytes.Length);
         }
 
-        var trailerStartPosition = this.CacheTrailer ? (this.trailerStartBlock - 1) * bufferLength : 0;
-        var trailerRelativeSeek = this.Position - trailerStartPosition;
-        var dirtyPostHeader = this.Position + bytes.Length > bufferLength && this.Position < this.Length;
-        if (dirtyPostHeader && trailerRelativeSeek < 0)
+        var isDirty = stream.Position < this.Length && bytes.Length > 0;
+        var postHeader = this.Position + bytes.Length > bufferLength;
+        var preTrailer = this.Position < (this.trailerStartBlock - 1) * bufferLength;
+        if (isDirty && postHeader && preTrailer)
         {
             throw new InvalidOperationException($"Unable to write dirty block {this.BlockNumber}.");
         }
