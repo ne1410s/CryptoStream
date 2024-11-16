@@ -2,12 +2,12 @@
 // Copyright (c) ne1410s. All rights reserved.
 // </copyright>
 
-using CryptoStream.Streams;
-
 namespace CryptoStream.Tests.TestObjects;
 
+using CryptoStream.Streams;
+
 /// <summary>
-/// Test harness for <see cref="BlockStream"/>
+/// Test harness for <see cref="BlockStream"/>.
 /// </summary>
 public class TestBlockStream() : BlockStream(new MemoryStream(), 8)
 {

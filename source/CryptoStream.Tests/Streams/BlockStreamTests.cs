@@ -260,7 +260,6 @@ public class BlockStreamTests
         act.Should().NotThrow();
     }
 
-
     [Fact]
     public void FlushCache_BodySeek_DoesNotThrow()
     {
