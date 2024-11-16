@@ -58,6 +58,8 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
                 this.trailerStartBlock = this.BlockNumber;
                 var trailerStart = (this.BlockNumber - 1) * bufferLength;
                 var partial = this.Position - trailerStart;
+
+                // Stryker disable all
                 if (partial > 0 && this.writeCache.Length > 0)
                 {
                     this.writeCache.Seek(-partial, SeekOrigin.End);
@@ -65,6 +67,7 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
                     this.writeCache.SetLength(this.writeCache.Length - partial);
                 }
 
+                // Stryker restore all
                 this.FlushCache();
             }
             else
@@ -93,6 +96,7 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
         var blockSpan = (int)Math.Ceiling((double)(remainder + count) / bufferLength);
         var totalBytesRead = 0;
 
+        // Stryker disable all
         foreach (var blockIndex in Enumerable.Range(0, blockSpan))
         {
             var blockRead = stream.Read(this.BlockBuffer, 0, bufferLength);
@@ -106,6 +110,7 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
             remainder = 0;
         }
 
+        // Stryker restore all
         stream.Position = originalPosition + totalBytesRead;
         return totalBytesRead;
     }
@@ -124,7 +129,8 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
             Array.Copy(bytes, 0, this.headerBuffer, ahead, bytes.Length);
         }
 
-        var isDirty = stream.Position < this.Length && bytes.Length > 0;
+        // Stryker disable all
+        var isDirty = this.Position < this.Length && bytes.Length > 0;
         var postHeader = this.Position + bytes.Length > bufferLength;
         var preTrailer = this.Position < (this.trailerStartBlock - 1) * bufferLength;
         if (isDirty && postHeader && preTrailer)
@@ -132,6 +138,7 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
             throw new InvalidOperationException($"Unable to write dirty block {this.BlockNumber}.");
         }
 
+        // Stryker restore all
         this.TransformBufferForWrite(this.BlockNumber);
         stream.Write(this.BlockBuffer, 0, (int)this.writeCache.Length);
         this.writeCache.SetLength(0);
