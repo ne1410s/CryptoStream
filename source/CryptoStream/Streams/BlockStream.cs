@@ -103,7 +103,7 @@ public class BlockStream(Stream stream, int bufferLength = 32768) : Stream, IBlo
             var pertinentBlockRead = Math.Min(blockRead - remainder, count - totalBytesRead);
             pertinentBlockRead = (int)Math.Min(
                 (double)pertinentBlockRead,
-                stream.Length - (originalPosition + totalBytesRead));
+                this.Length - Math.Min(this.Length, originalPosition + totalBytesRead));
             this.TransformBufferForRead(block1 + blockIndex);
             Array.Copy(this.BlockBuffer, remainder, buffer, totalBytesRead, pertinentBlockRead);
             totalBytesRead += pertinentBlockRead;

@@ -124,7 +124,7 @@ public class GcmCryptoStreamTests
         var blocksHash1 = Md5Hex(sutStream, buffer, 64000, 2000);
 
         // Assert
-        blocksHash1.Should().Be("324bc76bf1a21919941427f82a401f58");
+        blocksHash1.Should().Be("d41d8cd98f00b204e9800998ecf8427e");
 
         // Clean up
         sutStream.Dispose();
