@@ -158,7 +158,7 @@ public class AesGcmEncryptorTests
     {
         // Arrange
         var sut = new AesGcmEncryptor();
-        using var srcStream = new MemoryStream([ 1, 2, 3]);
+        using var srcStream = new MemoryStream([1, 2, 3]);
         using var trgStream = new MemoryStream();
         var checkBackBuffer = new byte[30];
 
