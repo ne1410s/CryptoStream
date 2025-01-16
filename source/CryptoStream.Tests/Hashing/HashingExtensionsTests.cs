@@ -29,7 +29,7 @@ public class HashingExtensionsTests
         var hashBase64 = testArray.Hash(mode).Encode(Codec.ByteBase64);
 
         // Assert
-        hashBase64.Should().Be(expectedBase64);
+        hashBase64.ShouldBe(expectedBase64);
     }
 
     [Fact]
@@ -43,8 +43,8 @@ public class HashingExtensionsTests
         var act = () => testArray.Hash(badType).Encode(Codec.ByteBase64);
 
         // Assert
-        act.Should().ThrowExactly<ArgumentException>()
-            .WithMessage("Bad hash mode: 9999 (Parameter 'mode')");
+        act.ShouldThrow<ArgumentException>()
+            .Message.ShouldBe("Bad hash mode: 9999 (Parameter 'mode')");
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public class HashingExtensionsTests
         var act = () => stream.Hash(HashType.Sha1);
 
         // Assert
-        act.Should().Throw<ArgumentNullException>();
+        _ = act.ShouldThrow<ArgumentNullException>();
     }
 
     [Fact]
@@ -70,7 +70,7 @@ public class HashingExtensionsTests
         var act = () => stream.HashLite(HashType.Sha1);
 
         // Assert
-        act.Should().Throw<ArgumentNullException>();
+        _ = act.ShouldThrow<ArgumentNullException>();
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public class HashingExtensionsTests
         _ = stream.HashLite(HashType.Md5);
 
         // Assert
-        stream.Position.Should().Be(0);
+        stream.Position.ShouldBe(0);
     }
 
     [Fact]
@@ -91,13 +91,13 @@ public class HashingExtensionsTests
     {
         // Arrange
         using var stream = new UnseekableStream([1, 2, 3]);
-        stream.ReadByte();
+        _ = stream.ReadByte();
 
         // Act
         var act = () => stream.HashLite(HashType.Md5);
 
         // Assert
-        act.Should().Throw<NotSupportedException>();
+        _ = act.ShouldThrow<NotSupportedException>();
     }
 
     [Fact]
@@ -110,7 +110,7 @@ public class HashingExtensionsTests
         var act = () => stream.HashLite(HashType.Md5);
 
         // Assert
-        act.Should().NotThrow();
+        _ = act.ShouldNotThrow();
     }
 
     [Theory]
@@ -127,6 +127,6 @@ public class HashingExtensionsTests
         var result = stream.HashLite(HashType.Md5, 2, 2).Encode(Codec.ByteHex);
 
         // Assert
-        result.Should().Be(expectedMd5Hex);
+        result.ShouldBe(expectedMd5Hex);
     }
 }

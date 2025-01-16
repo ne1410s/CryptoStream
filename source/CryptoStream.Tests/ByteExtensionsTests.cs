@@ -25,7 +25,7 @@ public class ByteExtensionsTests
 
         // Assert
         var actual = BitConverter.ToInt32(counter);
-        actual.Should().Be(expected);
+        actual.ShouldBe(expected);
     }
 
     [Theory]
@@ -44,7 +44,7 @@ public class ByteExtensionsTests
         ByteExtensions.Increment(ref counter);
 
         // Assert
-        counter.Length.Should().Be(expectedFinalSize);
+        counter.Length.ShouldBe(expectedFinalSize);
     }
 
     [Theory]
@@ -67,10 +67,10 @@ public class ByteExtensionsTests
         var expectOneAt = expectAppend ? 0 : counter.Length - 1;
         if (initialSize != 0)
         {
-            counter[expectZeroAt].Should().Be(0);
+            counter[expectZeroAt].ShouldBe((byte)0);
         }
 
-        counter[expectOneAt].Should().Be(1);
+        counter[expectOneAt].ShouldBe((byte)1);
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public class ByteExtensionsTests
         var act = () => ByteExtensions.Increment(ref counter);
 
         // Assert
-        act.Should().Throw<ArgumentNullException>();
+        _ = act.ShouldThrow<ArgumentNullException>();
     }
 
     [Theory]
@@ -95,6 +95,6 @@ public class ByteExtensionsTests
         var result = number.RaiseBits(bigEndian);
 
         // Assert
-        result.Should().BeEquivalentTo(expected);
+        result.ShouldBeEquivalentTo(expected);
     }
 }

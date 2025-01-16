@@ -28,10 +28,10 @@ public class BlockStreamTests
         sut.Flush();
 
         // Assert
-        sut.Id.Should().NotBeEmpty();
-        sut.Position.Should().Be(2);
-        sut.CanSeek.Should().Be(ms.CanSeek);
-        sut.CanRead.Should().Be(ms.CanRead);
+        sut.Id.ShouldNotBeEmpty();
+        sut.Position.ShouldBe(2);
+        sut.CanSeek.ShouldBe(ms.CanSeek);
+        sut.CanRead.ShouldBe(ms.CanRead);
     }
 
     [Fact]
@@ -41,10 +41,10 @@ public class BlockStreamTests
         using var sut = new TestBlockStream();
 
         // Act
-        var act = () => sut.CacheTrailer = true;
+        Action act = () => sut.CacheTrailer = true;
 
         // Assert
-        act.Should().Throw<NotSupportedException>();
+        _ = act.ShouldThrow<NotSupportedException>();
     }
 
     [Fact]
@@ -63,7 +63,7 @@ public class BlockStreamTests
         var md5Hex = File.ReadAllBytes(fi.FullName).Hash(HashType.Md5).Encode(Codec.ByteHex);
 
         // Assert
-        md5Hex.Should().Be("4b5b8d20818fc108366ff1662ba819cc");
+        md5Hex.ShouldBe("4b5b8d20818fc108366ff1662ba819cc");
     }
 
     [Fact]
@@ -73,7 +73,7 @@ public class BlockStreamTests
         var fi = new FileInfo($"{Guid.NewGuid()}.txt");
         var bs = fi.OpenBlockWrite(5);
         bs.Write([9, 2, 4, 6, 7]);
-        bs.Seek(5, SeekOrigin.Begin);
+        _ = bs.Seek(5, SeekOrigin.Begin);
 
         // Act
         bs.CacheTrailer = true;
@@ -83,7 +83,7 @@ public class BlockStreamTests
         var md5Hex = File.ReadAllBytes(fi.FullName).Hash(HashType.Md5).Encode(Codec.ByteHex);
 
         // Assert
-        md5Hex.Should().Be("4b5b8d20818fc108366ff1662ba819cc");
+        md5Hex.ShouldBe("4b5b8d20818fc108366ff1662ba819cc");
     }
 
     [Theory]
@@ -95,7 +95,7 @@ public class BlockStreamTests
         var fi = new FileInfo($"{Guid.NewGuid()}.txt");
         var bs = fi.OpenBlockWrite();
         bs.Write([9, 2, 4, 6, 7]);
-        bs.Seek(position, SeekOrigin.Begin);
+        _ = bs.Seek(position, SeekOrigin.Begin);
 
         // Act
         bs.CacheTrailer = true;
@@ -103,7 +103,7 @@ public class BlockStreamTests
         var md5Hex = File.ReadAllBytes(fi.FullName).Hash(HashType.Md5).Encode(Codec.ByteHex);
 
         // Assert
-        md5Hex.Should().Be("db8c4ba99d15ab9463659798b1b9a385");
+        md5Hex.ShouldBe("db8c4ba99d15ab9463659798b1b9a385");
     }
 
     [Fact]
@@ -114,10 +114,10 @@ public class BlockStreamTests
 
         // Act
         sut.Dispose();
-        var act = () => sut.Length;
+        Action act = () => _ = sut.Length;
 
         // Assert
-        act.Should().Throw<Exception>();
+        _ = act.ShouldThrow<Exception>();
     }
 
     [Fact]
@@ -140,7 +140,7 @@ public class BlockStreamTests
         var testHash = targetFi.Hash(HashType.Md5).Encode(Codec.ByteHex);
 
         // Assert
-        testHash.Should().Be(controlHash);
+        testHash.ShouldBe(controlHash);
     }
 
     [Fact]
@@ -168,10 +168,10 @@ public class BlockStreamTests
         var directHash4 = Md5Hex(sutStream, buffer, 32000, 2000);
 
         // Assert
-        directHash1.Should().Be(blocksHash1);
-        directHash2.Should().Be(blocksHash2);
-        directHash3.Should().Be(blocksHash3);
-        directHash4.Should().Be(blocksHash4);
+        directHash1.ShouldBe(blocksHash1);
+        directHash2.ShouldBe(blocksHash2);
+        directHash3.ShouldBe(blocksHash3);
+        directHash4.ShouldBe(blocksHash4);
 
         // Clean up
         sutStream.Dispose();
@@ -199,7 +199,7 @@ public class BlockStreamTests
         var blocksHash1 = Md5Hex(sutStream, buffer, 4000, 200);
 
         // Assert
-        directHash1.Should().Be(blocksHash1);
+        directHash1.ShouldBe(blocksHash1);
 
         // Clean up
         sutStream.Dispose();
@@ -216,13 +216,13 @@ public class BlockStreamTests
         using var sut = new BlockStream(ms, bufferLength: 2);
 
         // Act
-        sut.Seek(8, SeekOrigin.Begin);
+        _ = sut.Seek(8, SeekOrigin.Begin);
         sut.CacheTrailer = true;
-        sut.Seek(6, SeekOrigin.Begin);
+        _ = sut.Seek(6, SeekOrigin.Begin);
         var act = () => sut.Write([1, 3]);
 
         // Assert
-        act.Should().Throw<InvalidOperationException>().WithMessage("Unable to write dirty*");
+        act.ShouldThrow<InvalidOperationException>().Message.ShouldMatch("Unable to write dirty.*");
     }
 
     [Fact]
@@ -235,11 +235,11 @@ public class BlockStreamTests
         // Act
         sut.Write([8, 4, 3, 2, 1, 5, 6, 9]);
         sut.CacheTrailer = true;
-        sut.Seek(2, SeekOrigin.Begin);
+        _ = sut.Seek(2, SeekOrigin.Begin);
         var act = sut.FinaliseWrite;
 
         // Assert
-        act.Should().NotThrow();
+        act.ShouldNotThrow();
     }
 
     [Fact]
@@ -253,11 +253,11 @@ public class BlockStreamTests
         sut.Write([8, 4, 3, 2, 1, 5]);
         sut.CacheTrailer = true;
         sut.Write([99, 88]);
-        sut.Seek(6, SeekOrigin.Begin);
+        _ = sut.Seek(6, SeekOrigin.Begin);
         var act = sut.FinaliseWrite;
 
         // Assert
-        act.Should().NotThrow();
+        act.ShouldNotThrow();
     }
 
     [Fact]
@@ -270,11 +270,11 @@ public class BlockStreamTests
         // Act
         sut.Write([8, 4, 3, 2, 1, 5, 6, 9]);
         sut.CacheTrailer = true;
-        sut.Seek(4, SeekOrigin.Begin);
+        _ = sut.Seek(4, SeekOrigin.Begin);
         var act = sut.FinaliseWrite;
 
         // Assert
-        act.Should().NotThrow();
+        act.ShouldNotThrow();
     }
 
     [Fact]
@@ -288,11 +288,11 @@ public class BlockStreamTests
         sut.Write([1, 2, 3, 4, 5, 6]);
         sut.CacheTrailer = true;
         sut.Write([7, 7]);
-        sut.Seek(0, SeekOrigin.Begin);
+        _ = sut.Seek(0, SeekOrigin.Begin);
         var act = () => sut.Write([8, 8]);
 
         // Assert
-        act.Should().NotThrow();
+        act.ShouldNotThrow();
     }
 
     [Fact]
@@ -306,12 +306,12 @@ public class BlockStreamTests
         sut.Write([1, 2, 3, 4, 5, 6]);
         sut.CacheTrailer = true;
         sut.Write([7, 7]);
-        sut.Seek(6, SeekOrigin.Begin);
+        _ = sut.Seek(6, SeekOrigin.Begin);
         sut.Write([8, 8]);
         var act = sut.FlushCache;
 
         // Assert
-        act.Should().NotThrow();
+        act.ShouldNotThrow();
     }
 
     [Fact]
@@ -322,13 +322,13 @@ public class BlockStreamTests
         using var sut = new BlockStream(ms, bufferLength: 2);
 
         // Act
-        sut.Seek(6, SeekOrigin.Begin);
+        _ = sut.Seek(6, SeekOrigin.Begin);
         sut.CacheTrailer = true;
         sut.Write([99, 22]);
         var act = sut.FinaliseWrite;
 
         // Assert
-        act.Should().Throw<InvalidOperationException>().WithMessage("Unexpected trailer*");
+        act.ShouldThrow<InvalidOperationException>().Message.ShouldMatch("Unexpected trailer.*");
     }
 
     [Fact]
@@ -347,7 +347,7 @@ public class BlockStreamTests
         var postLength = sut.Length;
 
         // Assert
-        preLength.Should().Be(postLength);
+        preLength.ShouldBe(postLength);
     }
 
     [Fact]
@@ -358,12 +358,12 @@ public class BlockStreamTests
         using var sut = new BlockStream(ms, bufferLength: 2);
 
         // Act
-        sut.Seek(6, SeekOrigin.Begin);
+        _ = sut.Seek(6, SeekOrigin.Begin);
         sut.Write([99, 22]);
-        sut.Seek(4, SeekOrigin.Begin);
+        _ = sut.Seek(4, SeekOrigin.Begin);
 
         // Assert
-        ms.ToArray().Hash(HashType.Md5).Encode(Codec.ByteHex).Should().Be("b1ba563dbce34007ca202aac966e4a32");
+        ms.ToArray().Hash(HashType.Md5).Encode(Codec.ByteHex).ShouldBe("b1ba563dbce34007ca202aac966e4a32");
     }
 
     [Fact]
@@ -374,16 +374,16 @@ public class BlockStreamTests
         using var sut = new BlockStream(ms, bufferLength: 4);
 
         // Act
-        sut.Seek(8, SeekOrigin.Begin);
+        _ = sut.Seek(8, SeekOrigin.Begin);
         sut.Write([99]);
         sut.CacheTrailer = true;
-        sut.Seek(3, SeekOrigin.Begin);
+        _ = sut.Seek(3, SeekOrigin.Begin);
         sut.Write([1, 2]);
 
-        var act = () => sut.Seek(4, SeekOrigin.Begin);
+        Action act = () => sut.Seek(4, SeekOrigin.Begin);
 
         // Assert
-        act.Should().Throw<InvalidOperationException>().WithMessage("Unable to abandon block*");
+        act.ShouldThrow<InvalidOperationException>().Message.ShouldMatch("Unable to abandon block.*");
     }
 
     [Fact]
@@ -394,16 +394,16 @@ public class BlockStreamTests
         using var sut = new BlockStream(ms, bufferLength: 4);
 
         // Act
-        sut.Seek(8, SeekOrigin.Begin);
+        _ = sut.Seek(8, SeekOrigin.Begin);
         sut.Write([99]);
         sut.CacheTrailer = true;
-        sut.Seek(0, SeekOrigin.Begin);
+        _ = sut.Seek(0, SeekOrigin.Begin);
         sut.Write([1, 2]);
 
         var act = () => sut.Seek(4, SeekOrigin.Begin);
 
         // Assert
-        act.Should().NotThrow();
+        _ = act.ShouldNotThrow();
     }
 
     [Fact]
@@ -414,17 +414,17 @@ public class BlockStreamTests
         using var sut = new BlockStream(ms, bufferLength: 4);
 
         // Act
-        sut.Seek(8, SeekOrigin.Begin);
+        _ = sut.Seek(8, SeekOrigin.Begin);
         sut.Write([99]);
         sut.CacheTrailer = true;
-        sut.Seek(5, SeekOrigin.Begin);
+        _ = sut.Seek(5, SeekOrigin.Begin);
         sut.Write([1, 2]);
         sut.Write([1]);
 
-        var act = () => sut.Seek(4, SeekOrigin.Begin);
+        Action act = () => sut.Seek(4, SeekOrigin.Begin);
 
         // Assert
-        act.Should().Throw<InvalidOperationException>().WithMessage("Unable to write dirty*");
+        act.ShouldThrow<InvalidOperationException>().Message.ShouldMatch("Unable to write dirty.*");
     }
 
     [Fact]
@@ -435,15 +435,15 @@ public class BlockStreamTests
         using var sut = new BlockStream(ms, bufferLength: 4);
 
         // Act
-        sut.Seek(8, SeekOrigin.Begin);
+        _ = sut.Seek(8, SeekOrigin.Begin);
         sut.Write([99]);
         sut.CacheTrailer = true;
-        sut.Seek(1, SeekOrigin.Begin);
+        _ = sut.Seek(1, SeekOrigin.Begin);
         sut.Write([1]);
-        sut.Seek(4, SeekOrigin.Begin);
+        _ = sut.Seek(4, SeekOrigin.Begin);
 
         // Assert
-        ms.ToArray().Hash(HashType.Md5).Encode(Codec.ByteHex).Should().Be("5c320e0fe97322a2cf80b60cc718b993");
+        ms.ToArray().Hash(HashType.Md5).Encode(Codec.ByteHex).ShouldBe("5c320e0fe97322a2cf80b60cc718b993");
     }
 
     [Fact]
@@ -454,15 +454,15 @@ public class BlockStreamTests
         using var sut = new BlockStream(ms, bufferLength: 4);
 
         // Act
-        sut.Seek(8, SeekOrigin.Begin);
+        _ = sut.Seek(8, SeekOrigin.Begin);
         sut.Write([99]);
         sut.CacheTrailer = true;
-        sut.Seek(8, SeekOrigin.Begin);
+        _ = sut.Seek(8, SeekOrigin.Begin);
         sut.Write([1]);
-        sut.Seek(4, SeekOrigin.Begin);
+        _ = sut.Seek(4, SeekOrigin.Begin);
 
         // Assert
-        ms.ToArray().Hash(HashType.Md5).Encode(Codec.ByteHex).Should().Be("7dd0fd106ae0f94f162113a63c93d2fe");
+        ms.ToArray().Hash(HashType.Md5).Encode(Codec.ByteHex).ShouldBe("7dd0fd106ae0f94f162113a63c93d2fe");
     }
 
     [Fact]
@@ -473,14 +473,14 @@ public class BlockStreamTests
         using var sut = new BlockStream(ms, bufferLength: 4);
 
         // Act
-        sut.Seek(8, SeekOrigin.Begin);
+        _ = sut.Seek(8, SeekOrigin.Begin);
         sut.Write([99]);
-        sut.Seek(8, SeekOrigin.Begin);
+        _ = sut.Seek(8, SeekOrigin.Begin);
         sut.Write([1]);
-        sut.Seek(4, SeekOrigin.Begin);
+        _ = sut.Seek(4, SeekOrigin.Begin);
 
         // Assert
-        ms.ToArray().Hash(HashType.Md5).Encode(Codec.ByteHex).Should().Be("47ddbd444989967f6f17e3f1f7369975");
+        ms.ToArray().Hash(HashType.Md5).Encode(Codec.ByteHex).ShouldBe("47ddbd444989967f6f17e3f1f7369975");
     }
 
     [Fact]
@@ -499,7 +499,7 @@ public class BlockStreamTests
 
         // Assert
         var bytes = File.ReadAllBytes(fi.FullName);
-        bytes.Hash(HashType.Md5).Encode(Codec.ByteHex).Should().Be("5d924de0db8f710fbd9fec0e4064eb47");
+        bytes.Hash(HashType.Md5).Encode(Codec.ByteHex).ShouldBe("5d924de0db8f710fbd9fec0e4064eb47");
     }
 
     [Fact]
@@ -513,14 +513,14 @@ public class BlockStreamTests
         sut.Write([1, 2, 3, 4, 5, 6, 7]);
         sut.CacheTrailer = true;
         sut.Write([4, 4, 4]);
-        sut.Seek(4, SeekOrigin.Begin);
+        _ = sut.Seek(4, SeekOrigin.Begin);
         sut.Write([5, 5, 5]);
         sut.FinaliseWrite();
         sut.Dispose();
 
         // Assert
         var bytes = File.ReadAllBytes(fi.FullName);
-        bytes.Hash(HashType.Md5).Encode(Codec.ByteHex).Should().Be("aa215cd0501a79d649596385acca7450");
+        bytes.Hash(HashType.Md5).Encode(Codec.ByteHex).ShouldBe("aa215cd0501a79d649596385acca7450");
     }
 
     [Fact]
@@ -544,7 +544,7 @@ public class BlockStreamTests
         var testHash = targetFi.Hash(HashType.Md5).Encode(Codec.ByteHex);
 
         // Assert
-        testHash.Should().Be(controlHash);
+        testHash.ShouldBe(controlHash);
     }
 
     [Fact]
@@ -571,7 +571,7 @@ public class BlockStreamTests
         var newMd5 = blocksFi.Hash(HashType.Md5).Encode(Codec.ByteHex);
 
         // Assert
-        newMd5.Should().Be(referenceMd5);
+        newMd5.ShouldBe(referenceMd5);
         referenceFi.Delete();
         blocksFi.Delete();
     }
@@ -579,7 +579,7 @@ public class BlockStreamTests
     private static string Md5Hex(Stream stream, byte[] buffer, long position, int count)
     {
         Array.Clear(buffer, 0, buffer.Length);
-        stream.Seek(position, SeekOrigin.Begin);
+        _ = stream.Seek(position, SeekOrigin.Begin);
         var read = stream.Read(buffer, 0, count);
         return buffer.AsSpan(0, read).ToArray().Hash(HashType.Md5).Encode(Codec.ByteHex);
     }

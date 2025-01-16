@@ -27,7 +27,7 @@ public class EncodingExtensionsTests
         var result = source.Encode(codec);
 
         // Assert
-        result.Should().Be(expected);
+        result.ShouldBe(expected);
     }
 
     [Fact]
@@ -40,8 +40,8 @@ public class EncodingExtensionsTests
         var act = () => source.Encode((Codec)9999);
 
         // Assert
-        act.Should().ThrowExactly<ArgumentException>()
-            .WithMessage("Bad codec: 9999 (Parameter 'codec')");
+        act.ShouldThrow<ArgumentException>()
+            .Message.ShouldBe("Bad codec: 9999 (Parameter 'codec')");
     }
 
     [Fact]
@@ -54,7 +54,7 @@ public class EncodingExtensionsTests
         var act = () => source.Encode(Codec.ByteHex);
 
         // Assert
-        act.Should().ThrowExactly<ArgumentNullException>();
+        _ = act.ShouldThrow<ArgumentNullException>();
     }
 
     [Theory]
@@ -72,7 +72,7 @@ public class EncodingExtensionsTests
         var result = source.Decode(codec).Hash(HashType.Md5).Encode(Codec.ByteHex);
 
         // Assert
-        result.Should().Be(expected);
+        result.ShouldBe(expected);
     }
 
     [Fact]
@@ -85,8 +85,8 @@ public class EncodingExtensionsTests
         var act = () => source.Decode((Codec)9999);
 
         // Assert
-        act.Should().ThrowExactly<ArgumentException>()
-            .WithMessage("Bad codec: 9999 (Parameter 'codec')");
+        act.ShouldThrow<ArgumentException>()
+            .Message.ShouldBe("Bad codec: 9999 (Parameter 'codec')");
     }
 
     [Fact]
@@ -99,6 +99,6 @@ public class EncodingExtensionsTests
         var act = () => source.Decode(Codec.ByteHex);
 
         // Assert
-        act.Should().ThrowExactly<ArgumentNullException>();
+        _ = act.ShouldThrow<ArgumentNullException>();
     }
 }

@@ -31,7 +31,7 @@ public class GcmCryptoStreamTests
 
         // Assert
         var span = File.ReadAllBytes(fi.FullName).AsSpan(32768, 2000).ToArray();
-        span.Count(b => b == 0).Should().Be(0);
+        span.Count(b => b == 0).ShouldBe(0);
     }
 
     [Fact]
@@ -61,8 +61,8 @@ public class GcmCryptoStreamTests
         var testMd5 = clearFi.Hash(HashType.Md5).Encode(Codec.ByteHex);
 
         // Assert
-        sut.Metadata["filename"].Should().StartWith("_");
-        testMd5.Should().Be(controlMd5);
+        sut.Metadata["filename"].ShouldStartWith("_");
+        testMd5.ShouldBe(controlMd5);
         testFiSrc.Delete();
         testFiTrg.Delete();
         finalFi.Delete();
@@ -98,9 +98,9 @@ public class GcmCryptoStreamTests
         var ctlHex1 = Md5Hex(ctl, buffer, 0, buffer.Length);
 
         // Assert
-        writerLen.Should().Be(4000000);
-        readerLen.Should().Be(3384888);
-        sutHex1.Should().Be(ctlHex1);
+        writerLen.ShouldBe(4000000);
+        readerLen.ShouldBe(3384888);
+        sutHex1.ShouldBe(ctlHex1);
         sut.Dispose();
         ctl.Dispose();
         originalFi.Delete();
@@ -114,7 +114,7 @@ public class GcmCryptoStreamTests
         // Arrange
         const string name = "e092d33a6b0fa2abc987cba27f2da80fd07a1c6e3b7fe56a4ac53c486626c941.3faaccce33";
         var testRef = Guid.NewGuid().ToString();
-        Directory.CreateDirectory(testRef);
+        _ = Directory.CreateDirectory(testRef);
         var cryptFi = new FileInfo($"{testRef}/{name}");
         File.Copy($"TestObjects/{name}", cryptFi.FullName);
         var sutStream = cryptFi.OpenCryptoRead(TestRefs.TestKey);
@@ -124,7 +124,7 @@ public class GcmCryptoStreamTests
         var blocksHash1 = Md5Hex(sutStream, buffer, 64000, 2000);
 
         // Assert
-        blocksHash1.Should().Be("d41d8cd98f00b204e9800998ecf8427e");
+        blocksHash1.ShouldBe("d41d8cd98f00b204e9800998ecf8427e");
 
         // Clean up
         sutStream.Dispose();
@@ -137,7 +137,7 @@ public class GcmCryptoStreamTests
         // Arrange
         const string name = "e092d33a6b0fa2abc987cba27f2da80fd07a1c6e3b7fe56a4ac53c486626c941.3faaccce33";
         var testRef = Guid.NewGuid().ToString();
-        Directory.CreateDirectory(testRef);
+        _ = Directory.CreateDirectory(testRef);
         var cryptFi = new FileInfo($"{testRef}/{name}");
         File.Copy($"TestObjects/{name}", cryptFi.FullName);
         var sutStream = cryptFi.OpenCryptoRead(TestRefs.TestKey);
@@ -147,7 +147,7 @@ public class GcmCryptoStreamTests
         var blocksHash1 = Md5Hex(sutStream, buffer, 8000, 733);
 
         // Assert
-        blocksHash1.Should().Be("6dd3eeddd0bd6d9d5751cfc98b7da306");
+        blocksHash1.ShouldBe("6dd3eeddd0bd6d9d5751cfc98b7da306");
 
         // Clean up
         sutStream.Dispose();
@@ -157,7 +157,7 @@ public class GcmCryptoStreamTests
     private static string Md5Hex(Stream stream, byte[] buffer, long position, int count)
     {
         Array.Clear(buffer, 0, buffer.Length);
-        stream.Seek(position, SeekOrigin.Begin);
+        _ = stream.Seek(position, SeekOrigin.Begin);
         var read = stream.Read(buffer, 0, count);
         return buffer.AsSpan(0, read).ToArray().Hash(HashType.Md5).Encode(Codec.ByteHex);
     }

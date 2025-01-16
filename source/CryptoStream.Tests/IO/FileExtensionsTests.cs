@@ -22,14 +22,14 @@ public class FileExtensionsTests
         var originalName = $"{Guid.NewGuid()}.txt";
         var fi = new FileInfo(Path.Combine("TestObjects", originalName));
         File.WriteAllText(fi.FullName, fi.Name);
-        fi.EncryptInSitu(TestRefs.TestKey);
+        _ = fi.EncryptInSitu(TestRefs.TestKey);
 
         // Act
         var result = fi.DecryptHere(TestRefs.TestKey);
 
         // Assert
-        result.Name.Should().Match($"{fi.Name[..12]}.*.txt");
-        result.Exists.Should().BeTrue();
+        result.Name.ShouldMatch($"{fi.Name[..12]}.*.txt");
+        result.Exists.ShouldBeTrue();
     }
 
     [Fact]
@@ -39,14 +39,14 @@ public class FileExtensionsTests
         var originalName = $"{Guid.NewGuid()}.txt";
         var fi = new FileInfo(Path.Combine("TestObjects", originalName));
         File.WriteAllText(fi.FullName, fi.Name);
-        fi.EncryptInSitu(TestRefs.TestKey);
+        _ = fi.EncryptInSitu(TestRefs.TestKey);
         var trgStream = new MemoryStream();
 
         // Act
         var result = fi.DecryptTo(trgStream, TestRefs.TestKey);
 
         // Assert
-        result["filename"].Should().Be(originalName);
+        result["filename"].ShouldBe(originalName);
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public class FileExtensionsTests
         var trgStream = new MemoryStream();
 
         // Act
-        fi.DecryptTo(trgStream, TestRefs.TestKey, mockDecryptor.Object);
+        _ = fi.DecryptTo(trgStream, TestRefs.TestKey, mockDecryptor.Object);
 
         // Assert
         mockDecryptor.Verify(
@@ -74,14 +74,14 @@ public class FileExtensionsTests
         var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         var content = $"hi{Guid.NewGuid()}";
         File.WriteAllText(fi.FullName, content);
-        fi.EncryptInSitu(TestRefs.TestKey);
+        _ = fi.EncryptInSitu(TestRefs.TestKey);
         var trgStream = new MemoryStream();
 
         // Act
-        fi.DecryptTo(trgStream, TestRefs.TestKey);
+        _ = fi.DecryptTo(trgStream, TestRefs.TestKey);
 
         // Assert
-        trgStream.ToArray().Encode(Codec.CharUtf8).Should().Be(content);
+        trgStream.ToArray().Encode(Codec.CharUtf8).ShouldBe(content);
     }
 
     [Fact]
@@ -91,14 +91,14 @@ public class FileExtensionsTests
         var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         var content = $"hi{Guid.NewGuid()}";
         File.WriteAllText(fi.FullName, content);
-        fi.EncryptInSitu(TestRefs.TestKey, bufferLength: 12);
+        _ = fi.EncryptInSitu(TestRefs.TestKey, bufferLength: 12);
         var trgStream = new MemoryStream();
 
         // Act
-        fi.DecryptTo(trgStream, TestRefs.TestKey, bufferLength: 12);
+        _ = fi.DecryptTo(trgStream, TestRefs.TestKey, bufferLength: 12);
 
         // Assert
-        trgStream.ToArray().Encode(Codec.CharUtf8).Should().Be(content);
+        trgStream.ToArray().Encode(Codec.CharUtf8).ShouldBe(content);
     }
 
     [Fact]
@@ -109,14 +109,14 @@ public class FileExtensionsTests
         var content = $"hi{Guid.NewGuid()}";
         File.WriteAllText(fi.FullName, content);
         using var macStream = new MemoryStream();
-        fi.EncryptInSitu(TestRefs.TestKey, mac: macStream);
+        _ = fi.EncryptInSitu(TestRefs.TestKey, mac: macStream);
         var trgStream = new MemoryStream();
 
         // Act
-        fi.DecryptTo(trgStream, TestRefs.TestKey, mac: macStream);
+        _ = fi.DecryptTo(trgStream, TestRefs.TestKey, mac: macStream);
 
         // Assert
-        trgStream.ToArray().Encode(Codec.CharUtf8).Should().Be(content);
+        trgStream.ToArray().Encode(Codec.CharUtf8).ShouldBe(content);
     }
 
     [Fact]
@@ -132,8 +132,7 @@ public class FileExtensionsTests
         var act = () => fi.EncryptInSitu(TestRefs.TestKey);
 
         // Assert
-        act.Should().ThrowExactly<ArgumentException>()
-            .WithMessage("File*already*secure*");
+        act.ShouldThrow<ArgumentException>().Message.ShouldMatch("File.*already.*secure.*");
     }
 
     [Theory]
@@ -150,7 +149,7 @@ public class FileExtensionsTests
         var salt = fi.EncryptInSitu(keyBytes);
 
         // Assert
-        salt.Should().StartWith(expectedStart);
+        salt.ShouldStartWith(expectedStart);
     }
 
     [Fact]
@@ -163,7 +162,7 @@ public class FileExtensionsTests
         var act = () => fi.EncryptInSitu(TestRefs.TestKey);
 
         // Assert
-        act.Should().Throw<ArgumentNullException>();
+        _ = act.ShouldThrow<ArgumentNullException>();
     }
 
     [Fact]
@@ -177,8 +176,8 @@ public class FileExtensionsTests
         var salt = fi.EncryptInSitu(TestRefs.TestKey);
 
         // Assert
-        fi.Name.Should().Be(salt + ".20ab58c82d");
-        fi.Exists.Should().BeTrue();
+        fi.Name.ShouldBe(salt + ".20ab58c82d");
+        fi.Exists.ShouldBeTrue();
     }
 
     [Fact]
@@ -193,7 +192,7 @@ public class FileExtensionsTests
         _ = fi.EncryptInSitu(TestRefs.TestKey, mac: macStream);
 
         // Assert
-        macStream.ToArray().Length.Should().Be(16);
+        macStream.ToArray().Length.ShouldBe(16);
     }
 
     [Theory]
@@ -211,7 +210,7 @@ public class FileExtensionsTests
         var result = fi.IsSecure();
 
         // Assert
-        result.Should().Be(expected);
+        result.ShouldBe(expected);
     }
 
     [Fact]
@@ -221,10 +220,10 @@ public class FileExtensionsTests
         var fi = (FileInfo)null!;
 
         // Act
-        var act = fi.IsSecure;
+        Action act = () => _ = fi.IsSecure();
 
         // Assert
-        act.Should().Throw<ArgumentNullException>();
+        _ = act.ShouldThrow<ArgumentNullException>();
     }
 
     [Fact]
@@ -237,7 +236,7 @@ public class FileExtensionsTests
         var act = fi.ToSalt;
 
         // Assert
-        act.Should().Throw<ArgumentNullException>();
+        _ = act.ShouldThrow<ArgumentNullException>();
     }
 
     [Theory]
@@ -251,11 +250,11 @@ public class FileExtensionsTests
         var fi = new FileInfo(notASalt);
 
         // Act
-        var act = () => fi.ToSalt();
+        var act = fi.ToSalt;
 
         // Assert
-        act.Should().ThrowExactly<ArgumentException>()
-            .WithMessage($"Unable to obtain salt: '{notASalt}' (Parameter 'fi')");
+        act.ShouldThrow<ArgumentException>()
+            .Message.ShouldBe($"Unable to obtain salt: '{notASalt}' (Parameter 'fi')");
     }
 
     [Theory]
@@ -272,7 +271,7 @@ public class FileExtensionsTests
         var salt = fi.ToSalt();
 
         // Assert
-        salt.Should().BeEquivalentTo(new byte[]
+        salt.ShouldBeEquivalentTo(new byte[]
         {
             1, 35, 69, 103, 137, 171, 205, 239,
             1, 35, 69, 103, 137, 171, 205, 239,
@@ -292,7 +291,7 @@ public class FileExtensionsTests
         var result = fi.Hash(HashType.Md5).Encode(Codec.ByteHex);
 
         // Assert
-        result.Should().Be("72bb71f5d67dbdde008eb5331b3baec5");
+        result.ShouldBe("72bb71f5d67dbdde008eb5331b3baec5");
     }
 
     [Fact]
@@ -305,7 +304,7 @@ public class FileExtensionsTests
         var act = () => fi.Hash(HashType.Md5);
 
         // Assert
-        act.Should().Throw<ArgumentNullException>();
+        _ = act.ShouldThrow<ArgumentNullException>();
     }
 
     [Fact]
@@ -319,7 +318,7 @@ public class FileExtensionsTests
         var result = fi.HashLite(HashType.Md5, 10, 2);
 
         // Assert
-        result.Should().BeEquivalentTo(new byte[]
+        result.ShouldBeEquivalentTo(new byte[]
         {
             180, 30, 103, 199, 233, 171, 46, 76,
             96, 8, 95, 82, 185, 89, 12, 135,
@@ -336,7 +335,7 @@ public class FileExtensionsTests
         var act = () => fi.HashLite(HashType.Md5);
 
         // Assert
-        act.Should().Throw<ArgumentNullException>();
+        _ = act.ShouldThrow<ArgumentNullException>();
     }
 
     [Fact]
@@ -349,7 +348,7 @@ public class FileExtensionsTests
         var act = () => file.ToSecureExtension(null!);
 
         // Assert
-        act.Should().Throw<ArgumentNullException>().WithParameterName("plainExtension");
+        act.ShouldThrow<ArgumentNullException>().ParamName.ShouldBe("plainExtension");
     }
 
     [Theory]
@@ -365,9 +364,9 @@ public class FileExtensionsTests
         var act = () => file.ToSecureExtension(badExtension);
 
         // Assert
-        act.Should().Throw<ArgumentException>()
-            .WithParameterName("plainExtension")
-            .WithMessage("Unable to parse file data.*");
+        act.ShouldThrow<ArgumentException>().ShouldSatisfyAllConditions(
+            ex => ex.ParamName.ShouldBe("plainExtension"),
+            ex => ex.Message.ShouldMatch("Unable to parse file data.*"));
     }
 
     [Theory]
@@ -382,7 +381,7 @@ public class FileExtensionsTests
         var result = file.ToSecureExtension(".avi");
 
         // Assert
-        result.Should().Be(expected);
+        result.ShouldBe(expected);
     }
 
     [Fact]
@@ -390,13 +389,13 @@ public class FileExtensionsTests
     {
         // Arrange
         var mockEncryptor = new Mock<IGcmEncryptor>();
-        mockEncryptor
+        _ = mockEncryptor
             .Setup(m => m.EncryptBlock(It.IsAny<byte[]>(), It.IsAny<byte[]>(), It.IsAny<byte[]>()))
             .Returns(new GcmEncryptedBlock([], []));
         var file = new FileInfo(new string('a', 64));
 
         // Act
-        file.ToSecureExtension(".avi", mockEncryptor.Object);
+        _ = file.ToSecureExtension(".avi", mockEncryptor.Object);
 
         // Assert
         mockEncryptor.Verify(m => m.EncryptBlock(It.IsAny<byte[]>(), It.IsAny<byte[]>(), It.IsAny<byte[]>()));
@@ -416,9 +415,9 @@ public class FileExtensionsTests
         var act = () => file.ToPlainExtension();
 
         // Assert
-        act.Should().Throw<ArgumentException>()
-            .WithParameterName("secure")
-            .WithMessage("Unable to parse file data.*");
+        act.ShouldThrow<ArgumentException>().ShouldSatisfyAllConditions(
+            ex => ex.ParamName.ShouldBe("secure"),
+            ex => ex.Message.ShouldMatch("Unable to parse file data.*"));
     }
 
     [Theory]
@@ -433,7 +432,7 @@ public class FileExtensionsTests
         var result = file.ToPlainExtension();
 
         // Assert
-        result.Should().Be(".avi");
+        result.ShouldBe(".avi");
     }
 
     [Fact]
@@ -441,13 +440,13 @@ public class FileExtensionsTests
     {
         // Arrange
         var mockDecryptor = new Mock<IGcmDecryptor>();
-        mockDecryptor
+        _ = mockDecryptor
             .Setup(m => m.DecryptBlock(It.IsAny<GcmEncryptedBlock>(), It.IsAny<byte[]>(), It.IsAny<byte[]>(), false))
             .Returns([]);
         var file = new FileInfo(new string('a', 64) + ".4bf0265e44");
 
         // Act
-        file.ToPlainExtension(mockDecryptor.Object);
+        _ = file.ToPlainExtension(mockDecryptor.Object);
 
         // Assert
         mockDecryptor.Verify(

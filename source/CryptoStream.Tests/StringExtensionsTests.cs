@@ -25,7 +25,7 @@ public class StringExtensionsTests
         var roundTrip = cipher.Decrypt(password, salt);
 
         // Assert
-        roundTrip.Should().Be(original);
+        roundTrip.ShouldBe(original);
     }
 
     [Fact]
@@ -40,8 +40,8 @@ public class StringExtensionsTests
         var cipher2 = original.Encrypt(password, out var salt2);
 
         // Assert
-        cipher1.Should().NotBe(cipher2);
-        salt1.Should().Be(salt2);
+        cipher1.ShouldNotBe(cipher2);
+        salt1.ShouldBe(salt2);
     }
 
     [Fact]
@@ -54,8 +54,8 @@ public class StringExtensionsTests
         var cipher = "test".Encrypt("pass", out var salt, customCrypto);
 
         // Assert
-        cipher.Should().Be("AgQG");
-        salt.Should().Be("AQID");
+        cipher.ShouldBe("AgQG");
+        salt.ShouldBe("AQID");
     }
 
     [Fact]
@@ -68,7 +68,7 @@ public class StringExtensionsTests
         var plain = "AgQG".Decrypt("pass", "AQID", customCrypto);
 
         // Assert
-        plain.Should().Be("\u0001\u0003\u0005");
+        plain.ShouldBe("\u0001\u0003\u0005");
     }
 
     [Fact]
@@ -81,6 +81,6 @@ public class StringExtensionsTests
         var result = str.Hash(HashType.Md5).Encode(Codec.ByteBase64);
 
         // Assert
-        result.Should().Be("r/lxYEdKBW6DjB9yGvAe3w==");
+        result.ShouldBe("r/lxYEdKBW6DjB9yGvAe3w==");
     }
 }

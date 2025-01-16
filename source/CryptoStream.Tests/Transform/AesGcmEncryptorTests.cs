@@ -27,7 +27,7 @@ public class AesGcmEncryptorTests
         var salt = sut.GenerateSalt(stream, key);
 
         // Assert
-        salt.Encode(Codec.ByteHex).Should().Be("d6cffa25a09717f8f92c8230f55d4b846cafa1e8347b775fdbc3d4f58cdef533");
+        salt.Encode(Codec.ByteHex).ShouldBe("d6cffa25a09717f8f92c8230f55d4b846cafa1e8347b775fdbc3d4f58cdef533");
     }
 
     [Fact]
@@ -39,7 +39,7 @@ public class AesGcmEncryptorTests
         var pepper = sut.GeneratePepper(null!);
 
         // Assert
-        pepper.Should().NotContain(default(byte));
+        pepper.ShouldNotContain(default(byte));
     }
 
     [Fact]
@@ -55,7 +55,7 @@ public class AesGcmEncryptorTests
         var act = () => sut.Encrypt(srcStream, trgStream, TestRefs.TestKey, []);
 
         // Assert
-        act.Should().Throw<ArgumentNullException>().WithParameterName("source");
+        act.ShouldThrow<ArgumentNullException>().ParamName.ShouldBe("source");
     }
 
     [Fact]
@@ -71,8 +71,7 @@ public class AesGcmEncryptorTests
         var act = () => sut.Encrypt(srcStream, trgStream, TestRefs.TestKey, []);
 
         // Assert
-        act.Should().Throw<ArgumentNullException>()
-            .WithParameterName("target");
+        act.ShouldThrow<ArgumentNullException>().ParamName.ShouldBe("target");
     }
 
     [Fact]
@@ -87,7 +86,7 @@ public class AesGcmEncryptorTests
         using var trgStream = new MemoryStream();
 
         // Act
-        sut.Encrypt(srcStream, trgStream, TestRefs.TestKey, []);
+        _ = sut.Encrypt(srcStream, trgStream, TestRefs.TestKey, []);
 
         // Assert
         mockResizer.Verify(
@@ -107,7 +106,7 @@ public class AesGcmEncryptorTests
         using var trgStream = new MemoryStream();
 
         // Act
-        sut.Encrypt(srcStream, trgStream, TestRefs.TestKey, [], bufferLength: 5);
+        _ = sut.Encrypt(srcStream, trgStream, TestRefs.TestKey, [], bufferLength: 5);
 
         // Assert
         mockResizer.Verify(
@@ -120,8 +119,8 @@ public class AesGcmEncryptorTests
     {
         // Arrange
         var mockDeriver = new Mock<ICryptoKeyDeriver>();
-        var key = new byte[] { 99 };
-        mockDeriver
+        var key = "c"u8.ToArray();
+        _ = mockDeriver
             .Setup(m => m.DeriveCryptoKey(key, It.IsAny<byte[]>(), It.IsAny<byte[]>()))
             .Returns(Guid.NewGuid().ToByteArray());
         var sut = new AesGcmEncryptor(mockDeriver.Object);
@@ -150,7 +149,7 @@ public class AesGcmEncryptorTests
         var act = () => sut.Encrypt(srcStream, trgStream, TestRefs.TestKey, meta);
 
         // Assert
-        act.Should().Throw<ArgumentException>().WithMessage("Unexpected padding.");
+        act.ShouldThrow<ArgumentException>().Message.ShouldBe("Unexpected padding.");
     }
 
     [Fact]
@@ -163,12 +162,12 @@ public class AesGcmEncryptorTests
         var checkBackBuffer = new byte[30];
 
         // Act
-        sut.Encrypt(srcStream, trgStream, TestRefs.TestKey, []);
+        _ = sut.Encrypt(srcStream, trgStream, TestRefs.TestKey, []);
 
         // Assert
-        trgStream.Seek(-(128 + checkBackBuffer.Length), SeekOrigin.End);
-        trgStream.Read(checkBackBuffer);
-        checkBackBuffer.Should().NotContain(default(byte));
+        _ = trgStream.Seek(-(128 + checkBackBuffer.Length), SeekOrigin.End);
+        _ = trgStream.Read(checkBackBuffer);
+        checkBackBuffer.ShouldNotContain(default(byte));
     }
 
     [Fact]
@@ -180,10 +179,10 @@ public class AesGcmEncryptorTests
         using var trgStream = new MemoryStream();
 
         // Act
-        sut.Encrypt(srcStream, trgStream, TestRefs.TestKey, []);
+        _ = sut.Encrypt(srcStream, trgStream, TestRefs.TestKey, []);
 
         // Assert
-        trgStream.Length.Should().Be(200);
+        trgStream.Length.ShouldBe(200);
     }
 
     [Fact]
@@ -200,6 +199,6 @@ public class AesGcmEncryptorTests
         var result = sut.Encrypt(srcStream, trgStream, TestRefs.TestKey, null!).Encode(Codec.ByteHex);
 
         // Assert
-        result.Should().Be("4b16d4eb3ab56591d6bc35d4a50d9cf718b79c547e84b2c2de2095378779535a");
+        result.ShouldBe("4b16d4eb3ab56591d6bc35d4a50d9cf718b79c547e84b2c2de2095378779535a");
     }
 }

@@ -27,7 +27,8 @@ public class DefaultKeyDeriverTests
         var key2 = sut.DeriveKey(seed, hash2, hash1).Encode(Codec.ByteBase64);
 
         // Assert
-        key1.Should().Be(key2).And.Be(expected);
+        key1.ShouldBe(key2);
+        key1.ShouldBe(expected);
     }
 
     [Fact]
@@ -43,6 +44,6 @@ public class DefaultKeyDeriverTests
         var cryptoKeyHex = sut.DeriveCryptoKey(key, salt, pepper).Encode(Codec.ByteHex);
 
         // Assert
-        cryptoKeyHex.Should().Be("d03434869fc5797972b0b602daab986a4a89d4827ea0a884058ee4fc46dba345");
+        cryptoKeyHex.ShouldBe("d03434869fc5797972b0b602daab986a4a89d4827ea0a884058ee4fc46dba345");
     }
 }

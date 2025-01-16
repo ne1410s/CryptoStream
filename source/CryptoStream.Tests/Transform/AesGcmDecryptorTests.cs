@@ -22,14 +22,14 @@ public class AesGcmDecryptorTests
         // Arrange
         var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         File.WriteAllText(fi.FullName, "hey!");
-        fi.EncryptInSitu(TestRefs.TestKey);
+        _ = fi.EncryptInSitu(TestRefs.TestKey);
         using var trgStream = new MemoryStream(Enumerable.Repeat((byte)1, 20).ToArray());
 
         // Act
-        fi.DecryptTo(trgStream, TestRefs.TestKey);
+        _ = fi.DecryptTo(trgStream, TestRefs.TestKey);
 
         // Assert
-        trgStream.Length.Should().Be(4);
+        trgStream.Length.ShouldBe(4);
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public class AesGcmDecryptorTests
         var act = () => sut.Decrypt(srcStream, trgStream, TestRefs.TestKey, salt, null);
 
         // Assert
-        act.Should().Throw<ArgumentNullException>().WithParameterName("source");
+        act.ShouldThrow<ArgumentNullException>().ParamName.ShouldBe("source");
     }
 
     [Fact]
@@ -63,7 +63,7 @@ public class AesGcmDecryptorTests
         var act = () => sut.Decrypt(srcStream, trgStream, TestRefs.TestKey, salt, null);
 
         // Assert
-        act.Should().Throw<ArgumentNullException>().WithParameterName("target");
+        act.ShouldThrow<ArgumentNullException>().ParamName.ShouldBe("target");
     }
 
     [Fact]
@@ -78,7 +78,7 @@ public class AesGcmDecryptorTests
         var act = () => sut.ReadPepper(srcStream, [], null, out _, out _);
 
         // Assert
-        act.Should().Throw<ArgumentNullException>();
+        _ = act.ShouldThrow<ArgumentNullException>();
     }
 
     [Fact]
@@ -88,14 +88,14 @@ public class AesGcmDecryptorTests
         var sut = new AesGcmDecryptor();
         var srcStream = new MemoryStream([1, 2, 3]);
         var trgStream = new MemoryStream();
-        new AesGcmEncryptor().Encrypt(srcStream, trgStream, TestRefs.TestKey, new());
+        _ = new AesGcmEncryptor().Encrypt(srcStream, trgStream, TestRefs.TestKey, []);
         var badKey = new byte[] { 9, 9, 0 };
 
         // Act
         var act = () => sut.ReadPepper(trgStream, badKey, null, out _, out _);
 
         // Assert
-        act.Should().Throw<InvalidDataException>();
+        _ = act.ShouldThrow<InvalidDataException>();
     }
 
     [Fact]
@@ -107,7 +107,7 @@ public class AesGcmDecryptorTests
         Array.Fill(buf, (byte)4);
         var srcStream = new MemoryStream(buf);
         var trgStream = new MemoryStream();
-        new AesGcmEncryptor().Encrypt(srcStream, trgStream, TestRefs.TestKey, new());
+        _ = new AesGcmEncryptor().Encrypt(srcStream, trgStream, TestRefs.TestKey, []);
         var encrypted = trgStream.ToArray();
         var x = new Span<byte>(encrypted, encrypted.Length - 128, 128);
         var sutBuf = new byte[4096 - 128].Concat(x.ToArray()).ToArray();
@@ -117,7 +117,7 @@ public class AesGcmDecryptorTests
         var act = () => sut.ReadPepper(trgStream, TestRefs.TestKey, null, out _, out _);
 
         // Assert
-        act.Should().NotThrow();
+        _ = act.ShouldNotThrow();
     }
 
     [Fact]
@@ -127,13 +127,13 @@ public class AesGcmDecryptorTests
         var sut = new AesGcmDecryptor();
         var srcStream = new MemoryStream([1, 2, 3]);
         var trgStream = new MemoryStream();
-        new AesGcmEncryptor().Encrypt(srcStream, trgStream, TestRefs.TestKey, new());
+        _ = new AesGcmEncryptor().Encrypt(srcStream, trgStream, TestRefs.TestKey, []);
 
         // Act
         var act = () => sut.ReadPepper(trgStream, TestRefs.TestKey, true, out _, out _);
 
         // Assert
-        act.Should().Throw<IOException>();
+        _ = act.ShouldThrow<IOException>();
     }
 
     [Fact]
@@ -142,7 +142,7 @@ public class AesGcmDecryptorTests
         // Arrange
         var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         File.WriteAllText(fi.FullName, "hi!!");
-        fi.EncryptInSitu(TestRefs.TestKey);
+        _ = fi.EncryptInSitu(TestRefs.TestKey);
         var mockResizer = new Mock<IArrayResizer>();
         var sut = new AesGcmDecryptor(resizer: mockResizer.Object);
         var salt = fi.ToSalt();
@@ -150,10 +150,10 @@ public class AesGcmDecryptorTests
         using var trgStream = new MemoryStream();
 
         // Act
-        sut.Decrypt(srcStream, trgStream, TestRefs.TestKey, salt, true);
+        _ = sut.Decrypt(srcStream, trgStream, TestRefs.TestKey, salt, true);
 
         // Assert
-        trgStream.Position.Should().Be(0);
+        trgStream.Position.ShouldBe(0);
         mockResizer.Verify(
             m => m.Resize(ref It.Ref<byte[]>.IsAny, 4),
             Times.Once);
@@ -166,7 +166,7 @@ public class AesGcmDecryptorTests
         var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         var expected = new Dictionary<string, string>() { ["filename"] = fi.Name };
         File.WriteAllText(fi.FullName, "hi!!");
-        fi.EncryptInSitu(TestRefs.TestKey);
+        _ = fi.EncryptInSitu(TestRefs.TestKey);
         var sut = new AesGcmDecryptor();
         var salt = fi.ToSalt();
         using var srcStream = fi.OpenRead();
@@ -176,7 +176,7 @@ public class AesGcmDecryptorTests
         var result = sut.Decrypt(srcStream, trgStream, TestRefs.TestKey, salt, true);
 
         // Assert
-        result.Should().BeEquivalentTo(expected);
+        result.ShouldBeEquivalentTo(expected);
     }
 
     [Fact]
@@ -186,7 +186,7 @@ public class AesGcmDecryptorTests
         var fi = new FileInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}.txt"));
         File.WriteAllText(fi.FullName, "hi!!");
         const int bufferLength = 4;
-        fi.EncryptInSitu(TestRefs.TestKey, bufferLength: bufferLength);
+        _ = fi.EncryptInSitu(TestRefs.TestKey, bufferLength: bufferLength);
         var mockResizer = new Mock<IArrayResizer>();
         var sut = new AesGcmDecryptor(resizer: mockResizer.Object);
         var salt = fi.ToSalt();
@@ -194,7 +194,7 @@ public class AesGcmDecryptorTests
         using var trgStream = new MemoryStream();
 
         // Act
-        sut.Decrypt(srcStream, trgStream, TestRefs.TestKey, salt, true, bufferLength);
+        _ = sut.Decrypt(srcStream, trgStream, TestRefs.TestKey, salt, true, bufferLength);
 
         // Assert
         mockResizer.Verify(
@@ -213,7 +213,7 @@ public class AesGcmDecryptorTests
         var act = () => sut.DecryptBlock(null!, [], [], default);
 
         // Assert
-        act.Should().Throw<ArgumentNullException>();
+        _ = act.ShouldThrow<ArgumentNullException>();
     }
 
     [Fact]
@@ -229,7 +229,7 @@ public class AesGcmDecryptorTests
         var act = () => sut.DecryptBlock(block, key, 1L.RaiseBits(), true);
 
         // Assert
-        act.Should().Throw<AuthenticationTagMismatchException>();
+        _ = act.ShouldThrow<AuthenticationTagMismatchException>();
     }
 
     [Fact]
@@ -241,13 +241,13 @@ public class AesGcmDecryptorTests
         var sut = new AesGcmDecryptor(mockDeriver.Object);
         using var stream = new MemoryStream([1, 2, 3]);
         using var target = new MemoryStream();
-        new AesGcmEncryptor().Encrypt(stream, target, userKey, []);
+        _ = new AesGcmEncryptor().Encrypt(stream, target, userKey, []);
 
         // Act
         var act = () => sut.Decrypt(target, new MemoryStream(), userKey, [2], false);
 
         // Assert
-        act.Should().Throw<Exception>();
+        _ = act.ShouldThrow<Exception>();
         mockDeriver.Verify(
             m => m.DeriveCryptoKey(userKey, It.IsAny<byte[]>(), It.IsAny<byte[]>()));
     }

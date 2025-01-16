@@ -22,7 +22,7 @@ public class StreamExtensionsTests
         var act = () => stream.Reset();
 
         // Assert
-        act.Should().Throw<ArgumentNullException>();
+        _ = act.ShouldThrow<ArgumentNullException>();
     }
 
     [Fact]
@@ -35,7 +35,7 @@ public class StreamExtensionsTests
         var act = () => stream.Reset();
 
         // Assert
-        act.Should().NotThrow();
+        act.ShouldNotThrow();
     }
 
     [Fact]
@@ -43,13 +43,13 @@ public class StreamExtensionsTests
     {
         // Arrange
         using var stream = new UnseekableStream([1, 2, 3]);
-        stream.ReadByte();
+        _ = stream.ReadByte();
 
         // Act
         var act = () => stream.Reset();
 
         // Assert
-        act.Should().Throw<NotSupportedException>();
+        _ = act.ShouldThrow<NotSupportedException>();
     }
 
     [Fact]
@@ -57,12 +57,12 @@ public class StreamExtensionsTests
     {
         // Arrange
         using var stream = new UnseekableStream([1, 2, 3]);
-        stream.ReadByte();
+        _ = stream.ReadByte();
 
         // Act
         var act = () => stream.Reset(true);
 
         // Assert
-        act.Should().NotThrow();
+        act.ShouldNotThrow();
     }
 }

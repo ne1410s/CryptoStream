@@ -25,7 +25,7 @@ public class DirectoryExtensionsTests
         var act = () => di.HashSum(HashType.Sha256);
 
         // Assert
-        act.Should().Throw<ArgumentNullException>();
+        _ = act.ShouldThrow<ArgumentNullException>();
     }
 
     [Fact]
@@ -39,7 +39,7 @@ public class DirectoryExtensionsTests
         var hashSumBase64 = di.HashSum(HashType.Sha256).Encode(Codec.ByteBase64);
 
         // Assert
-        hashSumBase64.Should().Be("47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=");
+        hashSumBase64.ShouldBe("47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=");
     }
 
     [Theory]
@@ -50,14 +50,14 @@ public class DirectoryExtensionsTests
         // Arrange
         var di = new DirectoryInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}"));
         di.Create();
-        di.CreateSubdirectory(folderName);
+        _ = di.CreateSubdirectory(folderName);
         const string expected = "Xfbg4nYTWdMKgnUFjimfzAOBU0VF9Vz0PkGYP11MlFY=";
 
         // Act
         var hashSumBase64 = di.HashSum(HashType.Sha256, HashSumIncludes.FileContents).Encode(Codec.ByteBase64);
 
         // Assert
-        hashSumBase64.Should().Be(expected);
+        hashSumBase64.ShouldBe(expected);
     }
 
     [Fact]
@@ -74,7 +74,7 @@ public class DirectoryExtensionsTests
         var hashSum2Base64 = di2.HashSum(HashType.Sha256, HashSumIncludes.DirectoryRootName).Encode(Codec.ByteBase64);
 
         // Assert
-        hashSum1Base64.Should().Be(hashSum2Base64);
+        hashSum1Base64.ShouldBe(hashSum2Base64);
     }
 
     [Fact]
@@ -91,7 +91,7 @@ public class DirectoryExtensionsTests
         var hashSum2Base64 = di2.HashSum(HashType.Sha256, HashSumIncludes.DirectoryRootName).Encode(Codec.ByteBase64);
 
         // Assert
-        hashSum1Base64.Should().NotBe(hashSum2Base64);
+        hashSum1Base64.ShouldNotBe(hashSum2Base64);
     }
 
     [Theory]
@@ -102,13 +102,13 @@ public class DirectoryExtensionsTests
         // Arrange
         var di = new DirectoryInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}"));
         di.Create();
-        di.CreateSubdirectory(folderName);
+        _ = di.CreateSubdirectory(folderName);
 
         // Act
         var hashSumBase64 = di.HashSum(HashType.Sha256, HashSumIncludes.DirectoryStructure).Encode(Codec.ByteBase64);
 
         // Assert
-        hashSumBase64.Should().Be(expected);
+        hashSumBase64.ShouldBe(expected);
     }
 
     [Theory]
@@ -119,14 +119,14 @@ public class DirectoryExtensionsTests
         // Arrange
         var di = new DirectoryInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}"));
         di.Create();
-        di.CreateSubdirectory("mydir");
+        _ = di.CreateSubdirectory("mydir");
         File.WriteAllText(Path.Combine(di.FullName, "mydir", "file.txt"), fileText);
 
         // Act
         var hashSumBase64 = di.HashSum(HashType.Sha256).Encode(Codec.ByteBase64);
 
         // Assert
-        hashSumBase64.Should().Be(expected);
+        hashSumBase64.ShouldBe(expected);
     }
 
     [Fact]
@@ -144,7 +144,8 @@ public class DirectoryExtensionsTests
         var hashSum2Base64 = di.HashSum(HashType.Sha256).Encode(Codec.ByteBase64);
 
         // Assert
-        hashSum1Base64.Should().Be(hashSum2Base64).And.Be(expected);
+        hashSum1Base64.ShouldBe(hashSum2Base64);
+        hashSum1Base64.ShouldBe(expected);
     }
 
     [Fact]
@@ -162,7 +163,7 @@ public class DirectoryExtensionsTests
         var hashSum2Base64 = di.HashSum(HashType.Sha256, HashSumIncludes.FileTimestamp).Encode(Codec.ByteBase64);
 
         // Assert
-        hashSum1Base64.Should().NotBe(hashSum2Base64);
+        hashSum1Base64.ShouldNotBe(hashSum2Base64);
     }
 
     [Theory]
@@ -175,7 +176,7 @@ public class DirectoryExtensionsTests
         var di = new DirectoryInfo(Path.Combine("TestObjects", $"{Guid.NewGuid()}"));
         di.Create();
         File.WriteAllText(Path.Combine(di.FullName, "howdy.txt"), "howdy");
-        di.CreateSubdirectory("mydir");
+        _ = di.CreateSubdirectory("mydir");
         File.WriteAllText(Path.Combine(di.FullName, "mydir", "ho.txt"), "ho");
 
         // Act
@@ -204,7 +205,7 @@ public class DirectoryExtensionsTests
         var act = () => di.EncryptAllInSitu(TestRefs.TestKey, encryptor: mockEncryptor.Object);
 
         // Assert
-        act.Should().Throw<ArgumentNullException>();
+        _ = act.ShouldThrow<ArgumentNullException>();
     }
 
     [Fact]
@@ -212,7 +213,7 @@ public class DirectoryExtensionsTests
     {
         // Arrange
         var folder = Guid.NewGuid().ToString();
-        Directory.CreateDirectory(folder);
+        _ = Directory.CreateDirectory(folder);
         var mockEncryptor = GetMockEncryptor();
         const string secureName = "2fbdd1cbdb5f317b7e21ebb7ae7c32d166feec3be76b64d470123bf4d2c06ae5.03470a9848";
         File.Copy(Path.Combine("TestObjects", "pixel.png"), Path.Combine(folder, "pixel.png"));
@@ -238,7 +239,7 @@ public class DirectoryExtensionsTests
     {
         // Arrange
         var folder = Guid.NewGuid().ToString();
-        Directory.CreateDirectory(folder);
+        _ = Directory.CreateDirectory(folder);
         var mockEncryptor = GetMockEncryptor();
         File.Copy(Path.Combine("TestObjects", "pixel.png"), Path.Combine(folder, "pixel.png"));
         File.Copy(Path.Combine("TestObjects", "pixel.png"), Path.Combine(folder, "otherfile.png"));
@@ -263,7 +264,7 @@ public class DirectoryExtensionsTests
     {
         byte[] saltLike = [.. Guid.NewGuid().ToByteArray(), .. Guid.NewGuid().ToByteArray()];
         var mockEncryptor = new Mock<IGcmEncryptor>();
-        mockEncryptor
+        _ = mockEncryptor
             .Setup(m => m.Encrypt(
                 It.IsAny<Stream>(),
                 It.IsAny<Stream>(),
@@ -272,7 +273,7 @@ public class DirectoryExtensionsTests
                 It.IsAny<int>(),
                 It.IsAny<Stream>()))
             .Returns(saltLike);
-        mockEncryptor
+        _ = mockEncryptor
             .Setup(m => m.EncryptBlock(It.IsAny<byte[]>(), It.IsAny<byte[]>(), It.IsAny<byte[]>()))
             .Returns(new GcmEncryptedBlock([], []));
         return mockEncryptor;
