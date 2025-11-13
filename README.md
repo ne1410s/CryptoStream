@@ -27,4 +27,7 @@ gci -r -dir ../StrykerOutput | % { rm -r $_ }; dotnet stryker -o;
 
 # Pack and publish a pre-release to a local feed
 $suffix="alpha001"; dotnet pack -c Release -o nu --version-suffix $suffix; dotnet nuget push "nu\*.*$suffix.nupkg" --source localdev; gci nu/ | ri -r; rmdir nu;
+
+# Pack and publish a release to nuget.org
+$apiKey="???"; gci -r -dir ../nu | % { rm -r $_ }; dotnet pack -c Release -o nu; dotnet nuget push "nu\*.nupkg" --api-key $apiKey --source https://api.nuget.org/v3/index.json;
 ```
