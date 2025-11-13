@@ -384,6 +384,21 @@ public class FileExtensionsTests
         result.ShouldBe(expected);
     }
 
+    [Theory]
+    [InlineData(".txt", ".4bf0335059")]
+    [InlineData(".TXT", ".4bf0335059")]
+    public void ToSecureExtension_VaryingCase_ReturnsSame(string plainExtension, string expected)
+    {
+        // Arrange
+        var file = new FileInfo(new string('a', 64));
+
+        // Act
+        var result = file.ToSecureExtension(plainExtension);
+
+        // Assert
+        result.ShouldBe(expected);
+    }
+
     [Fact]
     public void ToSecureExtension_WithEncryptor_EncryptsBlock()
     {
@@ -418,6 +433,21 @@ public class FileExtensionsTests
         act.ShouldThrow<ArgumentException>().ShouldSatisfyAllConditions(
             ex => ex.ParamName.ShouldBe("secure"),
             ex => ex.Message.ShouldMatch("Unable to parse file data.*"));
+    }
+
+    [Theory]
+    [InlineData(".4bf0335059", ".txt")]
+    [InlineData(".4bf0137079", ".txt")]
+    public void ToPlainExtension_VaryingCaseLegacy_ReturnsExpected(string secureExt, string expected)
+    {
+        // Arrange
+        var file = new FileInfo(new string('a', 64) + secureExt);
+
+        // Act
+        var result = file.ToPlainExtension();
+
+        // Assert
+        result.ShouldBe(expected);
     }
 
     [Theory]

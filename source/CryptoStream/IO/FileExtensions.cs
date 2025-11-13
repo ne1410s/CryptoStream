@@ -202,7 +202,7 @@ public static class FileExtensions
         }
 
         var salt = secure.ToSalt();
-        var working = plainExtension.TrimStart('.').PadLeft(5, ' ').Decode(Codec.CharUtf8);
+        var working = plainExtension.ToLowerInvariant().TrimStart('.').PadLeft(5, ' ').Decode(Codec.CharUtf8);
         var buffer = encryptor.EncryptBlock(working, salt, 1L.RaiseBits()).MessageBuffer;
         return '.' + buffer.Encode(Codec.ByteHex);
     }
@@ -226,6 +226,6 @@ public static class FileExtensions
 
         var buffer = secure.Extension.TrimStart('.').Decode(Codec.ByteHex);
         var working = decryptor.DecryptBlock(new(buffer, []), salt, 1L.RaiseBits(), false);
-        return '.' + working.Encode(Codec.CharUtf8).Trim();
+        return '.' + working.Encode(Codec.CharUtf8).Trim().ToLowerInvariant();
     }
 }
