@@ -1,4 +1,4 @@
-name: release
+name: new release
 on:
   push:
     tags:
@@ -11,18 +11,18 @@ jobs:
     needs: call_test
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         ref: main
-    - uses: actions/setup-dotnet@v4
+    - uses: actions/setup-dotnet@v6
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 10.0.x
     - name: Pack and Publish
       env:
         READ_REPO_PACKAGES: ${{ secrets.READ_REPO_PACKAGES }}
       run: |
-        cd ./source
         vversion=${{ github.ref_name }}
+        cd ./source
         dotnet nuget add source "https://nuget.pkg.github.com/ne1410s/index.json" --name ne1410s --username ne1410s --password "${{ env.READ_REPO_PACKAGES }}" --store-password-in-clear-text
         dotnet pack -c Release -o ${{ runner.temp }}/nu -p:Version=${vversion:1}
         echo "skipping push to github feed ..."

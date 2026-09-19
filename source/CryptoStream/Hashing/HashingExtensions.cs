@@ -57,7 +57,7 @@ public static class HashingExtensions
         var seedBytes = System.Text.Encoding.UTF8.GetBytes($"{input.Length}");
         var seed = Hash(seedBytes, mode);
         var dump = new byte[seed.Length];
-        algo.TransformBlock(seed, 0, seed.Length, dump, 0);
+        _ = algo.TransformBlock(seed, 0, seed.Length, dump, 0);
 
         var skipSize = (long)(input.Length / (double)reads);
         var chunk = new byte[chunkSize];
@@ -67,10 +67,10 @@ public static class HashingExtensions
         int lastRead;
         while ((lastRead = input.Read(chunk, 0, chunkSize)) != 0)
         {
-            algo.TransformBlock(chunk, 0, lastRead, dump, 0);
+            _ = algo.TransformBlock(chunk, 0, lastRead, dump, 0);
             if (input.CanSeek)
             {
-                input.Seek(skipSize, SeekOrigin.Current);
+                _ = input.Seek(skipSize, SeekOrigin.Current);
             }
             else
             {
@@ -83,12 +83,13 @@ public static class HashingExtensions
         }
 
         input.Reset(true);
-        algo.TransformFinalBlock([], 0, 0);
+        _ = algo.TransformFinalBlock([], 0, 0);
         return algo.Hash;
     }
 
     [SuppressMessage("Security", "CA5350:Weak algo: MD5", Justification = "Not cryptography")]
     [SuppressMessage("Security", "CA5351:Weak algo: SHA1", Justification = "Not cryptography")]
+    [SuppressMessage("Security", "S4790:Weak algo", Justification = "Not cryptography")]
     private static HashAlgorithm ToAlgo(HashType mode)
         => mode switch
         {

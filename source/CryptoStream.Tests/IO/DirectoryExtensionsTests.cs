@@ -15,6 +15,8 @@ using CryptoStream.Transform;
 /// </summary>
 public class DirectoryExtensionsTests
 {
+    private static readonly CancellationToken Cancel = TestContext.Current.CancellationToken;
+
     [Fact]
     public void HashSum_NullDir_ThrowsException()
     {
@@ -156,10 +158,10 @@ public class DirectoryExtensionsTests
         di.Create();
 
         // Act
-        await File.WriteAllTextAsync(Path.Combine(di.FullName, "file.txt"), "hi!");
+        await File.WriteAllTextAsync(Path.Combine(di.FullName, "file.txt"), "hi!", Cancel);
         var hashSum1Base64 = di.HashSum(HashType.Sha256, HashSumIncludes.FileTimestamp).Encode(Codec.ByteBase64);
-        await Task.Delay(1100);
-        await File.WriteAllTextAsync(Path.Combine(di.FullName, "file.txt"), "hi!");
+        await Task.Delay(1100, Cancel);
+        await File.WriteAllTextAsync(Path.Combine(di.FullName, "file.txt"), "hi!", Cancel);
         var hashSum2Base64 = di.HashSum(HashType.Sha256, HashSumIncludes.FileTimestamp).Encode(Codec.ByteBase64);
 
         // Assert

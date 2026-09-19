@@ -11,10 +11,10 @@ jobs:
       run:
         working-directory: ./source
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-dotnet@v4
+    - uses: actions/checkout@v6
+    - uses: actions/setup-dotnet@v6
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 10.0.x
     - name: Add local packages source
       env:
         READ_REPO_PACKAGES: ${{ secrets.READ_REPO_PACKAGES }}
@@ -24,7 +24,7 @@ jobs:
     - name: Build for release
       run: dotnet build -c Release
     - name: Generate raw coverage data
-      run: dotnet test -c Release -s .runsettings; dotnet reportgenerator -targetdir:'${{ github.workspace }}/coverage' -reports:**/coverage.cobertura.xml -reporttypes:"html;jsonsummary;cobertura"
+      run: dotnet test -c Release --coverlet --coverlet-output-format cobertura --coverlet-include "[CryptoStream]*"; dotnet reportgenerator -targetdir:'${{ github.workspace }}/coverage' -reports:**/coverage.cobertura.*.xml -reporttypes:"html;jsonsummary;cobertura"
     - name: Send to coveralls
       continue-on-error: true
       uses: coverallsapp/github-action@v2
@@ -41,21 +41,19 @@ jobs:
         line=${{ fromJson(env.COVERAGE_JSON).summary.linecoverage }}
         branch=${{ fromJson(env.COVERAGE_JSON).summary.branchcoverage }}
         method=${{ fromJson(env.COVERAGE_JSON).summary.methodcoverage }}
-        [ "$line" == 100 ] && ([ "$branch" == "" ] || [ "$branch" == 100 ]) && [ "$method" == 100 ] && exit 0
+        [ "$line" = 100 ] && [ "$method" = 100 ] && { [ -z "$branch" ] || awk "BEGIN { exit !($branch >= 100) }"; } && exit 0
         exit 1
     - name: Process coverage report
       if: success() || steps.check_coverage.outcome == 'failure'
       run: |
-        dotnet reportgenerator -targetdir:'${{ github.workspace }}/drop/reports' -reports:**/coverage.cobertura.xml -reporttypes:"htmlsummary"
-        rm -f ${{ github.workspace }}/drop/reports/summary.htm
-        mv ${{ github.workspace }}/drop/reports/summary.html ${{ github.workspace }}/drop/reports/coverage-report.html
+        dotnet reportgenerator -targetdir:'${{ github.workspace }}/drop/reports' -reports:**/coverage.cobertura.*.xml -reporttypes:"html;jsonsummary"
     - name: Get mutation data
       id: gen_mutation
       if: success() || steps.check_coverage.outcome == 'failure'
       run: dotnet stryker -O ${{ github.workspace }}/drop -r json -r html
     - name: Drop artifact - reports
       if: success() || steps.check_coverage.outcome == 'failure' || steps.gen_mutation.outcome == 'failure'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: reports
         path: ${{ github.workspace }}/drop/reports
@@ -71,7 +69,5 @@ jobs:
           -H 'Host: dashboard.stryker-mutator.io' \
           -H 'X-Api-Key: ${{ env.STRYKER_DASHBOARD_API_KEY }}' \
           -d @${{ github.workspace }}/drop/reports/mutation-report.json
-      
     - name: Fail build warnings
       run: dotnet build -c Release --no-incremental /warnaserror
-

@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="../README.md" />
+    <File Path=".editorconfig" />
+    <File Path="stryker-config.json" />
+  </Folder>
+  <Project Path="CryptoStream.Tests/CryptoStream.Tests.csproj" />
+  <Project Path="CryptoStream/CryptoStream.csproj" />
+</Solution>

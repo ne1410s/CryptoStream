@@ -201,6 +201,7 @@ public class FileExtensionsTests
     [InlineData("other-junk." + TestRefs.CryptoFileName + TestRefs.CryptoFileExt, true)]
     [InlineData(TestRefs.CryptoFileName + "e", false)]
     [InlineData(TestRefs.CryptoFileName + TestRefs.CryptoFileExt + "e", false)]
+    [InlineData("hello" + TestRefs.CryptoFileExt, false)]
     public void IsSecure_VaryingFormat_ReturnsExpected(string name, bool expected)
     {
         // Arrange

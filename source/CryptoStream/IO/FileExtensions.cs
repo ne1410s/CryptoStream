@@ -52,7 +52,7 @@ public static class FileExtensions
         return match.Success
             ? match.Groups["hex"].Value.Decode(Codec.ByteHex)
             : throw new ArgumentException(
-                $"Unable to obtain salt: '{fi!.Name}'",
+                $"Unable to obtain salt: '{fi.Name}'",
                 nameof(fi));
     }
 
@@ -174,11 +174,8 @@ public static class FileExtensions
 
         var secureExt = new FileInfo(saltHex).ToSecureExtension(fi.Extension, encryptor);
         var target = Path.Combine(fi.DirectoryName, saltHex + secureExt);
-        if (target != fi.FullName)
-        {
-            File.Delete(target);
-            fi.MoveTo(target);
-        }
+        File.Delete(target);
+        fi.MoveTo(target);
 
         return saltHex;
     }
